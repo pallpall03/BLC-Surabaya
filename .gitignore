@@ -1,0 +1,77 @@
+# ==========================================
+# BLC-Surabaya (monorepo: Laravel + Next.js)
+# ==========================================
+
+# ---------- Rahasia & konfigurasi lokal ----------
+# JANGAN pernah di-commit (password DB, APP_KEY, dll.)
+.env
+.env.*
+!.env.example
+auth.json
+
+# ---------- Backend: Laravel / PHP ----------
+backend/vendor/
+backend/node_modules/
+backend/bootstrap/cache/*
+!backend/bootstrap/cache/.gitignore
+backend/public/build/
+backend/public/hot/
+backend/public/storage
+backend/storage/*.key
+backend/storage/pail/
+backend/database/*.sqlite
+backend/database/*.sqlite-journal
+backend/.phpunit.cache/
+backend/.phpunit.result.cache
+backend/.php-cs-fixer.cache
+backend/.phpactor.json
+backend/Homestead.json
+backend/Homestead.yaml
+backend/composer.phar
+
+# ---------- Frontend: Next.js / Node ----------
+node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/coverage/
+frontend/.vercel/
+frontend/next-env.d.ts
+*.tsbuildinfo
+.pnp
+.pnp.js
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# ---------- Log & file sementara ----------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# ---------- Editor & IDE ----------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+# ---------- Sistem operasi ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- Lain-lain ----------
+*.pem
+*.zip
+*.sql
+*.dump
