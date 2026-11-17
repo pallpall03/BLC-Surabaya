@@ -27,16 +27,29 @@ final class ModuleRegistry
             \App\Modules\KontenStatis\KontenUtama\KontenUtamaServiceProvider::class,
             \App\Modules\KontenStatis\SubKonten\SubKontenServiceProvider::class,
 
-            // Setting (RBAC + Profile)
+            // Setting (RBAC)
             \App\Modules\Setting\HakAkses\HakAksesServiceProvider::class,
             \App\Modules\Setting\KategoriMenu\KategoriMenuServiceProvider::class,
             \App\Modules\Setting\LevelPengguna\LevelPenggunaServiceProvider::class,
             \App\Modules\Setting\Menu\MenuServiceProvider::class,
             \App\Modules\Setting\Pengguna\PenggunaServiceProvider::class,
-            \App\Modules\Setting\InstrukturProfile\InstrukturProfileServiceProvider::class,
-            \App\Modules\Setting\KoordinatorProfile\KoordinatorProfileServiceProvider::class,
 
-            
+            // Instruktur Role
+            \App\Modules\Instruktur\Sesi\SesiServiceProvider::class,
+            \App\Modules\Instruktur\Kelas\KelasServiceProvider::class,
+            \App\Modules\Instruktur\Peserta\PesertaServiceProvider::class,
+            \App\Modules\Instruktur\Materi\MateriServiceProvider::class,
+            \App\Modules\Instruktur\Ujian\UjianServiceProvider::class,
+            \App\Modules\Instruktur\Absensi\AbsensiServiceProvider::class,
+            \App\Modules\Instruktur\LaporanKegiatan\LaporanKegiatanServiceProvider::class,
+            \App\Modules\Instruktur\InstrukturProfile\InstrukturProfileServiceProvider::class,
+
+            // Koordinator Role
+            \App\Modules\Koordinator\Dashboard\DashboardServiceProvider::class,
+            \App\Modules\Koordinator\RekapPesertaPengunjung\RekapPesertaPengunjungServiceProvider::class,
+            \App\Modules\Koordinator\MasterUjian\MasterUjianServiceProvider::class,
+            \App\Modules\Koordinator\KategoriPeserta\KategoriPesertaServiceProvider::class,
+            \App\Modules\Koordinator\KoordinatorProfile\KoordinatorProfileServiceProvider::class,
         ];
     }
 }
