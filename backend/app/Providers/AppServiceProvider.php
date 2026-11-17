@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Shared\Support\ModuleRegistry;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +12,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        foreach (ModuleRegistry::providers() as $provider) {
+            $this->app->register($provider);
+        }
     }
 
     /**

@@ -8,4 +8,6 @@ Route::prefix('v1')->group(function () {
         'app' => config('app.name'),
         'time' => now()->toIso8601String(),
     ]));
+
+    require __DIR__.'/modules.php';
 });
