@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Shared\Support;
+
+/**
+ * Daftar modul admin. Dipakai untuk mendaftarkan route dan provider
+ * tanpa mengedit banyak file setiap kali ada modul baru.
+ */
+final class ModuleRegistry
+{
+    /**
+     * @return list<class-string>
+     */
+    public static function providers(): array
+        {
+            return [
+                // Admin - Data (konten landing page)
+                \App\Modules\Admin\Data\Artikel\ArtikelServiceProvider::class,
+                \App\Modules\Admin\Data\Faq\FaqServiceProvider::class,
+                \App\Modules\Admin\Data\FotoSlider\FotoSliderServiceProvider::class,
+                \App\Modules\Admin\Data\KategoriArtikel\KategoriArtikelServiceProvider::class,
+                \App\Modules\Admin\Data\LokasiBlc\LokasiBlcServiceProvider::class,
+                \App\Modules\Admin\Data\Testimoni\TestimoniServiceProvider::class,
+                \App\Modules\Admin\Data\TimBlc\TimBlcServiceProvider::class,
+                // Admin - KontenStatis
+                \App\Modules\Admin\KontenStatis\KontenUtama\KontenUtamaServiceProvider::class,
+                \App\Modules\Admin\KontenStatis\SubKonten\SubKontenServiceProvider::class,
+                // Admin - System (pengaturan sistem/user)
+                \App\Modules\Admin\System\HakAkses\HakAksesServiceProvider::class,
+                \App\Modules\Admin\System\KategoriMenu\KategoriMenuServiceProvider::class,
+                \App\Modules\Admin\System\LevelPengguna\LevelPenggunaServiceProvider::class,
+                \App\Modules\Admin\System\Menu\MenuServiceProvider::class,
+                \App\Modules\Admin\System\Pengguna\PenggunaServiceProvider::class,
+                // Participant (portal peserta login)
+                \App\Modules\Participant\Modul\ModulServiceProvider::class,
+                \App\Modules\Participant\Ujian\UjianServiceProvider::class,
+                \App\Modules\Participant\Piagam\PiagamServiceProvider::class,
+            ];
+        }
+}
