@@ -10,4 +10,6 @@ use App\Modules\Setting\HakAkses\Domain\HakAkses;
  */
 interface HakAksesRepository extends Repository
 {
+    public function findByLevelAndModulAksi(int $levelPenggunaId, string $modul, string $aksi): mixed;
+    public function getByLevel(int $levelPenggunaId): array;
 }

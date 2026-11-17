@@ -10,4 +10,5 @@ use App\Modules\Setting\LevelPengguna\Domain\LevelPengguna;
  */
 interface LevelPenggunaRepository extends Repository
 {
+    public function findBySlug(string $slug): mixed;
 }
