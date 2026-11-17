@@ -28,26 +28,29 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <header className="bg-white/90 backdrop-blur sticky top-0 z-50 shadow-sm">
-      <nav className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+    <header className="sticky top-0 z-50 bg-white/40 backdrop-blur">
+      <nav className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-3">
-          <span className="w-12 h-12 rounded-full bg-orange-500 text-white font-bold text-xl flex items-center justify-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-500 text-xl font-bold text-white">
             blc
           </span>
-          <span className="text-orange-500 font-bold leading-tight text-sm">
-            Broadband<br />Learning<br />Center
+          <span className="text-sm font-bold leading-tight text-orange-500">
+            Broadband
+            <br />
+            Learning
+            <br />
+            Center
           </span>
         </Link>
 
-        <ul className="hidden md:flex items-center gap-8 text-sm font-semibold uppercase text-gray-600">
+        <ul className="hidden items-center gap-8 text-sm font-semibold uppercase text-gray-600 md:flex">
           {menu.map((item) =>
             item.anak ? (
-              <li key={item.label} className="relative group">
+              <li key={item.label} className="group relative">
                 <span className="cursor-pointer hover:text-orange-500">
                   {item.label} ▾
                 </span>
-                {/* ✨ ANIMASI 3: dropdown */}
-                <ul className="absolute left-0 top-full hidden group-hover:block bg-white shadow-lg rounded-lg py-2 min-w-48 normal-case font-normal">
+                <ul className="absolute left-0 top-full hidden min-w-48 rounded-lg bg-white py-2 font-normal normal-case shadow-lg group-hover:block">
                   {item.anak.map((a) => (
                     <li key={a.href}>
                       <Link
