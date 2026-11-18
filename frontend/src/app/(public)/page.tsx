@@ -1,9 +1,5 @@
-import HeroSlider from "@/components/HeroSlider";
+import HeroSection from "@/components/home/HeroSection";
 
-export default function Home() {
-  return (
-    <main>
-      <HeroSlider />
-    </main>
-  );
+export default function Beranda() {
+  return <HeroSection />;
 }

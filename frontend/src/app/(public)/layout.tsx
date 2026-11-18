@@ -1,12 +1,15 @@
-import type { ReactNode } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-export default function PublicLayout({ children }: { children: ReactNode }) {
+export default function PublicLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <>
       <Navbar />
-      <div className="flex-1">{children}</div>
+      <main>{children}</main>
       <Footer />
     </>
   );
