@@ -2,15 +2,9 @@
 
 namespace App\Modules\Admin\System\LevelPengguna\Infrastructure;
 
-<<<<<<< HEAD:backend/app/Modules/Setting/LevelPengguna/Infrastructure/EloquentLevelPenggunaRepository.php
-use App\Modules\Setting\LevelPengguna\Contracts\LevelPenggunaRepository;
-use App\Modules\Setting\LevelPengguna\Domain\LevelPengguna;
-use App\Modules\Setting\LevelPengguna\Infrastructure\LevelPenggunaModel;
-=======
 use App\Modules\Admin\System\LevelPengguna\Contracts\LevelPenggunaRepository;
 use App\Modules\Admin\System\LevelPengguna\Domain\LevelPengguna;
-use RuntimeException;
->>>>>>> 5d7fac0a9fb8538dac478b7a017c1875fe2e8c12:backend/app/Modules/Admin/System/LevelPengguna/Infrastructure/EloquentLevelPenggunaRepository.php
+use App\Modules\Admin\System\LevelPengguna\Infrastructure\LevelPenggunaModel;
 
 /**
  * Implementasi Repository untuk Level Pengguna menggunakan Eloquent.

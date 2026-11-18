@@ -2,7 +2,7 @@
 
 namespace App\Modules\Admin\System\Pengguna\Domain;
 
-use App\Modules\Setting\LevelPengguna\Domain\LevelPengguna;
+use App\Modules\Admin\System\LevelPengguna\Domain\LevelPengguna;
 
 /**
  * Entitas Pengguna (User).

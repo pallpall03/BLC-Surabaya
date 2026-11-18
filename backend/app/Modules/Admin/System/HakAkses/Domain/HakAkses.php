@@ -2,7 +2,7 @@
 
 namespace App\Modules\Admin\System\HakAkses\Domain;
 
-use App\Modules\Setting\LevelPengguna\Domain\LevelPengguna;
+use App\Modules\Admin\System\LevelPengguna\Domain\LevelPengguna;
 
 /**
  * Entitas Hak Akses (Permission).

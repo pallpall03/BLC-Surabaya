@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Setting\Pengguna\Infrastructure;
+namespace App\Modules\Admin\System\Pengguna\Infrastructure;
 
-use App\Modules\Setting\LevelPengguna\Infrastructure\LevelPenggunaModel;
+use App\Modules\Admin\System\LevelPengguna\Infrastructure\LevelPenggunaModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
