@@ -274,24 +274,28 @@ export default function PanelShell({
                     </div>
                   </div>
 
-                  <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-                    Pengaturan
-                  </p>
-                  <div className="px-2 pb-2">
-                    {pengaturan.map((p) => {
-                      const Ikon = p.ikon;
-                      return (
-                        <Link
-                          key={p.href}
-                          href={p.href}
-                          onClick={() => setProfilBuka(false)}
-                          className="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 transition hover:bg-orange-50 hover:text-orange-600"
-                        >
-                          <Ikon size={16} /> {p.label}
-                        </Link>
-                      );
-                    })}
-                  </div>
+                  {pengaturan.length > 0 && (
+                    <>
+                      <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                        Pengaturan
+                      </p>
+                    <div className="px-2 pb-2">
+                        {pengaturan.map((p) => {
+                          const Ikon = p.ikon;
+                          return (
+                            <Link
+                              key={p.href}
+                              href={p.href}
+                              onClick={() => setProfilBuka(false)}
+                              className="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 transition hover:bg-orange-50 hover:text-orange-600"
+                            >
+                              <Ikon size={16} /> {p.label}
+                            </Link>
+                          );
+                        })}
+                    </div>
+                    </>
+                  )}
                   <div className="border-t border-slate-100 p-2">
                     <Link
                       href="/login" // ganti sesuai alamat login kamu

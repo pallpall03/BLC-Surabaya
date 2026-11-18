@@ -4,7 +4,6 @@ import {
   Monitor,
   UsersRound,
   HelpCircle,
-  GraduationCap,
   BookOpen,
   Images,
   Info,
@@ -17,6 +16,7 @@ import {
   List,
   KeyRound,
   UserCog,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 
@@ -35,7 +35,7 @@ export type KonfigPeran = {
   namaAkun: string;
   namaRole: string;
   menu: MenuItem[];
-  pengaturan: MenuAnak[]; // isi dropdown profil
+  pengaturan: MenuAnak[]; // isi dropdown profil (boleh kosong)
 };
 
 const ADMIN = "/dashboard/administrator";
@@ -55,18 +55,22 @@ export const konfigPeran: Record<Peran, KonfigPeran> = {
           { label: "Manajemen User", href: `${ADMIN}/user-manager`, ikon: UserCog },
           { label: "Manajemen Menu", href: `${ADMIN}/menu`, ikon: List },
           { label: "Ubah Password", href: `${ADMIN}/ubah-password`, ikon: KeyRound },
-          { label: "Pelatihan", href: `${ADMIN}/pelatihan`, ikon: GraduationCap },
           { label: "Buku Tamu", href: `${ADMIN}/buku-tamu`, ikon: BookOpen },
           { label: "FAQ", href: `${ADMIN}/faq`, ikon: HelpCircle },
           { label: "Tim BLC", href: `${ADMIN}/tim-blc`, ikon: UsersRound },
         ],
       },
+      {
+        label: "Setting",
+        ikon: Settings,
+        anak: [
+          { label: "Hak Akses", href: `${ADMIN}/hak-akses`, ikon: ShieldCheck },
+          { label: "Kategori Menu", href: `${ADMIN}/kategori-menu`, ikon: Tags },
+          { label: "Level Pengguna", href: `${ADMIN}/level-pengguna`, ikon: Layers },
+        ],
+      },
     ],
-    pengaturan: [
-      { label: "Hak Akses", href: `${ADMIN}/hak-akses`, ikon: ShieldCheck },
-      { label: "Kategori Menu", href: `${ADMIN}/kategori-menu`, ikon: Tags },
-      { label: "Level Pengguna", href: `${ADMIN}/level-pengguna`, ikon: Layers },
-    ],
+    pengaturan: [], // dropdown admin: hanya nama, role, dan Keluar
   },
 
   operator: {
