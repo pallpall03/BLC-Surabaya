@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import AdminShell from "@/components/admin/AdminShell";
+import PanelShell from "@/components/panel/PanelShell";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
-  return <AdminShell>{children}</AdminShell>;
+export default function LayoutAdministrator({ children }: { children: ReactNode }) {
+  return <PanelShell peran="administrator">{children}</PanelShell>;
 }
