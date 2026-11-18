@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Setting\LevelPengguna\Infrastructure;
+namespace App\Modules\Admin\System\LevelPengguna\Infrastructure;
 
-use App\Modules\Setting\HakAkses\Infrastructure\HakAksesModel;
-use App\Modules\Setting\Pengguna\Infrastructure\PenggunaModel;
+use App\Modules\Admin\System\HakAkses\Infrastructure\HakAksesModel;
+use App\Modules\Admin\System\Pengguna\Infrastructure\PenggunaModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,6 +15,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 final class LevelPenggunaModel extends Model
 {
     use HasFactory;
+
+    public const ADMIN = 'admin';
+    public const OPERATOR = 'operator';
+    public const KOORDINATOR = 'koordinator';
+    public const INSTRUKTUR = 'instruktur';
+    public const USER = 'user';
 
     protected $table = 'level_pengguna';
 
@@ -69,5 +75,19 @@ final class LevelPenggunaModel extends Model
     public function scopeBySlug($query, string $slug)
     {
         return $query->where('slug', $slug);
+    }
+
+    /**
+     * @return array<string, string> slug => nama tampilan
+     */
+    public static function daftar(): array
+    {
+        return [
+            self::ADMIN => 'Admin',
+            self::OPERATOR => 'Operator',
+            self::KOORDINATOR => 'Koordinator',
+            self::INSTRUKTUR => 'Instruktur',
+            self::USER => 'User',
+        ];
     }
 }

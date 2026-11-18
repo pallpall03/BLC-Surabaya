@@ -2,16 +2,10 @@
 
 namespace App\Modules\Admin\System\HakAkses\Infrastructure;
 
-<<<<<<< HEAD:backend/app/Modules/Setting/HakAkses/Infrastructure/EloquentHakAksesRepository.php
-use App\Modules\Setting\HakAkses\Contracts\HakAksesRepository;
-use App\Modules\Setting\HakAkses\Domain\HakAkses;
-use App\Modules\Setting\HakAkses\Infrastructure\HakAksesModel;
-use App\Modules\Setting\LevelPengguna\Infrastructure\LevelPenggunaModel;
-=======
 use App\Modules\Admin\System\HakAkses\Contracts\HakAksesRepository;
 use App\Modules\Admin\System\HakAkses\Domain\HakAkses;
-use RuntimeException;
->>>>>>> 5d7fac0a9fb8538dac478b7a017c1875fe2e8c12:backend/app/Modules/Admin/System/HakAkses/Infrastructure/EloquentHakAksesRepository.php
+use App\Modules\Admin\System\HakAkses\Infrastructure\HakAksesModel;
+use App\Modules\Admin\System\LevelPengguna\Infrastructure\LevelPenggunaModel;
 
 /**
  * Implementasi Repository untuk Hak Akses menggunakan Eloquent.
@@ -80,7 +74,7 @@ final class EloquentHakAksesRepository implements HakAksesRepository
             modul: $model->modul,
             aksi: $model->aksi,
             diizinkan: $model->diizinkan,
-            levelPengguna: $model->levelPengguna ? new \App\Modules\Setting\LevelPengguna\Domain\LevelPengguna(
+            levelPengguna: $model->levelPengguna ? new \App\Modules\Admin\System\LevelPengguna\Domain\LevelPengguna(
                 id: $model->levelPengguna->id,
                 nama: $model->levelPengguna->nama,
                 slug: $model->levelPengguna->slug,
