@@ -10,4 +10,8 @@ use App\Modules\Admin\System\Menu\Domain\Menu;
  */
 interface MenuRepository extends Repository
 {
+    public function getByParent(?int $parentId): array;
+    public function getAktif(): array;
+    public function getOrdered(): array;
+    public function getTree(): array; // nested hierarchy
 }

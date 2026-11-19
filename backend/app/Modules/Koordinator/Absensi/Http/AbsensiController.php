@@ -11,8 +11,6 @@ use Illuminate\Http\JsonResponse;
 
 class AbsensiController extends \App\Http\Controllers\Controller
 {
-    private readonly AbsensiRepositoryInterface $repository;
-
     public function __construct(
         private readonly AbsensiRepositoryInterface $repository
     ) {}
