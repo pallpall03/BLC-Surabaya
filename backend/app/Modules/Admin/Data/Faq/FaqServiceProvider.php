@@ -14,14 +14,16 @@ final class FaqServiceProvider extends ServiceProvider
         $this->app->bind(FaqRepository::class, EloquentFaqRepository::class);
     }
 
-    /**
-     * Dipanggil dari routes/modules.php, bukan dari boot(),
-     * supaya rute tetap di dalam grup /api yang didaftarkan Laravel.
-     */
     public static function routes(): void
     {
         Route::prefix('faq')->group(function (): void {
             Route::get('/', [Http\FaqController::class, 'index']);
+            Route::get('/kategori/{kategori}', [Http\FaqController::class, 'byKategori']);
+            Route::post('/', [Http\FaqController::class, 'store']);
+            Route::get('/{id}', [Http\FaqController::class, 'show']);
+            Route::put('/{id}', [Http\FaqController::class, 'update']);
+            Route::patch('/{id}', [Http\FaqController::class, 'update']);
+            Route::delete('/{id}', [Http\FaqController::class, 'destroy']);
         });
     }
 }

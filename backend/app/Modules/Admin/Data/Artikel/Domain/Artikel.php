@@ -10,6 +10,14 @@ final class Artikel
 {
     public function __construct(
         public readonly ?int $id = null,
-    ) {
-    }
+        public readonly ?int $kategoriArtikelId = null,
+        public readonly string $judul = '',
+        public readonly string $keterangan = '',
+        public readonly ?string $lokasi = null,
+        public readonly ?int $createdBy = null,
+        public readonly ?string $sesiId = null,
+        public readonly bool $isDelete = false,
+        public readonly ?string $createdAt = null,
+        public readonly ?string $updatedAt = null,
+    ) {}
 }

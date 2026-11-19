@@ -14,14 +14,15 @@ final class TestimoniServiceProvider extends ServiceProvider
         $this->app->bind(TestimoniRepository::class, EloquentTestimoniRepository::class);
     }
 
-    /**
-     * Dipanggil dari routes/modules.php, bukan dari boot(),
-     * supaya rute tetap di dalam grup /api yang didaftarkan Laravel.
-     */
     public static function routes(): void
     {
         Route::prefix('testimoni')->group(function (): void {
             Route::get('/', [Http\TestimoniController::class, 'index']);
+            Route::post('/', [Http\TestimoniController::class, 'store']);
+            Route::get('/{id}', [Http\TestimoniController::class, 'show']);
+            Route::put('/{id}', [Http\TestimoniController::class, 'update']);
+            Route::patch('/{id}', [Http\TestimoniController::class, 'update']);
+            Route::delete('/{id}', [Http\TestimoniController::class, 'destroy']);
         });
     }
 }

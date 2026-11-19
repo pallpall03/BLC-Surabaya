@@ -10,4 +10,6 @@ use App\Modules\Admin\Data\LokasiBlc\Domain\LokasiBlc;
  */
 interface LokasiBlcRepository extends Repository
 {
+    public function getAktif(): array;
+    public function getByArea(string $area): array;
 }

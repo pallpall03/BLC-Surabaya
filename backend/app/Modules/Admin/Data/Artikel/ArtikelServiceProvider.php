@@ -19,9 +19,16 @@ final class ArtikelServiceProvider extends ServiceProvider
      * supaya rute tetap di dalam grup /api yang didaftarkan Laravel.
      */
     public static function routes(): void
-    {
-        Route::prefix('artikel')->group(function (): void {
-            Route::get('/', [Http\ArtikelController::class, 'index']);
-        });
-    }
+        {
+            Route::prefix('artikel')->group(function (): void {
+                Route::get('/', [Http\ArtikelController::class, 'index']);
+                Route::get('/latest', [Http\ArtikelController::class, 'latest']);
+                Route::get('/kategori/{kategoriId}', [Http\ArtikelController::class, 'byKategori']);
+                Route::post('/', [Http\ArtikelController::class, 'store']);
+                Route::get('/{id}', [Http\ArtikelController::class, 'show']);
+                Route::put('/{id}', [Http\ArtikelController::class, 'update']);
+                Route::patch('/{id}', [Http\ArtikelController::class, 'update']);
+                Route::delete('/{id}', [Http\ArtikelController::class, 'destroy']);
+            });
+        }
 }

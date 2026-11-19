@@ -14,14 +14,15 @@ final class FotoSliderServiceProvider extends ServiceProvider
         $this->app->bind(FotoSliderRepository::class, EloquentFotoSliderRepository::class);
     }
 
-    /**
-     * Dipanggil dari routes/modules.php, bukan dari boot(),
-     * supaya rute tetap di dalam grup /api yang didaftarkan Laravel.
-     */
     public static function routes(): void
     {
         Route::prefix('foto-slider')->group(function (): void {
             Route::get('/', [Http\FotoSliderController::class, 'index']);
+            Route::post('/', [Http\FotoSliderController::class, 'store']);
+            Route::get('/{id}', [Http\FotoSliderController::class, 'show']);
+            Route::put('/{id}', [Http\FotoSliderController::class, 'update']);
+            Route::patch('/{id}', [Http\FotoSliderController::class, 'update']);
+            Route::delete('/{id}', [Http\FotoSliderController::class, 'destroy']);
         });
     }
 }
