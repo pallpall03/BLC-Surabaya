@@ -2,11 +2,11 @@ import Link from "next/link";
 import { Images, Info, Newspaper, MapPin, Mail, ArrowRight } from "lucide-react";
 
 const pintasan = [
-  { label: "Slider Beranda", info: "Atur gambar slide di beranda", href: "/dashboard/operator/slider", ikon: Images },
-  { label: "Informasi", info: "Kelola sub-konten website", href: "/dashboard/operator/informasi", ikon: Info },
-  { label: "Artikel", info: "Tulis dan ubah artikel", href: "/dashboard/operator/artikel", ikon: Newspaper },
-  { label: "Lokasi", info: "Perbarui lokasi BLC", href: "/dashboard/operator/lokasi", ikon: MapPin },
-  { label: "Kontak", info: "Ubah data kontak", href: "/dashboard/operator/kontak", ikon: Mail },
+  { label: "Slider Beranda", info: "Atur gambar slide di beranda", href: "/operator/slider", ikon: Images },
+  { label: "Informasi", info: "Kelola sub-konten website", href: "/operator/informasi", ikon: Info },
+  { label: "Artikel", info: "Tulis dan ubah artikel", href: "/operator/artikel", ikon: Newspaper },
+  { label: "Lokasi", info: "Perbarui lokasi BLC", href: "/operator/lokasi", ikon: MapPin },
+  { label: "Kontak", info: "Ubah data kontak", href: "/operator/kontak", ikon: Mail },
 ];
 
 export default function BerandaOperator() {
