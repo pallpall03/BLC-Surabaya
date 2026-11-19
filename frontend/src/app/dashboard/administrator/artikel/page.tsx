@@ -12,15 +12,15 @@ export default function KelolaArtikel() {
   const [editId, setEditId] = useState<number | null>(null);
 
   async function muatUlang() {
-    const res = await fetch("/api/artikel");
-    setDaftar(await res.json());
-  }
+      const res = await fetch("/api/v1/artikel");
+      setDaftar(await res.json());
+    }
 
-  useEffect(() => {
-    fetch("/api/artikel")
-      .then((res) => res.json())
-      .then(setDaftar);
-  }, []);
+    useEffect(() => {
+      fetch("/api/v1/artikel")
+        .then((res) => res.json())
+        .then(setDaftar);
+    }, []);
 
   function resetForm() {
     setJudul("");
@@ -30,20 +30,20 @@ export default function KelolaArtikel() {
   }
 
   async function handleSimpan() {
-    if (!judul.trim()) return;
+      if (!judul.trim()) return;
 
-    const headers = { "Content-Type": "application/json" };
-    const body = JSON.stringify({ judul, ringkasan, status });
+      const headers = { "Content-Type": "application/json" };
+      const body = JSON.stringify({ judul, ringkasan, status });
 
-    if (editId === null) {
-      await fetch("/api/artikel", { method: "POST", headers, body });
-    } else {
-      await fetch(`/api/artikel/${editId}`, { method: "PUT", headers, body });
+      if (editId === null) {
+        await fetch("/api/v1/artikel", { method: "POST", headers, body });
+      } else {
+        await fetch(`/api/v1/artikel/${editId}`, { method: "PUT", headers, body });
+      }
+
+      await muatUlang();
+      resetForm();
     }
-
-    await muatUlang();
-    resetForm();
-  }
 
   function handleEdit(a: Artikel) {
     setEditId(a.id);
@@ -53,10 +53,10 @@ export default function KelolaArtikel() {
   }
 
   async function handleHapus(id: number) {
-    if (!confirm("Hapus artikel ini?")) return;
-    await fetch(`/api/artikel/${id}`, { method: "DELETE" });
-    await muatUlang();
-  }
+      if (!confirm("Hapus artikel ini?")) return;
+      await fetch(`/api/v1/artikel/${id}`, { method: "DELETE" });
+      await muatUlang();
+    }
 
   return (
     <div>

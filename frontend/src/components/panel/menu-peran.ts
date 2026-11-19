@@ -17,6 +17,7 @@ import {
   KeyRound,
   UserCog,
   Settings,
+  GraduationCap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -54,23 +55,24 @@ export const konfigPeran: Record<Peran, KonfigPeran> = {
         anak: [
           { label: "Manajemen User", href: `${ADMIN}/user-manager`, ikon: UserCog },
           { label: "Manajemen Menu", href: `${ADMIN}/menu`, ikon: List },
+          { label: "Menu Akses", href: `${ADMIN}/menu-akses`, ikon: ShieldCheck },
+          { label: "Konten Statis", href: `${ADMIN}/konten`, ikon: Layers },
           { label: "Ubah Password", href: `${ADMIN}/ubah-password`, ikon: KeyRound },
           { label: "Buku Tamu", href: `${ADMIN}/buku-tamu`, ikon: BookOpen },
           { label: "FAQ", href: `${ADMIN}/faq`, ikon: HelpCircle },
           { label: "Tim BLC", href: `${ADMIN}/tim-blc`, ikon: UsersRound },
-        ],
-      },
-      {
-        label: "Setting",
-        ikon: Settings,
-        anak: [
-          { label: "Hak Akses", href: `${ADMIN}/hak-akses`, ikon: ShieldCheck },
-          { label: "Kategori Menu", href: `${ADMIN}/kategori-menu`, ikon: Tags },
-          { label: "Level Pengguna", href: `${ADMIN}/level-pengguna`, ikon: Layers },
+          { label: "Kategori Artikel", href: `${ADMIN}/kategori-artikel`, ikon: Tags },
+          { label: "Artikel", href: `${ADMIN}/artikel`, ikon: Newspaper },
+          { label: "Foto Slider", href: `${ADMIN}/foto-slider`, ikon: Images },
+          { label: "Lokasi BLC", href: `${ADMIN}/lokasi-blc`, ikon: MapPin },
+          { label: "Testimoni", href: `${ADMIN}/testimoni`, ikon: UsersRound },
+          { label: "Modul", href: `${ADMIN}/modul`, ikon: List },
+          { label: "Ujian", href: `${ADMIN}/ujian`, ikon: GraduationCap },
+          { label: "Piagam", href: `${ADMIN}/piagam`, ikon: Settings },
         ],
       },
     ],
-    pengaturan: [], // dropdown admin: hanya nama, role, dan Keluar
+    pengaturan: [],
   },
 
   operator: {
