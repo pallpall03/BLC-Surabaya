@@ -7,13 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Laravel\Sanctum\HasApiTokens;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
 /**
  * Eloquent Model untuk Pengguna (User).
  * Dipakai oleh EloquentPenggunaRepository.
  * Menggunakan Sanctum HasApiTokens untuk API authentication.
  */
-final class PenggunaModel extends Model
+final class PenggunaModel extends Model implements JWTSubject
 {
     use HasFactory, HasApiTokens;
 
@@ -133,5 +134,23 @@ final class PenggunaModel extends Model
     public function canManage(): bool
     {
         return in_array($this->levelPengguna?->slug, ['super_admin', 'admin']);
+    }
+
+    /**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     */
+    public function getJWTCustomClaims(): array
+    {
+        return [
+            'level_pengguna' => $this->levelPengguna?->slug ?? 'user',
+        ];
     }
 }
