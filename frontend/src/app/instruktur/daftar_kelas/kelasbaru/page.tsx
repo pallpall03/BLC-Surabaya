@@ -4,9 +4,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarPlus, Clock } from "lucide-react";
-import HeaderHalaman from "@/components/instruktur/daftar_kelas/headerhalaman";
-import JadwalKelas from "@/components/instruktur/daftar_kelas/jadwalkelas";
-import FormKelas, { type NilaiKelas } from "@/components/instruktur/daftar_kelas/formkelas";
+import HeaderHalaman from "../components/headerhalaman";
+import JadwalKelas from "../components/jadwalkelas";
+import FormKelas, { type NilaiKelas } from "../components/formkelas";
 import { cariBentrok, KELAS_CONTOH, validasiKelas } from "../data";
 
 export default function BuatKelasPage() {

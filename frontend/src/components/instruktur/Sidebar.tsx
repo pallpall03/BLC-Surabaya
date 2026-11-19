@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  ChevronDown, ClipboardList, GraduationCap, LayoutDashboard, MapPin, Megaphone, Users, UsersRound, X,
+  Activity, ChevronDown, ClipboardList, FileText, GraduationCap, LayoutDashboard, MapPin, Megaphone, Users, UsersRound, X,FileQuestion, 
   type LucideIcon,
 } from "lucide-react";
 
@@ -81,7 +81,7 @@ export default function Sidebar({ buka, tutup }: { buka: boolean; tutup: () => v
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           <p className="px-3 pb-1 pt-2 text-xs font-medium uppercase tracking-wide text-slate-400">Menu</p>
 
-          
+
           <Item href="/instruktur/daftar_peserta" icon={Users} label="Daftar peserta" aktif={on("/instruktur/daftar_peserta")} onClick={tutup} />
           <Item href="/instruktur/daftar_kelas" icon={ClipboardList} label="Daftar kelas" aktif={on("/instruktur/daftar_kelas")} onClick={tutup} />
 
@@ -96,6 +96,12 @@ export default function Sidebar({ buka, tutup }: { buka: boolean; tutup: () => v
           </Grup>
 
           <Item href="/instruktur/sosialisasi" icon={Megaphone} label="Sosialisasi" aktif={on("/instruktur/sosialisasi")} onClick={tutup} />
+
+          <Item href="/instruktur/aktivitas" icon={Activity} label="Aktivitas" aktif={on("/instruktur/aktivitas")} onClick={tutup} />
+
+          <Item href="/instruktur/laporan_instruktur" icon={FileText} label="Laporan Instruktur" aktif={on("/instruktur/laporan_instruktur")} onClick={tutup} />
+
+          <Item href="/instruktur/master_ujian" icon={FileQuestion} label="Master ujian" aktif={on("/instruktur/master_ujian")} onClick={tutup} />
         </nav>
       </aside>
     </>
