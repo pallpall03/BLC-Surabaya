@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Clock, PencilLine } from "lucide-react";
-import HeaderHalaman from "@/components/instruktur/daftar_kelas/headerhalaman";
-import JadwalKelas from "@/components/instruktur/daftar_kelas/jadwalkelas";
-import FormKelas, { type NilaiKelas } from "@/components/instruktur/daftar_kelas/formkelas";
+import HeaderHalaman from "../../components/headerhalaman";
+import JadwalKelas from "../../components/jadwalkelas";
+import FormKelas, { type NilaiKelas } from "../../components/formkelas";
 import { cariBentrok, KELAS_CONTOH, validasiKelas } from "../../data";
 
 export default function UbahKelasPage() {

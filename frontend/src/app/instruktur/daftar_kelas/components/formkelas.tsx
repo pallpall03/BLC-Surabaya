@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { AlertTriangle, BookOpen, CalendarDays, Check, Clock, Save } from "lucide-react";
-import { HARI, MATERI, SESI } from "@/app/instruktur/daftar_kelas/data";
+import { HARI, MATERI, SESI } from "../data";
 
 export type NilaiKelas = { sesi: number; hari: string[]; materi: string };
 
