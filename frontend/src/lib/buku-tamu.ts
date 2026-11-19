@@ -23,7 +23,8 @@ export async function kirimBukuTamu(data: FormTamu): Promise<void> {
 // ===== DIPAKAI HALAMAN ADMIN (nanti butuh login) =====
 export async function ambilBukuTamu(): Promise<BukuTamu[]> {
   const res = await fetch("/api/v1/buku-tamu");
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
 export async function tandaiDibaca(id: number, dibaca: boolean): Promise<void> {

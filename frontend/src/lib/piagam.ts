@@ -11,7 +11,8 @@ export type FormPiagam = Omit<Piagam, "id">;
 
 export async function ambilPiagam(): Promise<Piagam[]> {
   const res = await fetch("/api/v1/piagam");
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
 export async function simpanPiagam(data: FormPiagam, id?: number): Promise<Piagam> {

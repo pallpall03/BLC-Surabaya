@@ -25,6 +25,7 @@ final class ModuleRegistry
             // Admin - Konten (replaces KontenUtama + SubKonten)
             \App\Modules\Admin\Konten\KontenServiceProvider::class,
             // Admin - System (pengaturan sistem/user)
+            \App\Modules\Admin\System\Pengguna\PenggunaServiceProvider::class,
             \App\Modules\Admin\System\Menu\MenuServiceProvider::class,
             \App\Modules\Admin\System\MenuAkses\MenuAksesServiceProvider::class,
             // Participant (portal peserta login)

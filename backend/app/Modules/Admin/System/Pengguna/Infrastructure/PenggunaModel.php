@@ -2,53 +2,49 @@
 
 namespace App\Modules\Admin\System\Pengguna\Infrastructure;
 
-use App\Modules\Admin\System\LevelPengguna\Infrastructure\LevelPenggunaModel;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\User as BaseUser;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Laravel\Sanctum\HasApiTokens;
-use Tymon\JWTAuth\Contracts\JWTSubject;
 
 /**
- * Eloquent Model untuk Pengguna (User).
+ * Proxy model untuk User (tabel users).
  * Dipakai oleh EloquentPenggunaRepository.
- * Menggunakan Sanctum HasApiTokens untuk API authentication.
  */
-final class PenggunaModel extends Model implements JWTSubject
+final class PenggunaModel extends BaseUser
 {
-    use HasFactory, HasApiTokens;
-
-    protected $table = 'pengguna';
+    protected $table = 'users';
 
     protected $fillable = [
-        'level_pengguna_id',
-        'nama_lengkap',
-        'email',
+        'role_id',
+        'username',
         'password',
-        'telepon',
-        'alamat',
-        'foto_profil',
+        'name',
+        'email',
+        'status',
+        'tipe',
+        'plain_password',
+        'last_login_at',
         'is_aktif',
-        'email_verified_at',
     ];
 
     protected $hidden = [
         'password',
+        'plain_password',
         'remember_token',
     ];
 
     protected $casts = [
-        'email_verified_at' => 'datetime',
         'is_aktif' => 'boolean',
+        'last_login_at' => 'datetime',
         'password' => 'hashed',
+        'email_verified_at' => 'datetime',
     ];
 
     /**
-     * Relasi ke Level Pengguna (Role)
+     * Relasi ke Role
      */
-    public function levelPengguna(): BelongsTo
+    public function role(): BelongsTo
     {
-        return $this->belongsTo(LevelPenggunaModel::class, 'level_pengguna_id');
+        return $this->belongsTo(\App\Models\Role::class, 'role_id');
     }
 
     /**
@@ -60,11 +56,11 @@ final class PenggunaModel extends Model implements JWTSubject
     }
 
     /**
-     * Scope: dengan level pengguna (eager load)
+     * Scope: dengan role (eager load)
      */
-    public function scopeWithLevel($query)
+    public function scopeWithRole($query)
     {
-        return $query->with('levelPengguna');
+        return $query->with('role');
     }
 
     /**
@@ -76,11 +72,11 @@ final class PenggunaModel extends Model implements JWTSubject
     }
 
     /**
-     * Scope: filter by level
+     * Scope: filter by role slug
      */
-    public function scopeByLevel($query, string $levelSlug)
+    public function scopeByRole($query, string $roleSlug)
     {
-        return $query->whereHas('levelPengguna', fn ($q) => $q->where('slug', $levelSlug));
+        return $query->whereHas('role', fn ($q) => $q->where('slug', $roleSlug));
     }
 
     /**
@@ -88,7 +84,7 @@ final class PenggunaModel extends Model implements JWTSubject
      */
     public function getInitialsAttribute(): string
     {
-        $words = explode(' ', trim($this->nama_lengkap));
+        $words = explode(' ', trim($this->name));
         $initials = '';
         foreach ($words as $word) {
             $initials .= mb_strtoupper($word[0]);
@@ -101,7 +97,7 @@ final class PenggunaModel extends Model implements JWTSubject
      */
     public function isSuperAdmin(): bool
     {
-        return $this->levelPengguna?->slug === 'super_admin';
+        return $this->role?->slug === 'superadmin';
     }
 
     /**
@@ -109,7 +105,7 @@ final class PenggunaModel extends Model implements JWTSubject
      */
     public function isAdmin(): bool
     {
-        return $this->levelPengguna?->slug === 'admin';
+        return $this->role?->slug === 'admin';
     }
 
     /**
@@ -117,7 +113,7 @@ final class PenggunaModel extends Model implements JWTSubject
      */
     public function isKoordinator(): bool
     {
-        return $this->levelPengguna?->slug === 'koordinator';
+        return $this->role?->slug === 'koordinator';
     }
 
     /**
@@ -125,7 +121,7 @@ final class PenggunaModel extends Model implements JWTSubject
      */
     public function isInstruktur(): bool
     {
-        return $this->levelPengguna?->slug === 'instruktur';
+        return $this->role?->slug === 'instruktur';
     }
 
     /**
@@ -133,24 +129,6 @@ final class PenggunaModel extends Model implements JWTSubject
      */
     public function canManage(): bool
     {
-        return in_array($this->levelPengguna?->slug, ['super_admin', 'admin']);
-    }
-
-    /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     */
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-
-    /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
-     */
-    public function getJWTCustomClaims(): array
-    {
-        return [
-            'level_pengguna' => $this->levelPengguna?->slug ?? 'user',
-        ];
+        return in_array($this->role?->slug, ['superadmin', 'admin']);
     }
 }

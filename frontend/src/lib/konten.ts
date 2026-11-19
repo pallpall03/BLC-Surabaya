@@ -13,7 +13,8 @@ export type FormKonten = Omit<Konten, "id">;
 
 export async function ambilKonten(): Promise<Konten[]> {
   const res = await fetch("/api/v1/konten");
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
 export async function simpanKonten(data: FormKonten, id?: number): Promise<Konten> {

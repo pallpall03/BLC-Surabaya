@@ -24,7 +24,9 @@ export default function KelolaMenuAkses() {
 
   async function muatUlang() {
     const res = await fetch(`/api/v1/menu-akses?role=${role}`);
-    setDaftar(await res.json());
+    const data = await res.json();
+    // API bisa return array langsung atau { data: [...] }
+    setDaftar(Array.isArray(data) ? data : data?.data ?? []);
   }
 
   useEffect(() => {

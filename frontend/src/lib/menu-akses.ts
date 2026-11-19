@@ -13,7 +13,8 @@ export type FormMenuAkses = Omit<MenuAkses, "id">;
 export async function ambilMenuAkses(role?: string): Promise<MenuAkses[]> {
   const url = role ? `/api/v1/menu-akses?role=${role}` : "/api/v1/menu-akses";
   const res = await fetch(url);
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
 export async function simpanMenuAkses(data: FormMenuAkses, id?: number): Promise<MenuAkses> {

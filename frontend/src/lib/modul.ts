@@ -11,7 +11,8 @@ export type FormModul = Omit<Modul, "id">;
 
 export async function ambilModul(): Promise<Modul[]> {
   const res = await fetch("/api/v1/modul");
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
 export async function simpanModul(data: FormModul, id?: number): Promise<Modul> {

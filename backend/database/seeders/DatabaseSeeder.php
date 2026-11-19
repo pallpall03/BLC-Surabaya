@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             MenuSeeder::class,
             MenuAksesSeeder::class,
+            // Admin - System (pengaturan sistem/user)
+            PenggunaSeeder::class,
             // Admin - Data (konten landing page)
             KategoriArtikelSeeder::class,
             ArtikelSeeder::class,

@@ -13,7 +13,8 @@ export type FormUjian = Omit<Ujian, "id">;
 
 export async function ambilUjian(): Promise<Ujian[]> {
   const res = await fetch("/api/v1/ujian");
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
 export async function simpanUjian(data: FormUjian, id?: number): Promise<Ujian> {

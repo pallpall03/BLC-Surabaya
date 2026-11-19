@@ -15,7 +15,8 @@ export type FormTestimoni = Omit<Testimoni, "id" | "foto"> & {
 
 export async function ambilTestimoni(): Promise<Testimoni[]> {
   const res = await fetch("/api/v1/testimoni");
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
 export async function simpanTestimoni(data: FormTestimoni, id?: number): Promise<Testimoni> {

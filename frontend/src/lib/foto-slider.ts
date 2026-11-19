@@ -14,7 +14,8 @@ export type FormFotoSlider = Omit<FotoSlider, "id" | "gambar"> & {
 
 export async function ambilFotoSlider(): Promise<FotoSlider[]> {
   const res = await fetch("/api/v1/foto-slider");
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
 export async function simpanFotoSlider(data: FormFotoSlider, id?: number): Promise<FotoSlider> {

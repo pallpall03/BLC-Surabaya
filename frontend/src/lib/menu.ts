@@ -15,7 +15,9 @@ export type FormMenu = Omit<MenuData, "id">;
 
 export async function ambilMenu(): Promise<MenuData[]> {
   const res = await fetch("/api/v1/menu");
-  return res.json();
+  const data = await res.json();
+  // API bisa return array langsung atau { data: [...] }
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
 export async function simpanMenu(data: FormMenu, id?: number): Promise<MenuData> {

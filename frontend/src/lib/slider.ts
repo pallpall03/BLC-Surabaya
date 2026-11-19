@@ -7,7 +7,8 @@ export type Slide = {
 
 export async function ambilSlide(): Promise<Slide[]> {
   const res = await fetch("/api/v1/foto-slider");
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
 export async function tambahSlide(data: FormData): Promise<Slide> {

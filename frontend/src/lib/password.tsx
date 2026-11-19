@@ -24,7 +24,8 @@ export type AkunUser = {
 // SEMENTARA: data contoh. NANTI DIGANTI fetch GET ke backend (filter per role).
 export async function ambilUserPerRole(role: RoleUser): Promise<AkunUser[]> {
   const res = await fetch(`/api/v1/users?role=${role}`);
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
 // SEMENTARA: tidak melakukan apa-apa. NANTI DIGANTI fetch PUT/POST ke backend.

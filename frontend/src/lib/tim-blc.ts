@@ -18,7 +18,8 @@ export type FormTim = {
 
 export async function ambilTim(): Promise<Anggota[]> {
   const res = await fetch("/api/v1/tim-blc");
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
 export async function simpanAnggota(data: FormTim, id?: number): Promise<Anggota> {

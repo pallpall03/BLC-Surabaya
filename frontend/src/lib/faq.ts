@@ -10,7 +10,8 @@ export type FormFaq = Omit<Faq, "id">;
 
 export async function ambilFaq(): Promise<Faq[]> {
   const res = await fetch("/api/v1/faq");
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
 export async function simpanFaq(data: FormFaq, id?: number): Promise<Faq> {

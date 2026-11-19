@@ -15,7 +15,8 @@ export type FormLokasiBlc = Omit<LokasiBlc, "id">;
 
 export async function ambilLokasiBlc(): Promise<LokasiBlc[]> {
   const res = await fetch("/api/v1/lokasi-blc");
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
 export async function simpanLokasiBlc(data: FormLokasiBlc, id?: number): Promise<LokasiBlc> {
