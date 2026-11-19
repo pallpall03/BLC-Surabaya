@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { CheckCircle2, ClipboardList, Mars, Search, SearchX, UserCheck, UserMinus, UserPlus, Venus } from "lucide-react";
-import HeaderHalaman from "@/components/instruktur/daftar_kelas/headerhalaman";
+import HeaderHalaman from "../../components/headerhalaman";
 import { CALON_PESERTA, jamSesi, KELAS_CONTOH, type CalonPeserta } from "../../data";
 
 const kartu = "rounded-2xl border border-orange-200 bg-white shadow-xl shadow-orange-300/40";

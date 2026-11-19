@@ -1,5 +1,5 @@
 import { AlertTriangle, CalendarDays, Check, Clock, Plus } from "lucide-react";
-import { HARI, MATERI, SESI, type Kelas } from "@/app/instruktur/daftar_kelas/data";
+import { HARI, MATERI, SESI, type Kelas } from "../data";
 
 // Warna kartu per materi (urutan mengikuti daftar MATERI)
 const WARNA = [

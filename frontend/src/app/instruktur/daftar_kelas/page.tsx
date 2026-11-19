@@ -5,8 +5,8 @@ import Link from "next/link";
 import {
   CalendarDays, CheckCircle2, Clock, Pencil, Plus, Printer, RotateCcw, Search, SearchX, Trash2, UserPlus, Users,
 } from "lucide-react";
-import HeaderHalaman from "@/components/instruktur/daftar_kelas/headerhalaman";
-import JadwalKelas from "@/components/instruktur/daftar_kelas/jadwalkelas";
+import HeaderHalaman from "./components/headerhalaman";
+import JadwalKelas from "./components/jadwalkelas";
 import { jamSesi, KELAS_CONTOH, type Kelas } from "./data";
 
 type Filter = "Semua" | "Aktif" | "Selesai";
