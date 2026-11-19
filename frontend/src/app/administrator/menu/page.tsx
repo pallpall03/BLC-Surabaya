@@ -8,8 +8,8 @@ import { ambilIkon, daftarIkon } from "@/lib/ikon";
 
 // menu yang tidak boleh dihapus/dinonaktifkan, supaya admin tidak mengunci dirinya sendiri
 const DILINDUNGI = [
-  "/dashboard/administrator/menu",
-  "/dashboard/administrator/user-manager",
+  "/administrator/menu",
+  "/administrator/user-manager",
 ];
 const dilindungi = (m: MenuData) =>
   m.role === "administrator" && DILINDUNGI.includes(m.href);

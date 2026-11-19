@@ -13,8 +13,8 @@ export type MenuData = {
 
 export type FormMenu = Omit<MenuData, "id">;
 
-const A = "/dashboard/administrator";
-const O = "/dashboard/operator";
+const A = "/administrator";
+const O = "/operator";
 
 const dataContoh: MenuData[] = [
   // administrator
