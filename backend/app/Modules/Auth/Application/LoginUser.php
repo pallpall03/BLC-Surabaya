@@ -6,6 +6,7 @@ use App\Modules\Admin\System\Pengguna\Infrastructure\PenggunaModel;
 use App\Modules\Auth\Contracts\UserRepository;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 /**
