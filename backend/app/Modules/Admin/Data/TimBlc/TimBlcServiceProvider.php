@@ -14,14 +14,15 @@ final class TimBlcServiceProvider extends ServiceProvider
         $this->app->bind(TimBlcRepository::class, EloquentTimBlcRepository::class);
     }
 
-    /**
-     * Dipanggil dari routes/modules.php, bukan dari boot(),
-     * supaya rute tetap di dalam grup /api yang didaftarkan Laravel.
-     */
     public static function routes(): void
     {
         Route::prefix('tim-blc')->group(function (): void {
             Route::get('/', [Http\TimBlcController::class, 'index']);
+            Route::post('/', [Http\TimBlcController::class, 'store']);
+            Route::get('/{id}', [Http\TimBlcController::class, 'show']);
+            Route::put('/{id}', [Http\TimBlcController::class, 'update']);
+            Route::patch('/{id}', [Http\TimBlcController::class, 'update']);
+            Route::delete('/{id}', [Http\TimBlcController::class, 'destroy']);
         });
     }
 }

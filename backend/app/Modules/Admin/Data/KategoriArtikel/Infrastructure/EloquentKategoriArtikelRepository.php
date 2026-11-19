@@ -4,36 +4,60 @@ namespace App\Modules\Admin\Data\KategoriArtikel\Infrastructure;
 
 use App\Modules\Admin\Data\KategoriArtikel\Contracts\KategoriArtikelRepository;
 use App\Modules\Admin\Data\KategoriArtikel\Domain\KategoriArtikel;
-use RuntimeException;
+use App\Modules\Admin\Data\KategoriArtikel\Infrastructure\KategoriArtikelModel;
 
 /**
- * Placeholder penyimpanan. Jangan diisi query sebelum tabel `kategori_artikel`
- * dipetakan dari database admin yang berjalan.
+ * Implementasi Repository untuk Kategori Artikel menggunakan Eloquent.
  */
 final class EloquentKategoriArtikelRepository implements KategoriArtikelRepository
 {
     public function all(): array
     {
-        throw new RuntimeException('KategoriArtikel: penyimpanan belum diimplementasi.');
+        return KategoriArtikelModel::ordered()->get()->map(fn ($m) => $this->toDomain($m))->all();
     }
 
     public function find(int $id): mixed
     {
-        throw new RuntimeException('KategoriArtikel: penyimpanan belum diimplementasi.');
+        $model = KategoriArtikelModel::find($id);
+        return $model ? $this->toDomain($model) : null;
     }
 
     public function create(array $data): mixed
     {
-        throw new RuntimeException('KategoriArtikel: penyimpanan belum diimplementasi.');
+        $model = KategoriArtikelModel::create($data);
+        return $this->toDomain($model->fresh());
     }
 
     public function update(int $id, array $data): mixed
     {
-        throw new RuntimeException('KategoriArtikel: penyimpanan belum diimplementasi.');
+        $model = KategoriArtikelModel::findOrFail($id);
+        $model->update($data);
+        return $this->toDomain($model->fresh());
     }
 
     public function delete(int $id): void
     {
-        throw new RuntimeException('KategoriArtikel: penyimpanan belum diimplementasi.');
+        KategoriArtikelModel::findOrFail($id)->delete();
+    }
+
+    public function getAktif(): array
+    {
+        return KategoriArtikelModel::aktif()->ordered()->get()->map(fn ($m) => $this->toDomain($m))->all();
+    }
+
+    /**
+     * Convert Eloquent Model ke Domain Entity
+     */
+    private function toDomain(KategoriArtikelModel $model): KategoriArtikel
+    {
+        return new KategoriArtikel(
+            id: $model->id,
+            jenisKategori: $model->jenis_kategori,
+            namaKelompok: $model->nama_kelompok,
+            urutan: $model->urutan,
+            isDelete: $model->is_delete,
+            createdAt: $model->created_at?->toIso8601String(),
+            updatedAt: $model->updated_at?->toIso8601String(),
+        );
     }
 }
