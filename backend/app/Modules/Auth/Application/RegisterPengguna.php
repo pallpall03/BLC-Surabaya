@@ -20,7 +20,7 @@ final class RegisterPengguna
      * @param  array{name: string, email: string, password: string, telepon?: string, alamat?: string, foto_profil?: string}  $data
      * @return array{user: PenggunaModel, token: string}
      */
-    public function handle(array $data, string $roleSlug = LevelPenggunaModel::PENGGUNA): array
+    public function handle(array $data, string $roleSlug = LevelPenggunaModel::USER): array
     {
         $user = $this->users->createWithRole($data, $roleSlug);
 

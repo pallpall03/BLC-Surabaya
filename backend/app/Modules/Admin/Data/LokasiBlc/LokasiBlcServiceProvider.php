@@ -14,14 +14,15 @@ final class LokasiBlcServiceProvider extends ServiceProvider
         $this->app->bind(LokasiBlcRepository::class, EloquentLokasiBlcRepository::class);
     }
 
-    /**
-     * Dipanggil dari routes/modules.php, bukan dari boot(),
-     * supaya rute tetap di dalam grup /api yang didaftarkan Laravel.
-     */
     public static function routes(): void
     {
         Route::prefix('lokasi-blc')->group(function (): void {
             Route::get('/', [Http\LokasiBlcController::class, 'index']);
+            Route::post('/', [Http\LokasiBlcController::class, 'store']);
+            Route::get('/{id}', [Http\LokasiBlcController::class, 'show']);
+            Route::put('/{id}', [Http\LokasiBlcController::class, 'update']);
+            Route::patch('/{id}', [Http\LokasiBlcController::class, 'update']);
+            Route::delete('/{id}', [Http\LokasiBlcController::class, 'destroy']);
         });
     }
 }

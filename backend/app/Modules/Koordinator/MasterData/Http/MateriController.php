@@ -30,48 +30,48 @@ class MateriController extends \App\Http\Controllers\Controller
     }
 
     public function store(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'judul' => 'required|string',
-            'deskripsi' => 'nullable|string',
-            'filePath' => 'nullable|string',
-            'tipe' => 'required|string|in:materi,tautan',
-            'isAktif' => 'boolean',
-        ];
+        {
+            $validated = $request->validate([
+                'judul' => 'required|string',
+                'deskripsi' => 'nullable|string',
+                'filePath' => 'nullable|string',
+                'tipe' => ['required', 'string', 'in:materi,tautan'],
+                'isAktif' => 'boolean',
+            ]);
 
-        $data = [
-            'judul' => $validated['judul'],
-            'deskripsi' => $validated['deskripsi'] ?? null,
-            'file_path' => $validated['filePath'] ?? null,
-            'tipe' => $validated['tipe'] ?? 'materi',
-            'is_aktif' => $validated['isAktif'] ?? true,
-        ];
+            $data = [
+                'judul' => $validated['judul'],
+                'deskripsi' => $validated['deskripsi'] ?? null,
+                'file_path' => $validated['filePath'] ?? null,
+                'tipe' => $validated['tipe'] ?? 'materi',
+                'is_aktif' => $validated['isAktif'] ?? true,
+            ];
 
-        $materi = $this->model->create($data);
-        return response()->json($materi, 201);
-    }
+            $materi = $this->model->create($data);
+            return response()->json($materi, 201);
+        }
 
-    public function update(Request $request, int $id): JsonResponse
-    {
-        $validated = $request->validate([
-            'judul' => 'nullable|string',
-            'deskripsi' => 'nullable|string',
-            'filePath' => 'nullable|string',
-            'tipe' => 'nullable|string|in:materi,tautan',
-            'isAktif' => 'boolean',
-        ];
+        public function update(Request $request, int $id): JsonResponse
+        {
+            $validated = $request->validate([
+                'judul' => 'nullable|string',
+                'deskripsi' => 'nullable|string',
+                'filePath' => 'nullable|string',
+                'tipe' => ['nullable', 'string', 'in:materi,tautan'],
+                'isAktif' => 'boolean',
+            ]);
 
-        $data = [
-            'judul' => $validated['judul'] ?? $this->model->find($id)->getJudul(),
-            'deskripsi' => $validated['deskripsi'] ?? $this->model->find($id)->getDeskripsi(),
-            'filePath' => $validated['filePath'] ?? $this->model->find($id)->getFilePath(),
-            'tipe' => $validated['tipe'] ?? $this->model->find($id)->getTipe(),
-            'isAktif' => $validated['isAktif'] ?? $this->model->find($id)->isAktif(),
-        ];
+            $data = [
+                'judul' => $validated['judul'] ?? $this->model->find($id)->getJudul(),
+                'deskripsi' => $validated['deskripsi'] ?? $this->model->find($id)->getDeskripsi(),
+                'file_path' => $validated['filePath'] ?? $this->model->find($id)->getFilePath(),
+                'tipe' => $validated['tipe'] ?? $this->model->find($id)->getTipe(),
+                'is_aktif' => $validated['isAktif'] ?? $this->model->find($id)->isAktif(),
+            ];
 
-        $materi = $this->model->update($id, $data);
-        return response()->json($materi);
-    }
+            $materi = $this->model->update($id, $data);
+            return response()->json($materi);
+        }
 
     public function destroy(int $id): JsonResponse
     {

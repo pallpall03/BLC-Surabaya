@@ -9,17 +9,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Role pengguna. Satu-satunya sumber role untuk autentikasi
  * (tabel `roles` + kolom `users.role_id` dari migrasi yang sudah ada).
  *
- * Ada 4 role: admin, koordinator, instruktur, dan pengguna.
- * "Peserta" (ikut pelatihan) dan "pengunjung" (tidak ikut pelatihan) adalah
- * status dari role pengguna, bukan role tersendiri. Statusnya ditentukan dari
- * data pendaftaran pelatihan nanti, setelah skema database ada.
+ * Ada 5 role: superadmin, koordinator, instruktur, operator, peserta.
  */
 final class Role extends Model
 {
-    public const ADMIN = 'admin';
+    public const SUPERADMIN = 'superadmin';
     public const KOORDINATOR = 'koordinator';
     public const INSTRUKTUR = 'instruktur';
-    public const PENGGUNA = 'pengguna';
+    public const OPERATOR = 'operator';
+    public const PESERTA = 'peserta';
 
     protected $fillable = ['slug', 'name'];
 
@@ -29,15 +27,21 @@ final class Role extends Model
     public static function daftar(): array
     {
         return [
-            self::ADMIN => 'Admin',
+            self::SUPERADMIN => 'Super Admin',
             self::KOORDINATOR => 'Koordinator',
             self::INSTRUKTUR => 'Instruktur',
-            self::PENGGUNA => 'Pengguna',
+            self::OPERATOR => 'Operator',
+            self::PESERTA => 'Peserta',
         ];
     }
 
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    public function menuAkses(): HasMany
+    {
+        return $this->hasMany(MenuAkses::class);
     }
 }

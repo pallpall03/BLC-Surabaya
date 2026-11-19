@@ -4,36 +4,76 @@ namespace App\Modules\Admin\Data\LokasiBlc\Infrastructure;
 
 use App\Modules\Admin\Data\LokasiBlc\Contracts\LokasiBlcRepository;
 use App\Modules\Admin\Data\LokasiBlc\Domain\LokasiBlc;
-use RuntimeException;
+use App\Modules\Admin\Data\LokasiBlc\Infrastructure\LokasiBlcModel;
 
 /**
- * Placeholder penyimpanan. Jangan diisi query sebelum tabel `lokasi_blc`
- * dipetakan dari database admin yang berjalan.
+ * Implementasi Repository untuk Lokasi BLC menggunakan Eloquent.
  */
 final class EloquentLokasiBlcRepository implements LokasiBlcRepository
 {
     public function all(): array
     {
-        throw new RuntimeException('LokasiBlc: penyimpanan belum diimplementasi.');
+        return LokasiBlcModel::all()->map(fn ($m) => $this->toDomain($m))->all();
     }
 
     public function find(int $id): mixed
     {
-        throw new RuntimeException('LokasiBlc: penyimpanan belum diimplementasi.');
+        $model = LokasiBlcModel::find($id);
+        return $model ? $this->toDomain($model) : null;
     }
 
     public function create(array $data): mixed
     {
-        throw new RuntimeException('LokasiBlc: penyimpanan belum diimplementasi.');
+        $model = LokasiBlcModel::create($data);
+        return $this->toDomain($model->fresh());
     }
 
     public function update(int $id, array $data): mixed
     {
-        throw new RuntimeException('LokasiBlc: penyimpanan belum diimplementasi.');
+        $model = LokasiBlcModel::findOrFail($id);
+        $model->update($data);
+        return $this->toDomain($model->fresh());
     }
 
     public function delete(int $id): void
     {
-        throw new RuntimeException('LokasiBlc: penyimpanan belum diimplementasi.');
+        LokasiBlcModel::findOrFail($id)->delete();
+    }
+
+    public function getAktif(): array
+    {
+        return LokasiBlcModel::aktif()->get()->map(fn ($m) => $this->toDomain($m))->all();
+    }
+
+    public function getByArea(string $area): array
+    {
+        return LokasiBlcModel::where('area', $area)->get()->map(fn ($m) => $this->toDomain($m))->all();
+    }
+
+    /**
+     * Convert Eloquent Model ke Domain Entity
+     */
+    private function toDomain(LokasiBlcModel $model): LokasiBlc
+    {
+        return new LokasiBlc(
+            id: $model->id,
+            namaBlc: $model->nama_blc,
+            alamat: $model->alamat,
+            fotoBlc: $model->foto_blc,
+            foto2Blc: $model->foto2_blc,
+            isDelete: $model->is_delete,
+            radius: $model->radius,
+            latitude: $model->latitude,
+            longitude: $model->longitude,
+            fotoAbsenIns: $model->foto_absen_ins,
+            verFotoAbsenIns: $model->ver_foto_absen_ins,
+            area: $model->area,
+            aktif: $model->aktif,
+            isKorwil: $model->is_korwil,
+            isTeknisiAhli: $model->is_teknisi_ahli,
+            isTeknisi: $model->is_teknisi,
+            createdAt: $model->created_at?->toIso8601String(),
+            updatedAt: $model->updated_at?->toIso8601String(),
+        );
     }
 }

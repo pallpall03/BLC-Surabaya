@@ -10,4 +10,8 @@ use App\Modules\Admin\Data\Artikel\Domain\Artikel;
  */
 interface ArtikelRepository extends Repository
 {
+    public function getByKategori(int $kategoriArtikelId): array;
+    public function getLatest(int $limit = 10): array;
+    public function getArtikelWithFotos(int $id): mixed;
+    public function getAktif(): array;
 }

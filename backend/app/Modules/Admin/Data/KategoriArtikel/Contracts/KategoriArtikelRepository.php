@@ -10,4 +10,5 @@ use App\Modules\Admin\Data\KategoriArtikel\Domain\KategoriArtikel;
  */
 interface KategoriArtikelRepository extends Repository
 {
+    public function getAktif(): array;
 }

@@ -10,4 +10,8 @@ use App\Modules\Admin\Data\TimBlc\Domain\TimBlc;
  */
 interface TimBlcRepository extends Repository
 {
+    public function getByRole(string $role): array;
+    public function getInstruktur(): array;
+    public function getKoordinator(): array;
+    public function getAktif(): array;
 }

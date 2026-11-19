@@ -10,4 +10,6 @@ use App\Modules\Admin\Data\Faq\Domain\Faq;
  */
 interface FaqRepository extends Repository
 {
+    public function getByKategori(int $kategoriId): array;
+    public function getAktif(): array;
 }
