@@ -2,18 +2,12 @@
 
 namespace App\Modules\Admin\System\Pengguna\Infrastructure;
 
-<<<<<<< HEAD:backend/app/Modules/Setting/Pengguna/Infrastructure/EloquentPenggunaRepository.php
-use App\Modules\Setting\Pengguna\Contracts\PenggunaRepository;
-use App\Modules\Setting\Pengguna\Domain\Pengguna;
-use App\Modules\Setting\Pengguna\Infrastructure\PenggunaModel;
-use App\Modules\Setting\LevelPengguna\Infrastructure\LevelPenggunaModel;
-use App\Modules\Setting\HakAkses\Contracts\HakAksesRepository;
-use Illuminate\Support\Facades\Hash;
-=======
 use App\Modules\Admin\System\Pengguna\Contracts\PenggunaRepository;
 use App\Modules\Admin\System\Pengguna\Domain\Pengguna;
-use RuntimeException;
->>>>>>> 5d7fac0a9fb8538dac478b7a017c1875fe2e8c12:backend/app/Modules/Admin/System/Pengguna/Infrastructure/EloquentPenggunaRepository.php
+use App\Modules\Admin\System\Pengguna\Infrastructure\PenggunaModel;
+use App\Modules\Admin\System\LevelPengguna\Infrastructure\LevelPenggunaModel;
+use App\Modules\Admin\System\HakAkses\Contracts\HakAksesRepository;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Implementasi Repository untuk Pengguna menggunakan Eloquent.
@@ -44,14 +38,14 @@ final class EloquentPenggunaRepository implements PenggunaRepository
     public function findByToken(string $token): mixed
     {
         $personalAccessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
-        
+
         if (!$personalAccessToken || !$personalAccessToken->tokenable) {
             return null;
         }
 
         $model = $personalAccessToken->tokenable;
         $model->load('levelPengguna');
-        
+
         return $this->toDomain($model);
     }
 
@@ -124,7 +118,7 @@ final class EloquentPenggunaRepository implements PenggunaRepository
             fotoProfil: $model->foto_profil,
             isAktif: $model->is_aktif,
             emailVerifiedAt: $model->email_verified_at?->toIso8601String(),
-            levelPengguna: $model->levelPengguna ? new \App\Modules\Setting\LevelPengguna\Domain\LevelPengguna(
+            levelPengguna: $model->levelPengguna ? new \App\Modules\Admin\System\LevelPengguna\Domain\LevelPengguna(
                 id: $model->levelPengguna->id,
                 nama: $model->levelPengguna->nama,
                 slug: $model->levelPengguna->slug,
