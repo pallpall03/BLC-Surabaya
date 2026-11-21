@@ -25,6 +25,11 @@ final class DaftarPesertaServiceProvider extends ServiceProvider
             ->group(function (): void {
                 Route::get('/', [Http\DaftarPesertaController::class, 'index']);
                 Route::post('/', [Http\DaftarPesertaController::class, 'store']);
+                Route::get('/opsi', [Http\DaftarPesertaController::class, 'opsi']);
+                Route::get('/{id}', [Http\DaftarPesertaController::class, 'show'])->whereNumber('id');
+                Route::match(['put', 'patch'], '/{id}', [Http\DaftarPesertaController::class, 'update'])->whereNumber('id');
+                Route::patch('/{id}/validasi', [Http\DaftarPesertaController::class, 'validasi'])->whereNumber('id');
+                Route::delete('/{id}', [Http\DaftarPesertaController::class, 'destroy'])->whereNumber('id');
             });
     }
 }
