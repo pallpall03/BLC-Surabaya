@@ -2,13 +2,30 @@
 
 namespace App\Modules\Instruktur\DaftarPeserta\Infrastructure;
 
+use App\Models\User;
+use App\Modules\Admin\Data\LokasiBlc\Infrastructure\LokasiBlcModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PesertaModel extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'peserta';
-    protected $guarded = ['id'];
+
+    /** Hanya kolom isian form. Status validasi diubah lewat SetValidasiPeserta (forceFill). */
+    protected $fillable = [
+        'nik',
+        'nama',
+        'jk',
+        'tanggal_lahir',
+        'telepon',
+        'alamat',
+        'lokasi_blc_id',
+        'kategori_peserta_id',
+    ];
+
     protected $casts = [
         'tanggal_lahir' => 'date',
         'tervalidasi' => 'boolean',
@@ -17,7 +34,7 @@ class PesertaModel extends Model
 
     public function lokasiBlc(): BelongsTo
     {
-        return $this->belongsTo(\App\Modules\Admin\Data\LokasiBlc\Infrastructure\LokasiBlcModel::class, 'lokasi_blc_id');
+        return $this->belongsTo(LokasiBlcModel::class, 'lokasi_blc_id');
     }
 
     public function kategoriPeserta(): BelongsTo
@@ -27,6 +44,6 @@ class PesertaModel extends Model
 
     public function divalidasiOleh(): BelongsTo
     {
-        return $this->belongsTo(\App\Modules\Admin\System\Pengguna\Infrastructure\PenggunaModel::class, 'divalidasi_oleh');
+        return $this->belongsTo(User::class, 'divalidasi_oleh');
     }
 }

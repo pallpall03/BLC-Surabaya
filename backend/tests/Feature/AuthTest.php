@@ -218,8 +218,9 @@ class AuthTest extends TestCase
         $token = $this->postJson('/api/v1/auth/login', ['email' => 'instruktur@blc.test', 'password' => 'rahasia123'])
             ->json('token');
 
-        // lolos auth + role (controller masih placeholder => 501), bukan 401/403
-        $this->withToken($token)->getJson('/api/v1/instruktur/daftar-peserta')->assertStatus(501);
+        // lolos auth + role: daftar-peserta sudah jalan (200), daftar-hadir masih placeholder (501), bukan 401/403
+        $this->withToken($token)->getJson('/api/v1/instruktur/daftar-peserta')->assertOk();
+        $this->withToken($token)->getJson('/api/v1/instruktur/daftar-hadir')->assertStatus(501);
         $this->withToken($token)->getJson('/api/v1/koordinator/monitoring')->assertStatus(403);
     }
 
