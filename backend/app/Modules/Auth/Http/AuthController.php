@@ -11,9 +11,11 @@ use App\Modules\Auth\Http\Requests\RegisterPenggunaRequest;
 use App\Modules\Auth\Http\Resources\AuthUserResource;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
 
 final class AuthController extends Controller
 {
@@ -21,14 +23,20 @@ final class AuthController extends Controller
 
     private const JEDA_DETIK = 60;
 
-    /** POST /api/v1/auth/register — untuk pengguna (role selalu pengguna). */
+    /** POST /api/v1/auth/register — khusus peserta (role selalu peserta). */
     public function register(RegisterPenggunaRequest $request, RegisterPengguna $useCase): JsonResponse
     {
-        $hasil = $useCase->handle($request->safe()->only(['name', 'email', 'password', 'telepon', 'alamat', 'foto_profil']));
+        try {
+            $hasil = $useCase->handle($request->safe()->only(['name', 'email', 'password']));
+        } catch (UniqueConstraintViolationException) {
+            // Dua pendaftaran dengan email sama pada saat bersamaan: lolos validasi, kalah di constraint DB.
+            throw ValidationException::withMessages(['email' => 'Email sudah terdaftar.']);
+        }
 
         return response()->json([
             'token' => $hasil['token'],
             'token_type' => 'Bearer',
+            'expires_in' => $hasil['expires_in'],
             'user' => new AuthUserResource($hasil['user']),
         ], 201);
     }
@@ -36,20 +44,20 @@ final class AuthController extends Controller
     /** POST /api/v1/auth/login — semua role. */
     public function login(LoginRequest $request, LoginUser $useCase): JsonResponse
     {
-        $kunci = mb_strtolower($request->string('email')->toString()).'|'.$request->ip();
+        $email = $request->validated('email');
+        $kunci = $email.'|'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($kunci, self::MAX_PERCOBAAN)) {
+            $tunggu = RateLimiter::availableIn($kunci);
+
             return response()->json([
                 'message' => 'Terlalu banyak percobaan login. Coba lagi nanti.',
-                'retry_after' => RateLimiter::availableIn($kunci),
-            ], 429);
+                'retry_after' => $tunggu,
+            ], 429)->header('Retry-After', (string) $tunggu);
         }
 
         try {
-            $hasil = $useCase->handle(
-                $request->string('email')->toString(),
-                $request->string('password')->toString(),
-            );
+            $hasil = $useCase->handle($email, $request->validated('password'));
         } catch (AuthenticationException $e) {
             RateLimiter::hit($kunci, self::JEDA_DETIK);
 
@@ -63,6 +71,7 @@ final class AuthController extends Controller
         return response()->json([
             'token' => $hasil['token'],
             'token_type' => 'Bearer',
+            'expires_in' => $hasil['expires_in'],
             'user' => new AuthUserResource($hasil['user']),
         ]);
     }
@@ -79,7 +88,7 @@ final class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         return response()->json([
-            'user' => new AuthUserResource($request->user()->load('levelPengguna')),
+            'user' => new AuthUserResource($request->user()->loadMissing('role')),
         ]);
     }
 }

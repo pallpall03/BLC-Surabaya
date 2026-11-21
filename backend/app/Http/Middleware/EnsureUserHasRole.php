@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Pembatas akses berdasarkan role. Dipakai setelah auth:sanctum.
- * Contoh: ->middleware(['auth:sanctum', 'role:instruktur,koordinator'])
+ * Pembatas akses berdasarkan role. Dipakai setelah auth:api.
+ * Contoh: ->middleware(['auth:api', 'role:instruktur,koordinator'])
  */
 final class EnsureUserHasRole
 {

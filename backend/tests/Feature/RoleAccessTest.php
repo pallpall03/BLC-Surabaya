@@ -8,7 +8,6 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class RoleAccessTest extends TestCase
@@ -35,9 +34,9 @@ class RoleAccessTest extends TestCase
 
     private function sebagai(string $roleSlug): void
     {
-        Sanctum::actingAs(User::factory()->create([
+        $this->actingAs(User::factory()->create([
             'role_id' => Role::where('slug', $roleSlug)->value('id'),
-        ]));
+        ]), 'api');
     }
 
     public function test_tanpa_login_semua_rute_role_ditolak_401(): void

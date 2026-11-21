@@ -24,7 +24,32 @@ export type AkunUser = {
 export async function ambilUserPerRole(role: RoleUser): Promise<AkunUser[]> {
   const res = await fetch(`/api/v1/users?role=${role}`);
   const data = await res.json();
-  return Array.isArray(data) ? data : data?.data ?? [];
+  const raw = Array.isArray(data) ? data : data?.data ?? [];
+  
+  // Transform backend format ke frontend format
+  return raw.map((u: {
+    id: number;
+    namaLengkap: string;
+    email: string;
+    levelSlug: string;
+  }) => ({
+    id: u.id,
+    nama: u.namaLengkap,
+    email: u.email,
+    role: mapLevelToRole(u.levelSlug),
+  }));
+}
+
+// Map backend role slug (dari tabel roles) ke frontend role
+function mapLevelToRole(slug: string): RoleUser {
+  const map: Record<string, RoleUser> = {
+    superadmin: "administrator",
+    operator: "operator",
+    instruktur: "instruktur",
+    koordinator: "koordinator",
+    peserta: "peserta",
+  };
+  return map[slug] ?? "peserta";
 }
 
 // SEMENTARA: tidak melakukan apa-apa. NANTI DIGANTI fetch PUT/POST ke backend.
@@ -33,6 +58,9 @@ export async function resetPassword(idUser: number, passwordBaru: string): Promi
   await fetch(`/api/v1/users/${idUser}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password: passwordBaru }),
+    body: JSON.stringify({ 
+      password: passwordBaru,
+      password_confirmation: passwordBaru 
+    }),
   });
 }

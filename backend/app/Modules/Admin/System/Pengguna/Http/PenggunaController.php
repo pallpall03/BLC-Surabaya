@@ -15,8 +15,26 @@ final class PenggunaController extends Controller
         private readonly PenggunaRepository $repository
     ) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
+        $roleSlug = $request->query('role');
+        
+        if ($roleSlug) {
+            $frontendToBackendRole = [
+                'administrator' => 'superadmin',
+                'operator' => 'operator',
+                'instruktur' => 'instruktur',
+                'koordinator' => 'koordinator',
+                'peserta' => 'peserta',
+            ];
+            $backendRole = $frontendToBackendRole[$roleSlug] ?? null;
+            
+            if ($backendRole) {
+                $users = $this->repository->getByRole($backendRole);
+                return response()->json(['data' => $users]);
+            }
+        }
+        
         $users = $this->repository->getAktif();
         return response()->json(['data' => $users]);
     }
@@ -45,7 +63,9 @@ final class PenggunaController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        $validated = $this->validateRequest($request, $id);
+        $isPasswordOnly = $request->has('password') && !$request->has('nama_lengkap') && !$request->has('email') && !$request->has('role');
+        
+        $validated = $this->validateRequest($request, $id, $isPasswordOnly);
 
         $user = $this->repository->update($id, $validated);
         return response()->json(['data' => $user]);
@@ -60,7 +80,7 @@ final class PenggunaController extends Controller
     /**
      * Validasi request dengan support untuk 'role' dari frontend
      */
-    private function validateRequest(Request $request, ?int $ignoreId = null): array
+    private function validateRequest(Request $request, ?int $ignoreId = null, bool $isPasswordOnly = false): array
     {
         $hasRole = $request->filled('role');
 
@@ -77,20 +97,26 @@ final class PenggunaController extends Controller
             ? $frontendToBackendRole[$request->input('role')]
             : null;
 
-        $rules = [
-            'role_id' => $hasRole && $backendRole
-                ? 'nullable'
-                : ($ignoreId ? 'sometimes|exists:roles,id' : 'required|exists:roles,id'),
-            'role' => 'sometimes|string|in:administrator,operator,instruktur,koordinator',
-            'nama_lengkap' => 'required|string|max:255',
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($ignoreId)],
-            'username' => ['sometimes', 'string', 'max:255', Rule::unique('users', 'username')->ignore($ignoreId)],
-            'password' => $ignoreId ? 'nullable|string|min:6|confirmed' : 'required|string|min:6|confirmed',
-            'telepon' => 'nullable|string|max:20',
-            'alamat' => 'nullable|string',
-            'foto_profil' => 'nullable|string|max:255',
-            'is_aktif' => 'boolean',
-        ];
+        if ($isPasswordOnly) {
+            $rules = [
+                'password' => 'required|string|min:6|confirmed',
+            ];
+        } else {
+            $rules = [
+                'role_id' => $hasRole && $backendRole
+                    ? 'nullable'
+                    : ($ignoreId ? 'sometimes|exists:roles,id' : 'required|exists:roles,id'),
+                'role' => 'sometimes|string|in:administrator,operator,instruktur,koordinator',
+                'nama_lengkap' => 'required|string|max:255',
+                'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($ignoreId)],
+                'username' => ['sometimes', 'string', 'max:255', Rule::unique('users', 'username')->ignore($ignoreId)],
+                'password' => $ignoreId ? 'nullable|string|min:6|confirmed' : 'required|string|min:6|confirmed',
+                'telepon' => 'nullable|string|max:20',
+                'alamat' => 'nullable|string',
+                'foto_profil' => 'nullable|string|max:255',
+                'is_aktif' => 'boolean',
+            ];
+        }
 
         $validated = $request->validate($rules);
 

@@ -4,13 +4,14 @@ export type User = {
   id: number;
   nickname: string;
   username: string;
+  email: string;
   aktif: boolean;
   role: RoleUser;
 };
 
 export type FormUser = {
-  nickname: string;
   username: string;
+  email: string;
   role: RoleUser;
   aktif: boolean;
   password?: string; // hanya diisi saat tambah akun baru
@@ -33,14 +34,15 @@ function transformUser(backendUser: {
   id: number;
   namaLengkap: string;
   email: string;
+  username?: string;
   isAktif: boolean;
   levelSlug: string;
-  username?: string;
 }): User {
   return {
     id: backendUser.id,
-    nickname: backendUser.namaLengkap ?? backendUser.username ?? backendUser.email,
-    username: backendUser.username ?? backendUser.email,
+    nickname: backendUser.namaLengkap,
+    username: backendUser.namaLengkap,
+    email: backendUser.email,
     aktif: backendUser.isAktif,
     role: mapLevelToRole(backendUser.levelSlug),
   };
@@ -55,8 +57,9 @@ export async function ambilUser(): Promise<User[]> {
 
 export async function simpanUser(data: FormUser, id?: number): Promise<User> {
   const payload = {
-    nama_lengkap: data.nickname,
-    email: data.username,
+    nama_lengkap: data.username,
+    username: data.username,
+    email: data.email,
     password: data.password,
     password_confirmation: data.password,
     is_aktif: data.aktif,
