@@ -3,6 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+// Halaman tujuan setelah login, menurut role dari backend.
+// Role yang halamannya belum dibuat (koordinator, peserta) sementara diarahkan ke beranda.
+const HALAMAN_ROLE: Record<string, string> = {
+  superadmin: '/administrator',
+  operator: '/operator',
+  instruktur: '/instruktur',
+};
+
 export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: '',
@@ -36,7 +44,9 @@ export default function LoginPage() {
       if (response.ok) {
         setMessage({ type: 'success', text: 'Login berhasil! Mengalihkan...' });
         localStorage.setItem('auth_token', data.token);
-        setTimeout(() => router.push('/dashboard'), 1000);
+        localStorage.setItem('auth_user', JSON.stringify(data.user));
+        const tujuan = HALAMAN_ROLE[data.user?.role?.slug] ?? '/';
+        setTimeout(() => router.push(tujuan), 800);
       } else {
         setMessage({ type: 'error', text: data.message || 'Login gagal' });
       }

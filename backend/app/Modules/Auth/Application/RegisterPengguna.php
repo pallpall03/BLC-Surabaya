@@ -2,13 +2,15 @@
 
 namespace App\Modules\Auth\Application;
 
-use App\Modules\Admin\System\LevelPengguna\Infrastructure\LevelPenggunaModel;
-use App\Modules\Admin\System\Pengguna\Infrastructure\PenggunaModel;
+use App\Models\Role;
+use App\Models\User;
 use App\Modules\Auth\Contracts\UserRepository;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 /**
- * Pendaftaran akun pengguna (calon peserta). Role SELALU pengguna dan ditentukan di sini,
+ * Pendaftaran akun peserta. Role SELALU peserta dan ditentukan di sini,
  * tidak pernah dibaca dari request (mencegah orang mendaftar sebagai admin).
+ * Role lain (instruktur, koordinator, dst.) dibuat lewat alur admin, bukan register publik.
  */
 final class RegisterPengguna
 {
@@ -17,16 +19,17 @@ final class RegisterPengguna
     }
 
     /**
-     * @param  array{name: string, email: string, password: string, telepon?: string, alamat?: string, foto_profil?: string}  $data
-     * @return array{user: PenggunaModel, token: string}
+     * @param  array{name: string, email: string, password: string}  $data
+     * @return array{user: User, token: string, expires_in: int}
      */
-    public function handle(array $data, string $roleSlug = LevelPenggunaModel::USER): array
+    public function handle(array $data, string $roleSlug = Role::PESERTA): array
     {
         $user = $this->users->createWithRole($data, $roleSlug);
 
         return [
             'user' => $user,
-            'token' => $user->createToken('auth')->plainTextToken,
+            'token' => JWTAuth::fromUser($user),
+            'expires_in' => LoginUser::detikBerlaku(),
         ];
     }
 }

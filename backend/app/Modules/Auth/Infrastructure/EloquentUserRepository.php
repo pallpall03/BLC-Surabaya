@@ -2,43 +2,38 @@
 
 namespace App\Modules\Auth\Infrastructure;
 
-use App\Modules\Admin\System\Pengguna\Infrastructure\PenggunaModel;
-use App\Modules\Admin\System\LevelPengguna\Infrastructure\LevelPenggunaModel;
+use App\Models\Role;
+use App\Models\User;
 use App\Modules\Auth\Contracts\UserRepository;
-use Illuminate\Support\Facades\Hash;
 
 /**
- * Hanya memakai tabel `pengguna` dan `level_pengguna` dari migrasi yang sudah ada.
+ * Memakai tabel `users` dan `roles` (kolom users.role_id) dari migrasi yang ada.
  */
 final class EloquentUserRepository implements UserRepository
 {
-    public function findByEmail(string $email): ?PenggunaModel
+    public function findByEmail(string $email): ?User
     {
-        return PenggunaModel::query()
-            ->with('levelPengguna')
-            ->where('email', $email)
+        return User::query()
+            ->with('role')
+            ->whereRaw('lower(email) = ?', [mb_strtolower(trim($email))])
             ->first();
     }
 
-    public function createWithRole(array $data, string $roleSlug): PenggunaModel
+    public function createWithRole(array $data, string $roleSlug): User
     {
-        $role = LevelPenggunaModel::query()
-            ->firstOrCreate(
-                ['slug' => $roleSlug],
-                ['name' => LevelPenggunaModel::daftar()[$roleSlug] ?? ucfirst($roleSlug)]
-            );
+        $role = Role::query()->firstOrCreate(
+            ['slug' => $roleSlug],
+            ['name' => Role::daftar()[$roleSlug] ?? ucfirst($roleSlug)],
+        );
 
-        $user = PenggunaModel::create([
-            'level_pengguna_id' => $role->id,
-            'nama_lengkap' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-            'telepon' => $data['telepon'] ?? null,
-            'alamat' => $data['alamat'] ?? null,
-            'foto_profil' => $data['foto_profil'] ?? null,
-            'is_aktif' => true,
+        // password berupa teks biasa: di-hash otomatis oleh cast 'hashed' pada model User.
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => mb_strtolower(trim($data['email'])),
+            'password' => $data['password'],
+            'role_id' => $role->id,
         ]);
 
-        return $user->load('levelPengguna');
+        return $user->load('role');
     }
 }

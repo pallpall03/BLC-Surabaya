@@ -20,7 +20,7 @@ final class MonitoringServiceProvider extends ServiceProvider
      */
     public static function routes(): void
     {
-        Route::middleware(['auth:sanctum', 'role:koordinator'])
+        Route::middleware(['auth:api', 'role:koordinator'])
             ->prefix('koordinator/monitoring')
             ->group(function (): void {
                 Route::get('/', [Http\MonitoringController::class, 'index']);

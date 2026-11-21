@@ -2,7 +2,7 @@
 
 namespace App\Modules\Auth\Application;
 
-use App\Modules\Admin\System\Pengguna\Infrastructure\PenggunaModel;
+use App\Models\User;
 use App\Modules\Auth\Contracts\UserRepository;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -22,7 +22,7 @@ final class LoginUser
     }
 
     /**
-     * @return array{user: PenggunaModel, token: string}
+     * @return array{user: User, token: string, expires_in: int}
      *
      * @throws AuthenticationException
      * @throws AuthorizationException
@@ -31,20 +31,32 @@ final class LoginUser
     {
         $user = $this->users->findByEmail($email);
 
-        if ($user === null || ! Hash::check($password, $user->password)) {
+        if ($user === null) {
+            // Tetap menghitung hash supaya waktu responsnya setara dengan "password salah":
+            // email yang terdaftar tidak bisa ditebak dari kecepatan respons.
+            Hash::make($password);
+
             throw new AuthenticationException('Email atau password salah.');
         }
 
-        if ($user->levelPengguna === null) {
+        if (! Hash::check($password, $user->password)) {
+            throw new AuthenticationException('Email atau password salah.');
+        }
+
+        if ($user->role === null) {
             throw new AuthorizationException('Akun ini belum memiliki role. Hubungi admin.');
         }
 
-        // Generate JWT token
-        $token = JWTAuth::fromUser($user);
-
         return [
             'user' => $user,
-            'token' => $token,
+            'token' => JWTAuth::fromUser($user),
+            'expires_in' => self::detikBerlaku(),
         ];
+    }
+
+    /** Masa berlaku token dalam detik (dari JWT_TTL di .env, satuan menit). */
+    public static function detikBerlaku(): int
+    {
+        return JWTAuth::factory()->getTTL() * 60;
     }
 }
