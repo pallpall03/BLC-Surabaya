@@ -30,11 +30,11 @@ export type KonfigPeran = {
   namaAkun: string;
   namaRole: string;
   menu: MenuItem[];
-  pengaturan: MenuAnak[]; // isi dropdown profil (boleh kosong)
+  pengaturan: MenuAnak[]; // isi dropdown profil
 };
 
-const ADMIN = "/dashboard/administrator";
-const OPERATOR = "/dashboard/operator";
+const ADMIN = "/administrator";
+const OPERATOR = "/operator";
 
 export const konfigPeran: Record<Peran, KonfigPeran> = {
   administrator: {
@@ -52,23 +52,23 @@ export const konfigPeran: Record<Peran, KonfigPeran> = {
           { label: "Ubah Password", href: `${ADMIN}/ubah-password`, ikon: KeyRound },
         ],
       },
-      {
-        label: "Konten",
-        ikon: Layers,
-        anak: [
-          { label: "Artikel", href: `${ADMIN}/artikel`, ikon: Newspaper },
-          { label: "Foto Slider", href: `${ADMIN}/foto-slider`, ikon: Images },
-          { label: "Lokasi BLC", href: `${ADMIN}/lokasi-blc`, ikon: MapPin },
-          { label: "Kategori Artikel", href: `${ADMIN}/kategori-artikel`, ikon: Tags },
-          { label: "Testimoni", href: `${ADMIN}/testimoni`, ikon: UsersRound },
-          { label: "Tim BLC", href: `${ADMIN}/tim-blc`, ikon: UsersRound },
-          { label: "FAQ", href: `${ADMIN}/faq`, ikon: HelpCircle },
-          { label: "Buku Tamu", href: `${ADMIN}/buku-tamu`, ikon: BookOpen },
-        ],
-      },
-    ],
-    pengaturan: [],
-  },
+            {
+              label: "Konten",
+              ikon: Layers,
+              anak: [
+                { label: "Artikel", href: `${ADMIN}/artikel`, ikon: Newspaper },
+                { label: "Foto Slider", href: `${ADMIN}/foto-slider`, ikon: Images },
+                { label: "Lokasi BLC", href: `${ADMIN}/lokasi-blc`, ikon: MapPin },
+                { label: "Kategori Artikel", href: `${ADMIN}/kategori-artikel`, ikon: Tags },
+                { label: "Testimoni", href: `${ADMIN}/testimoni`, ikon: UsersRound },
+                { label: "Tim BLC", href: `${ADMIN}/tim-blc`, ikon: UsersRound },
+                { label: "FAQ", href: `${ADMIN}/faq`, ikon: HelpCircle },
+                { label: "Buku Tamu", href: `${ADMIN}/buku-tamu`, ikon: BookOpen },
+              ],
+            },
+          ],
+          pengaturan: [],
+        },
 
   operator: {
     base: OPERATOR,

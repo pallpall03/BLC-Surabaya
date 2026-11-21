@@ -1,16 +1,16 @@
 import Navbar from "@/components/home/Navbar";
 import Footer from "@/components/home/Footer";
 
-export default function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Navbar />
       <main>{children}</main>
-      <Footer />
+      {/* pb-24 supaya footer tidak tertutup bottom navigation di HP */}
+      <div className="pb-24 lg:pb-0">
+        <Footer />
+      </div>
+
     </>
   );
 }

@@ -56,11 +56,10 @@ function Aksi({ p, onValidasi, onHapus }: { p: Peserta; onValidasi: () => void; 
           p.tervalidasi ? "text-slate-500 hover:bg-slate-100" : "bg-green-600 text-white shadow-sm hover:bg-green-700"}`}>
         {p.tervalidasi ? "Batalkan" : "Validasi"}
       </button>
-      <button type="button" aria-label={`Ubah ${p.nama}`} title="Ubah"
-        // TODO: buka halaman ubah peserta
+      <Link href={`/instruktur/daftar_peserta/${p.id}/ubah`} aria-label={`Ubah ${p.nama}`} title="Ubah"
         className="rounded-lg p-2 text-slate-400 transition hover:bg-sky-50 hover:text-sky-600">
         <Pencil size={16} />
-      </button>
+      </Link>
       <button type="button" onClick={onHapus} aria-label={`Hapus ${p.nama}`} title="Hapus"
         className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600">
         <Trash2 size={16} />

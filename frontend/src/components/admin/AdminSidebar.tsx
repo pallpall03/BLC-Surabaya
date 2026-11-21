@@ -18,25 +18,25 @@ const grup = [
   {
     judul: "Utama",
     menu: [
-      { href: "/dashboard/administrator", label: "Ringkasan", ikon: LayoutDashboard },
+      { href: "/administrator", label: "Ringkasan", ikon: LayoutDashboard },
     ],
   },
   {
     judul: "Konten Website",
     menu: [
-      { href: "/dashboard/administrator/slider", label: "Slider Beranda", ikon: Images },
-      { href: "/dashboard/administrator/informasi", label: "Informasi", ikon: Info },
-      { href: "/dashboard/administrator/artikel", label: "Artikel", ikon: Newspaper },
-      { href: "/dashboard/administrator/lokasi", label: "Lokasi", ikon: MapPin },
-      { href: "/dashboard/administrator/buku-tamu", label: "Buku Tamu", ikon: BookOpen },
-      { href: "/dashboard/administrator/kontak", label: "Kontak", ikon: Mail },
+      { href: "/administrator/slider", label: "Slider Beranda", ikon: Images },
+      { href: "/administrator/informasi", label: "Informasi", ikon: Info },
+      { href: "/administrator/artikel", label: "Artikel", ikon: Newspaper },
+      { href: "/administrator/lokasi", label: "Lokasi", ikon: MapPin },
+      { href: "/administrator/buku-tamu", label: "Buku Tamu", ikon: BookOpen },
+      { href: "/administrator/kontak", label: "Kontak", ikon: Mail },
     ],
   },
   {
     judul: "Sistem",
     menu: [
-      { href: "/dashboard/administrator/pengguna", label: "Pengguna", ikon: Users },
-      { href: "/dashboard/administrator/pelatihan", label: "Pelatihan", ikon: GraduationCap },
+      { href: "/administrator/pengguna", label: "Pengguna", ikon: Users },
+      { href: "/administrator/pelatihan", label: "Pelatihan", ikon: GraduationCap },
     ],
   },
 ];
@@ -65,7 +65,7 @@ export default function AdminSidebar({
         }`}
       >
         <Link
-          href="/dashboard/administrator"
+          href="/administrator"
           className="flex items-center gap-3 mb-8 px-2"
         >
           <span className="w-10 h-10 rounded-full bg-brand-500 text-white font-bold flex items-center justify-center">
@@ -82,7 +82,7 @@ export default function AdminSidebar({
             <ul className="space-y-1">
               {g.menu.map((item) => {
                 const aktif =
-                  item.href === "/dashboard/administrator"
+                  item.href === "/administrator"
                     ? pathname === item.href
                     : pathname.startsWith(item.href);
                 const Ikon = item.ikon;

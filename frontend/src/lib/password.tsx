@@ -11,7 +11,6 @@ export const daftarRole: { kode: RoleUser; label: string }[] = [
   { kode: "operator", label: "Operator" },
   { kode: "instruktur", label: "Instruktur" },
   { kode: "koordinator", label: "Koordinator" },
-  { kode: "peserta", label: "Peserta" },
 ];
 
 export type AkunUser = {

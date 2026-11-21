@@ -31,7 +31,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-const BASE = "/dashboard/administrator";
+const BASE = "/administrator";
 
 type MenuAnak = { label: string; href: string; ikon: LucideIcon };
 type MenuItem = {

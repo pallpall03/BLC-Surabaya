@@ -64,13 +64,27 @@ final class PenggunaController extends Controller
     {
         $hasRole = $request->filled('role');
 
+        // Map frontend role ke backend role slug
+        $frontendToBackendRole = [
+            'administrator' => 'superadmin',
+            'operator' => 'operator',
+            'instruktur' => 'instruktur',
+            'koordinator' => 'koordinator',
+            'peserta' => 'peserta',
+        ];
+
+        $backendRole = $hasRole && isset($frontendToBackendRole[$request->input('role')])
+            ? $frontendToBackendRole[$request->input('role')]
+            : null;
+
         $rules = [
-            'role_id' => $hasRole
+            'role_id' => $hasRole && $backendRole
                 ? 'nullable'
                 : ($ignoreId ? 'sometimes|exists:roles,id' : 'required|exists:roles,id'),
-            'role' => 'sometimes|string|in:superadmin,admin,operator,instruktur,koordinator,peserta',
-            'nama_lengkap' => 'nullable|string|max:255',
-            'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($ignoreId)],
+            'role' => 'sometimes|string|in:administrator,operator,instruktur,koordinator',
+            'nama_lengkap' => 'required|string|max:255',
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($ignoreId)],
+            'username' => ['sometimes', 'string', 'max:255', Rule::unique('users', 'username')->ignore($ignoreId)],
             'password' => $ignoreId ? 'nullable|string|min:6|confirmed' : 'required|string|min:6|confirmed',
             'telepon' => 'nullable|string|max:20',
             'alamat' => 'nullable|string',
@@ -81,8 +95,8 @@ final class PenggunaController extends Controller
         $validated = $request->validate($rules);
 
         // Map frontend role ke role_id jika role dikirim
-        if ($hasRole) {
-            $role = Role::where('slug', $validated['role'])->first();
+        if ($hasRole && $backendRole) {
+            $role = Role::where('slug', $backendRole)->first();
             if ($role) {
                 $validated['role_id'] = $role->id;
             }

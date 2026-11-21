@@ -8,6 +8,7 @@ import { ChevronDown, LogOut, Menu, UserCircle } from "lucide-react";
 // Urutan penting: yang lebih spesifik ditaruh di atas.
 const JUDUL: [string, string][] = [
   ["/instruktur/daftar_peserta/tambah_peserta", "Tambah peserta"],
+  ["/instruktur/daftar_peserta/*/ubah", "Ubah peserta"],
   ["/instruktur/daftar_peserta", "Daftar peserta"],
   ["/instruktur/daftar_kelas/kelasbaru", "Buat kelas baru"],
   ["/instruktur/daftar_kelas/*/ubah", "Ubah kelas"],
@@ -27,6 +28,7 @@ const JUDUL: [string, string][] = [
   ["/instruktur/aktivitas/*/ubah", "Ubah aktivitas"],
   ["/instruktur/aktivitas", "Aktivitas"],
   ["/instruktur/laporan_instruktur", "Laporan instruktur"],
+  
 ];
 
 // Cocokkan alamat dengan pola (awalan), * dianggap satu bagian alamat apa saja

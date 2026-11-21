@@ -13,6 +13,7 @@ export type MenuData = {
 
 export type FormMenu = Omit<MenuData, "id">;
 
+// SEMENTARA: data contoh. NANTI DIGANTI fetch GET ke backend.
 export async function ambilMenu(): Promise<MenuData[]> {
   const res = await fetch("/api/v1/menu");
   const data = await res.json();
