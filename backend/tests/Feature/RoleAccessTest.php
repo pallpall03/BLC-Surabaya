@@ -51,7 +51,8 @@ class RoleAccessTest extends TestCase
         $this->sebagai('instruktur');
 
         foreach (self::INSTRUKTUR_URLS as $url) {
-            $this->getJson($url)->assertStatus(501); // lolos middleware, controller placeholder
+            // lolos middleware; menu yang sudah dikerjakan menjawab 200, sisanya masih placeholder 501
+            $this->getJson($url)->assertStatus($url === '/api/v1/instruktur/daftar-peserta' ? 200 : 501);
         }
         foreach ([...self::KOORDINATOR_URLS, '/api/v1/peserta/ujian'] as $url) {
             $this->getJson($url)->assertStatus(403);
