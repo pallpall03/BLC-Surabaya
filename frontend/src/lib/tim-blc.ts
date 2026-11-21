@@ -16,39 +16,40 @@ export type FormTim = {
   fotoLama: string; // foto yang sudah ada (dipakai kalau tidak ganti foto)
 };
 
-const dataContoh: Anggota[] = [
-  { id: 1, nama: "Nama Kepala BLC", jabatan: "Kepala BLC", foto: "", aktif: true, urutan: 1 },
-  { id: 2, nama: "Nama Koordinator", jabatan: "Koordinator", foto: "", aktif: true, urutan: 2 },
-  { id: 3, nama: "Nama Instruktur", jabatan: "Instruktur", foto: "", aktif: true, urutan: 3 },
-  { id: 4, nama: "Nama Operator", jabatan: "Operator", foto: "", aktif: false, urutan: 4 },
-];
-
-// SEMENTARA: data contoh. NANTI DIGANTI fetch GET ke backend.
 export async function ambilTim(): Promise<Anggota[]> {
-  return dataContoh;
+  const res = await fetch("/api/v1/tim-blc");
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
-// SEMENTARA: bikin data palsu di browser.
-// NANTI DIGANTI fetch POST (tambah) / PUT (ubah) ke backend memakai FormData.
-// Kirim field "foto" hanya kalau data.foto berisi file; kalau null, biarkan foto lama.
 export async function simpanAnggota(data: FormTim, id?: number): Promise<Anggota> {
-  return {
-    id: id ?? Date.now(),
-    nama: data.nama,
-    jabatan: data.jabatan,
-    aktif: data.aktif,
-    urutan: data.urutan,
-    foto: data.foto ? URL.createObjectURL(data.foto) : data.fotoLama,
-  };
+  const formData = new FormData();
+  formData.append("nama", data.nama);
+  formData.append("jabatan", data.jabatan);
+  formData.append("aktif", String(data.aktif));
+  formData.append("urutan", String(data.urutan));
+  if (data.foto) {
+    formData.append("foto", data.foto);
+  }
+  if (data.fotoLama) {
+    formData.append("foto_lama", data.fotoLama);
+  }
+
+  const res = await fetch(id ? `/api/v1/tim-blc/${id}` : "/api/v1/tim-blc", {
+    method: id ? "PUT" : "POST",
+    body: formData,
+  });
+  return res.json();
 }
 
-// SEMENTARA: tidak melakukan apa-apa. NANTI DIGANTI fetch DELETE ke backend.
 export async function hapusAnggota(id: number): Promise<void> {
-  void id;
+  await fetch(`/api/v1/tim-blc/${id}`, { method: "DELETE" });
 }
 
-// SEMENTARA: tidak melakukan apa-apa. NANTI DIGANTI fetch PUT ke backend,
-// berisi daftar id sesuai urutan baru.
 export async function simpanUrutanTim(idBerurutan: number[]): Promise<void> {
-  void idBerurutan;
+  await fetch("/api/v1/tim-blc/urutan", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ idBerurutan }),
+  });
 }

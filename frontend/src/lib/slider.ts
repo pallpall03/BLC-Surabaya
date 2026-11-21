@@ -2,26 +2,23 @@ export type Slide = {
   id: number;
   judul: string;
   deskripsi: string;
-  gambar: string; // URL gambar (sementara: URL preview dari browser)
+  gambar: string; // URL gambar
 };
 
-// SEMENTARA: data contoh. NANTI DIGANTI fetch GET ke backend.
 export async function ambilSlide(): Promise<Slide[]> {
-  return [];
+  const res = await fetch("/api/v1/foto-slider");
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
-// SEMENTARA: bikin slide palsu di browser. NANTI DIGANTI fetch POST (FormData) ke backend.
 export async function tambahSlide(data: FormData): Promise<Slide> {
-  const file = data.get("gambar") as File;
-  return {
-    id: Date.now(),
-    judul: String(data.get("judul")),
-    deskripsi: String(data.get("deskripsi")),
-    gambar: URL.createObjectURL(file),
-  };
+  const res = await fetch("/api/v1/foto-slider", {
+    method: "POST",
+    body: data,
+  });
+  return res.json();
 }
 
-// SEMENTARA: tidak melakukan apa-apa. NANTI DIGANTI fetch DELETE ke backend.
 export async function hapusSlide(id: number): Promise<void> {
-  void id;
+  await fetch(`/api/v1/foto-slider/${id}`, { method: "DELETE" });
 }

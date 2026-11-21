@@ -1,22 +1,16 @@
 import {
   Home,
   Database,
-  Monitor,
   UsersRound,
-  HelpCircle,
-  GraduationCap,
-  BookOpen,
-  Images,
-  Info,
-  Newspaper,
-  MapPin,
-  Mail,
-  ShieldCheck,
-  Tags,
-  Layers,
   List,
   KeyRound,
-  UserCog,
+  Newspaper,
+  Images,
+  MapPin,
+  HelpCircle,
+  BookOpen,
+  Tags,
+  Layers,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,6 +24,7 @@ export type MenuItem = {
 
 export type Peran = "administrator" | "operator";
 
+// Konfigurasi menu per role
 export type KonfigPeran = {
   base: string;
   namaAkun: string;
@@ -52,21 +47,28 @@ export const konfigPeran: Record<Peran, KonfigPeran> = {
         label: "Data",
         ikon: Database,
         anak: [
-          { label: "Manajemen User", href: `${ADMIN}/user-manager`, ikon: UserCog },
+          { label: "Manajemen User", href: `${ADMIN}/user-manager`, ikon: UsersRound },
           { label: "Manajemen Menu", href: `${ADMIN}/menu`, ikon: List },
           { label: "Ubah Password", href: `${ADMIN}/ubah-password`, ikon: KeyRound },
-          { label: "Buku Tamu", href: `${ADMIN}/buku-tamu`, ikon: BookOpen },
-          { label: "FAQ", href: `${ADMIN}/faq`, ikon: HelpCircle },
-          { label: "Tim BLC", href: `${ADMIN}/tim-blc`, ikon: UsersRound },
         ],
       },
-    ],
-    pengaturan: [
-      { label: "Hak Akses", href: `${ADMIN}/hak-akses`, ikon: ShieldCheck },
-      { label: "Kategori Menu", href: `${ADMIN}/kategori-menu`, ikon: Tags },
-      { label: "Level Pengguna", href: `${ADMIN}/level-pengguna`, ikon: Layers },
-    ],
-  },
+            {
+              label: "Konten",
+              ikon: Layers,
+              anak: [
+                { label: "Artikel", href: `${ADMIN}/artikel`, ikon: Newspaper },
+                { label: "Foto Slider", href: `${ADMIN}/foto-slider`, ikon: Images },
+                { label: "Lokasi BLC", href: `${ADMIN}/lokasi-blc`, ikon: MapPin },
+                { label: "Kategori Artikel", href: `${ADMIN}/kategori-artikel`, ikon: Tags },
+                { label: "Testimoni", href: `${ADMIN}/testimoni`, ikon: UsersRound },
+                { label: "Tim BLC", href: `${ADMIN}/tim-blc`, ikon: UsersRound },
+                { label: "FAQ", href: `${ADMIN}/faq`, ikon: HelpCircle },
+                { label: "Buku Tamu", href: `${ADMIN}/buku-tamu`, ikon: BookOpen },
+              ],
+            },
+          ],
+          pengaturan: [],
+        },
 
   operator: {
     base: OPERATOR,
@@ -75,14 +77,14 @@ export const konfigPeran: Record<Peran, KonfigPeran> = {
     menu: [
       { label: "Beranda", ikon: Home, href: OPERATOR },
       {
-        label: "Konten Statis",
-        ikon: Monitor,
+        label: "Konten",
+        ikon: Database,
         anak: [
           { label: "Slider Beranda", href: `${OPERATOR}/slider`, ikon: Images },
-          { label: "Informasi", href: `${OPERATOR}/informasi`, ikon: Info },
           { label: "Artikel", href: `${OPERATOR}/artikel`, ikon: Newspaper },
           { label: "Lokasi", href: `${OPERATOR}/lokasi`, ikon: MapPin },
-          { label: "Kontak", href: `${OPERATOR}/kontak`, ikon: Mail },
+          { label: "Testimoni", href: `${OPERATOR}/testimoni`, ikon: UsersRound },
+          { label: "FAQ", href: `${OPERATOR}/faq`, ikon: HelpCircle },
         ],
       },
     ],

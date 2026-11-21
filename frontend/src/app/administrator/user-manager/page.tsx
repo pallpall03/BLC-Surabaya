@@ -28,12 +28,12 @@ export default function HalamanUserManager() {
 
   // modal tambah/ubah: null = tertutup, {} = tambah, {id} = ubah
   const [modal, setModal] = useState<{ id?: number } | null>(null);
-  const [nickname, setNickname] = useState("");
-  const [username, setUsername] = useState("");
-  const [role, setRole] = useState<RoleUser>("operator");
-  const [aktif, setAktif] = useState<boolean>(true);
-  const [password, setPassword] = useState("");
-  const [galat, setGalat] = useState("");
+    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
+    const [role, setRole] = useState<RoleUser>("operator");
+    const [aktif, setAktif] = useState<boolean>(true);
+    const [password, setPassword] = useState("");
+    const [galat, setGalat] = useState("");
 
   useEffect(() => {
     ambilUser()
@@ -57,42 +57,48 @@ export default function HalamanUserManager() {
   const tampil = hasil.slice(awal, awal + BARIS);
 
   function bukaTambah() {
-    setNickname("");
-    setUsername("");
-    setRole(tab === "semua" ? "operator" : tab);
-    setAktif(true);
-    setPassword("");
-    setGalat("");
-    setModal({});
-  }
+      setUsername("");
+      setEmail("");
+      setRole(tab === "semua" ? "operator" : tab);
+      setAktif(true);
+      setPassword("");
+      setGalat("");
+      setModal({});
+    }
 
-  function bukaUbah(u: User) {
-    setNickname(u.nickname);
-    setUsername(u.username);
-    setRole(u.role);
-    setAktif(u.aktif);
-    setPassword("");
-    setGalat("");
-    setModal({ id: u.id });
-  }
+    function bukaUbah(u: User) {
+      setUsername(u.username);
+      setEmail(u.email);
+      setRole(u.role);
+      setAktif(u.aktif);
+      setPassword("");
+      setGalat("");
+      setModal({ id: u.id });
+    }
 
   async function handleSimpan() {
-    const id = modal?.id;
+      const id = modal?.id;
 
-    if (!nickname.trim() || !username.trim()) {
-      return setGalat("Nickname dan username wajib diisi.");
-    }
-    if (daftar.some((u) => u.username === username.trim() && u.id !== id)) {
-      return setGalat("Username sudah dipakai.");
-    }
-    if (!id && password.length < 8) {
-      return setGalat("Password minimal 8 karakter.");
-    }
+      if (!username.trim() || !email.trim()) {
+        return setGalat("Username dan email wajib diisi.");
+      }
+      if (!email.includes("@")) {
+        return setGalat("Format email tidak valid.");
+      }
+      if (daftar.some((u) => u.username === username.trim() && u.id !== id)) {
+        return setGalat("Username sudah dipakai.");
+      }
+      if (daftar.some((u) => u.email === email.trim() && u.id !== id)) {
+        return setGalat("Email sudah dipakai.");
+      }
+      if (!id && password.length < 8) {
+        return setGalat("Password minimal 8 karakter.");
+      }
 
-    const hasilSimpan = await simpanUser(
-      { nickname, username: username.trim(), role, aktif, password: id ? undefined : password },
-      id
-    );
+      const hasilSimpan = await simpanUser(
+        { username: username.trim(), email: email.trim(), role, aktif, password: id ? undefined : password },
+        id
+      );
     setDaftar((lama) =>
       id ? lama.map((u) => (u.id === id ? hasilSimpan : u)) : [...lama, hasilSimpan]
     );
@@ -145,7 +151,7 @@ export default function HalamanUserManager() {
                   setCari(e.target.value);
                   setHalaman(1);
                 }}
-                placeholder="Cari nickname atau username..."
+                placeholder="Cari username atau email..."
                 className={`${inputClass} bg-slate-50 pl-9`}
               />
             </div>
@@ -189,44 +195,44 @@ export default function HalamanUserManager() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
-              <tr className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                <th className="px-6 py-3 font-semibold">No</th>
-                <th className="px-4 py-3 font-semibold">Nickname</th>
-                <th className="px-4 py-3 font-semibold">Username</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold">Role</th>
-                <th className="px-6 py-3 text-right font-semibold">Aksi</th>
-              </tr>
-            </thead>
+                          <tr className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                            <th className="px-6 py-3 font-semibold">No</th>
+                            <th className="px-4 py-3 font-semibold">Username</th>
+                            <th className="px-4 py-3 font-semibold">Email</th>
+                            <th className="px-4 py-3 font-semibold">Status</th>
+                            <th className="px-4 py-3 font-semibold">Role</th>
+                            <th className="px-6 py-3 text-right font-semibold">Aksi</th>
+                          </tr>
+                        </thead>
             <tbody className="divide-y divide-slate-100">
-              {memuat ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
-                    Memuat data...
-                  </td>
-                </tr>
-              ) : tampil.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-12">
-                    <div className="flex flex-col items-center gap-2 text-slate-400">
-                      <Users size={36} />
-                      <p>{cari ? "Akun tidak ditemukan." : "Belum ada akun di role ini."}</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                tampil.map((u, i) => (
-                  <tr key={u.id} className="transition hover:bg-slate-50">
-                    <td className="px-6 py-3.5 text-slate-400">{awal + i + 1}</td>
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-100 text-sm font-bold text-violet-600">
-                          {u.nickname.charAt(0).toUpperCase()}
-                        </span>
-                        <span className="font-medium text-slate-800">{u.nickname}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3.5 text-slate-500">{u.username}</td>
+                          {memuat ? (
+                            <tr>
+                              <td colSpan={6} className="py-12 text-center text-slate-400">
+                                Memuat data...
+                              </td>
+                            </tr>
+                          ) : tampil.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="py-12">
+                                <div className="flex flex-col items-center gap-2 text-slate-400">
+                                  <Users size={36} />
+                                  <p>{cari ? "Akun tidak ditemukan." : "Belum ada akun di role ini."}</p>
+                                </div>
+                              </td>
+                            </tr>
+                          ) : (
+                            tampil.map((u, i) => (
+                              <tr key={u.id} className="transition hover:bg-slate-50">
+                                <td className="px-6 py-3.5 text-slate-400">{awal + i + 1}</td>
+                                <td className="px-4 py-3.5">
+                                  <div className="flex items-center gap-3">
+                                                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-100 text-sm font-bold text-violet-600">
+                                                            {(u.username ?? "?").charAt(0).toUpperCase()}
+                                                          </span>
+                                                          <span className="font-medium text-slate-800">{u.username ?? "-"}</span>
+                                                        </div>
+                                </td>
+                                <td className="px-4 py-3.5 text-slate-500">{u.email}</td>
                     <td className="px-4 py-3.5">
                       <span
                         className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
@@ -330,29 +336,31 @@ export default function HalamanUserManager() {
             </div>
 
             <div className="space-y-4 p-6">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Nickname
-                </label>
-                <input
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Username
-                </label>
-                <input
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  autoComplete="off"
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Role</label>
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-slate-700">
+                              Username
+                            </label>
+                            <input
+                              value={username}
+                              onChange={(e) => setUsername(e.target.value)}
+                              autoComplete="off"
+                              className={inputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-slate-700">
+                              Email
+                            </label>
+                            <input
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              type="email"
+                              autoComplete="email"
+                              className={inputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-slate-700">Role</label>
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as RoleUser)}

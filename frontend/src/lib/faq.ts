@@ -8,54 +8,29 @@ export type Faq = {
 
 export type FormFaq = Omit<Faq, "id">;
 
-const dataContoh: Faq[] = [
-  {
-    id: 1,
-    pertanyaan: "Apa itu BLC Surabaya?",
-    jawaban: "BLC (Broadband Learning Center) adalah tempat belajar teknologi informasi bagi masyarakat. Ganti dengan jawaban sebenarnya.",
-    aktif: true,
-    urutan: 1,
-  },
-  {
-    id: 2,
-    pertanyaan: "Bagaimana cara mendaftar pelatihan?",
-    jawaban: "Jawaban contoh. Ganti dengan langkah pendaftaran yang sebenarnya.",
-    aktif: true,
-    urutan: 2,
-  },
-  {
-    id: 3,
-    pertanyaan: "Apakah pelatihan dipungut biaya?",
-    jawaban: "Jawaban contoh. Ganti dengan informasi biaya yang sebenarnya.",
-    aktif: true,
-    urutan: 3,
-  },
-  {
-    id: 4,
-    pertanyaan: "Di mana saja lokasi BLC?",
-    jawaban: "Jawaban contoh. Ganti dengan daftar lokasi yang sebenarnya.",
-    aktif: false,
-    urutan: 4,
-  },
-];
-
-// SEMENTARA: data contoh. NANTI DIGANTI fetch GET ke backend.
 export async function ambilFaq(): Promise<Faq[]> {
-  return dataContoh;
+  const res = await fetch("/api/v1/faq");
+  const data = await res.json();
+  return Array.isArray(data) ? data : data?.data ?? [];
 }
 
-// SEMENTARA: bikin data palsu di browser. NANTI DIGANTI fetch POST (tambah) / PUT (ubah).
 export async function simpanFaq(data: FormFaq, id?: number): Promise<Faq> {
-  return { id: id ?? Date.now(), ...data };
+  const res = await fetch(id ? `/api/v1/faq/${id}` : "/api/v1/faq", {
+    method: id ? "PUT" : "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
 }
 
-// SEMENTARA: tidak melakukan apa-apa. NANTI DIGANTI fetch DELETE ke backend.
 export async function hapusFaq(id: number): Promise<void> {
-  void id;
+  await fetch(`/api/v1/faq/${id}`, { method: "DELETE" });
 }
 
-// SEMENTARA: tidak melakukan apa-apa. NANTI DIGANTI fetch PUT ke backend,
-// berisi daftar id sesuai urutan baru.
 export async function simpanUrutanFaq(idBerurutan: number[]): Promise<void> {
-  void idBerurutan;
+  await fetch("/api/v1/faq/urutan", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ idBerurutan }),
+  });
 }

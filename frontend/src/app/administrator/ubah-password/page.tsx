@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { CheckCircle2, Eye, EyeOff, KeyRound } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { CheckCircle2, Eye, EyeOff, KeyRound, Search, ChevronDown, X } from "lucide-react";
 import {
   ambilUserPerRole,
   daftarRole,
@@ -21,11 +21,27 @@ export default function HalamanUbahPassword() {
   const [sukses, setSukses] = useState("");
   const [proses, setProses] = useState<boolean>(false);
 
+  // searchable dropdown state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   // ambil daftar pengguna setiap kali role diganti
   useEffect(() => {
     ambilUserPerRole(role).then(setUsers);
     setIdUser("");
   }, [role]);
+
+  // close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // kekuatan password: 4 syarat sederhana
   const skor = [
@@ -36,6 +52,11 @@ export default function HalamanUbahPassword() {
   ].filter(Boolean).length;
   const labelKuat = ["Sangat lemah", "Lemah", "Cukup", "Kuat", "Sangat kuat"][skor];
   const warnaBar = ["bg-red-400", "bg-red-400", "bg-amber-400", "bg-emerald-400", "bg-emerald-500"][skor];
+
+  const filteredUsers = users.filter((u) =>
+    u.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   async function handleSimpan() {
     setSukses("");
@@ -54,10 +75,13 @@ export default function HalamanUbahPassword() {
     setBaru("");
     setUlang("");
     setIdUser("");
+    setSearchQuery("");
   }
 
   const inputClass =
     "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100";
+
+  const selectedUser = users.find((u) => u.id === idUser);
 
   return (
     <div className="max-w-2xl space-y-5">
@@ -94,24 +118,88 @@ export default function HalamanUbahPassword() {
             </div>
           </div>
 
-          {/* PILIH PENGGUNA */}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Pengguna</label>
-            <select
-              value={idUser}
-              onChange={(e) => setIdUser(e.target.value ? Number(e.target.value) : "")}
-              className={inputClass}
-            >
-              <option value="">
-                {users.length === 0 ? "Belum ada pengguna di role ini" : "Pilih pengguna..."}
-              </option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.nama} ({u.email})
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* PILIH PENGGUNA - Searchable Dropdown */}
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">Pengguna</label>
+                      <div ref={dropdownRef} className="relative">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={selectedUser ? selectedUser.nama : searchQuery}
+                            onChange={(e) => {
+                              if (selectedUser) {
+                                setIdUser("");
+                                setSearchQuery(e.target.value);
+                                setIsOpen(true);
+                              } else {
+                                setSearchQuery(e.target.value);
+                                setIsOpen(true);
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (selectedUser && (e.key === "Backspace" || e.key === "Delete")) {
+                                e.preventDefault();
+                                setIdUser("");
+                                setSearchQuery("");
+                                setIsOpen(true);
+                              }
+                            }}
+                            onFocus={() => setIsOpen(true)}
+                            placeholder={users.length === 0 ? "Belum ada pengguna di role ini" : "Cari nama atau email..."}
+                            className={`${inputClass} pr-11 ${selectedUser ? "bg-slate-50" : ""}`}
+                          />
+                          {!selectedUser && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
+                              <Search size={18} />
+                              <ChevronDown size={18} className={isOpen ? "rotate-180" : ""} />
+                            </div>
+                          )}
+                          {selectedUser && (
+                            <button
+                              type="button"
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                setIdUser("");
+                                setSearchQuery("");
+                                setIsOpen(false);
+                              }}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500"
+                              aria-label="Hapus pilihan"
+                            >
+                              <X size={18} />
+                            </button>
+                          )}
+                        </div>
+
+                        {isOpen && users.length > 0 && (
+                          <div className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-xl border border-slate-200 bg-white shadow-lg">
+                            {filteredUsers.length === 0 ? (
+                              <div className="px-3 py-2 text-sm text-slate-400">Tidak ada pengguna cocok</div>
+                            ) : (
+                              filteredUsers.map((u) => (
+                                <button
+                                  key={u.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setIdUser(u.id);
+                                    setSearchQuery("");
+                                    setIsOpen(false);
+                                  }}
+                                  className={`w-full px-3 py-2 text-sm text-left transition ${
+                                    idUser === u.id
+                                      ? "bg-violet-50 text-violet-700"
+                                      : "text-slate-700 hover:bg-slate-50"
+                                  }`}
+                                >
+                                  <div className="font-medium">{u.nama}</div>
+                                  <div className="text-xs text-slate-400">{u.email}</div>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
           {/* PASSWORD BARU */}
           <div>
