@@ -2,14 +2,15 @@
 
 namespace App\Modules\Auth\Contracts;
 
-use App\Modules\Admin\System\Pengguna\Infrastructure\PenggunaModel;
+use App\Models\User;
 
 interface UserRepository
 {
-    public function findByEmail(string $email): ?PenggunaModel;
+    /** Pencarian email tidak peka huruf besar/kecil. */
+    public function findByEmail(string $email): ?User;
 
     /**
      * @param  array{name: string, email: string, password: string}  $data
      */
-    public function createWithRole(array $data, string $roleSlug): PenggunaModel;
+    public function createWithRole(array $data, string $roleSlug): User;
 }

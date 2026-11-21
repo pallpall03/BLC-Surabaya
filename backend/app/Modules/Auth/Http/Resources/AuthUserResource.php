@@ -2,12 +2,12 @@
 
 namespace App\Modules\Auth\Http\Resources;
 
-use App\Modules\Admin\System\Pengguna\Infrastructure\PenggunaModel;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin PenggunaModel
+ * @mixin User
  */
 final class AuthUserResource extends JsonResource
 {
@@ -20,11 +20,11 @@ final class AuthUserResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->nama_lengkap,
+            'name' => $this->name,
             'email' => $this->email,
-            'role' => $this->levelPengguna ? [
-                'slug' => $this->levelPengguna->slug,
-                'name' => $this->levelPengguna->nama,
+            'role' => $this->role ? [
+                'slug' => $this->role->slug,
+                'name' => $this->role->name,
             ] : null,
         ];
     }

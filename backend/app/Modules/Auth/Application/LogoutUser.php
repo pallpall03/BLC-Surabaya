@@ -2,20 +2,16 @@
 
 namespace App\Modules\Auth\Application;
 
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Facades\Auth;
 
 /**
- * Mencabut token yang sedang dipakai (perangkat ini saja).
+ * Mencabut token yang sedang dipakai (perangkat ini saja): token masuk blacklist JWT
+ * sehingga tidak bisa dipakai lagi walau belum kedaluwarsa.
  */
 final class LogoutUser
 {
     public function handle(): void
     {
-        try {
-            JWTAuth::invalidate(JWTAuth::getToken());
-        } catch (JWTException $e) {
-            // Token already invalid or missing
-        }
+        Auth::guard('api')->logout();
     }
 }

@@ -9,8 +9,6 @@ export default function RegisterPage() {
     email: '',
     password: '',
     password_confirmation: '',
-    telepon: '',
-    alamat: '',
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -41,7 +39,9 @@ export default function RegisterPage() {
         setMessage({ type: 'success', text: 'Registrasi berhasil! Mengalihkan ke login...' });
         setTimeout(() => router.push('/login'), 1500);
       } else {
-        setMessage({ type: 'error', text: data.message || 'Registrasi gagal' });
+        // Utamakan pesan per-field dari validasi Laravel (422), jika ada.
+        const pesanField = data.errors ? (Object.values(data.errors).flat()[0] as string | undefined) : undefined;
+        setMessage({ type: 'error', text: pesanField || data.message || 'Registrasi gagal' });
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Koneksi ke server gagal' });
@@ -56,7 +56,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-md space-y-6 bg-white rounded-lg shadow-lg p-8">
           <h2 className="text-2xl font-bold text-center text-gray-800">Daftar Akun Baru</h2>
           <p className="text-center text-gray-600">
-            Daftar untuk akses ke sistem BLC Surabaya. Role default: Pengunjung.
+            Daftar akun untuk mengikuti pelatihan atau berkunjung ke BLC Surabaya.
           </p>
           
           {message.text && (
@@ -100,7 +100,7 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                Password (8–12 karakter)
               </label>
               <input
                 type="password"
@@ -109,6 +109,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 required
                 minLength={8}
+                maxLength={12}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -123,35 +124,12 @@ export default function RegisterPage() {
                 value={formData.password_confirmation}
                 onChange={handleChange}
                 required
+                maxLength={12}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Telepon (Opsional)
-              </label>
-              <input
-                type="text"
-                name="telepon"
-                value={formData.telepon}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Alamat (Opsional)
-              </label>
-              <input
-                type="text"
-                name="alamat"
-                value={formData.alamat}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
 
             <button
               type="submit"
