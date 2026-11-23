@@ -1,0 +1,96 @@
+import type { RoleUser } from "../_shared/role";
+
+export type User = {
+  id: number;
+  nickname: string;
+  username: string;
+  email: string;
+  aktif: boolean;
+  role: RoleUser;
+};
+
+export type FormUser = {
+  username: string;
+  email: string;
+  role: RoleUser;
+  aktif: boolean;
+  password?: string; // hanya diisi saat tambah akun baru
+};
+
+// Map backend role slug (dari tabel roles) ke frontend role
+function mapLevelToRole(slug: string): RoleUser {
+  const map: Record<string, RoleUser> = {
+    superadmin: "administrator",
+    operator: "operator",
+    instruktur: "instruktur",
+    koordinator: "koordinator",
+    peserta: "peserta",
+  };
+  return map[slug] ?? "peserta";
+}
+
+// Transform backend user ke frontend format
+function transformUser(backendUser: {
+  id: number;
+  namaLengkap: string;
+  email: string;
+  username?: string;
+  isAktif: boolean;
+  levelSlug: string;
+}): User {
+  return {
+    id: backendUser.id,
+    nickname: backendUser.namaLengkap,
+    username: backendUser.namaLengkap,
+    email: backendUser.email,
+    aktif: backendUser.isAktif,
+    role: mapLevelToRole(backendUser.levelSlug),
+  };
+}
+
+export async function ambilUser(): Promise<User[]> {
+  const res = await fetch("/api/v1/users");
+  const data = await res.json();
+  const raw = Array.isArray(data) ? data : data?.data ?? [];
+  return raw.map(transformUser);
+}
+
+export async function simpanUser(data: FormUser, id?: number): Promise<User> {
+  const payload = {
+    nama_lengkap: data.username,
+    username: data.username,
+    email: data.email,
+    password: data.password,
+    password_confirmation: data.password,
+    is_aktif: data.aktif,
+    role: data.role, // kirim role frontend, backend map ke role_id
+  };
+
+  const res = await fetch(id ? `/api/v1/users/${id}` : "/api/v1/users", {
+    method: id ? "PUT" : "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const saved = await res.json();
+  return transformUser(saved.data ?? saved);
+}
+
+export async function hapusUser(id: number): Promise<void> {
+<<<<<<< Updated upstream:frontend/src/lib/user.ts
+  await fetch(`/api/v1/users/${id}`, { method: "DELETE" });
+}
+=======
+  void id;
+}
+
+// SEMENTARA: tidak melakukan apa-apa. NANTI DIGANTI fetch POST/PUT ke backend.
+export async function resetPasswordUser(
+  id: number,
+  passwordBaru: string,
+  wajibGanti: boolean
+): Promise<void> {
+  void id;
+  void passwordBaru;
+  void wajibGanti;
+}
+>>>>>>> Stashed changes:frontend/src/app/administrator/user-manager/data.ts

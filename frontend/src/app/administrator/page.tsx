@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Building2, CheckCircle2, ChevronDown, Plus, Search } from "lucide-react";
-import { ambilBlcBaru, tambahkanBlc, type BlcBaru } from "@/lib/blc-baru";
-
+import { ambilBlcBaru, tambahkanBlc, type BlcBaru } from "./data";
 const JUMLAH_AWAL = 8;
 
 export default function HalamanBeranda() {

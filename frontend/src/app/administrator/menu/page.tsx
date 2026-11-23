@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Lock, Pencil, Plus, Trash2, X, List } from "lucide-react";
 import { ambilMenu, simpanMenu, hapusMenu, type MenuData } from "@/lib/menu";
 import { daftarRole, type RoleUser } from "@/lib/password";
-import { ambilIkon, daftarIkon } from "@/lib/ikon";
+import { ambilIkon, daftarIkon } from "@/menu/ikon";
 
 // menu yang tidak boleh dihapus/dinonaktifkan, supaya admin tidak mengunci dirinya sendiri
 const DILINDUNGI = [
