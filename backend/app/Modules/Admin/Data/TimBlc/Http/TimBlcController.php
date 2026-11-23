@@ -22,12 +22,12 @@ final class TimBlcController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'nama' => 'required|string|max:255',
-            'jabatan' => 'nullable|string|max:255',
-            'deskripsi' => 'nullable|string',
-            'foto' => 'nullable|string|max:255',
-            'urutan' => 'integer|default:0',
-            'is_aktif' => 'boolean',
+            'nama_lengkap' => 'required|string|max:255',
+                        'jabatan' => 'nullable|string|max:255',
+                        'deskripsi' => 'nullable|string',
+                        'foto' => 'nullable|string|max:255',
+                        'urutan' => 'sometimes|integer|min:0',
+                        'is_aktif' => 'sometimes|boolean',
         ]);
 
         $tim = $this->repository->create($validated);
@@ -46,11 +46,11 @@ final class TimBlcController extends Controller
     public function update(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([
-            'nama' => 'sometimes|required|string|max:255',
+            'nama_lengkap' => 'sometimes|required|string|max:255',
             'jabatan' => 'sometimes|nullable|string|max:255',
             'deskripsi' => 'sometimes|string',
             'foto' => 'sometimes|string|max:255',
-            'urutan' => 'sometimes|integer',
+            'urutan' => 'sometimes|integer|min:0',
             'is_aktif' => 'sometimes|boolean',
         ]);
 
@@ -60,7 +60,7 @@ final class TimBlcController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $this->repository->softDelete($id);
+        $this->repository->delete($id);
         return response()->json(['message' => 'Deleted']);
     }
 }

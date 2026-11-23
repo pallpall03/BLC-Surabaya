@@ -23,10 +23,10 @@ final class FotoSliderController extends Controller
     {
         $validated = $request->validate([
             'judul' => 'required|string|max:255',
-            'keterangan' => 'nullable|string',
+            'deskripsi' => 'nullable|string',
             'gambar' => 'required|string|max:255',
-            'urutan' => 'integer|default:0',
-            'is_aktif' => 'boolean',
+            'urutan' => 'sometimes|integer|min:0',
+            'aktif' => 'sometimes|boolean',
         ]);
 
         $foto = $this->repository->create($validated);
@@ -46,10 +46,10 @@ final class FotoSliderController extends Controller
     {
         $validated = $request->validate([
             'judul' => 'sometimes|required|string|max:255',
-            'keterangan' => 'sometimes|string',
+            'deskripsi' => 'sometimes|string',
             'gambar' => 'sometimes|string|max:255',
             'urutan' => 'sometimes|integer',
-            'is_aktif' => 'sometimes|boolean',
+            'aktif' => 'sometimes|boolean',
         ]);
 
         $foto = $this->repository->update($id, $validated);
@@ -58,7 +58,7 @@ final class FotoSliderController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $this->repository->softDelete($id);
+        $this->repository->delete($id);
         return response()->json(['message' => 'Deleted']);
     }
 }
