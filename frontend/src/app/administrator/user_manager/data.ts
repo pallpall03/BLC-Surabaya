@@ -75,22 +75,26 @@ export async function simpanUser(data: FormUser, id?: number): Promise<User> {
   return transformUser(saved.data ?? saved);
 }
 
-export async function hapusUser(id: number): Promise<void> {
-<<<<<<< Updated upstream:frontend/src/lib/user.ts
-  await fetch(`/api/v1/users/${id}`, { method: "DELETE" });
-}
-=======
-  void id;
-}
-
-// SEMENTARA: tidak melakukan apa-apa. NANTI DIGANTI fetch POST/PUT ke backend.
 export async function resetPasswordUser(
   id: number,
-  passwordBaru: string,
-  wajibGanti: boolean
+  password: string,
+  _wajibGanti: boolean
 ): Promise<void> {
-  void id;
-  void passwordBaru;
-  void wajibGanti;
+  void _wajibGanti;
+  const res = await fetch(`/api/v1/users/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      password,
+      password_confirmation: password,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Gagal mereset password (${res.status}).`);
+  }
 }
->>>>>>> Stashed changes:frontend/src/app/administrator/user-manager/data.ts
+
+export async function hapusUser(id: number): Promise<void> {
+  await fetch(`/api/v1/users/${id}`, { method: "DELETE" });
+}

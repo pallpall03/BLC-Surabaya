@@ -131,8 +131,8 @@ export default function HalamanUserManager() {
 
   return (
     <div>
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-5">
+      <section className="card rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="card-header flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-5">
           <div>
             <h3 className="text-lg font-semibold text-slate-800">Data User</h3>
             <p className="text-sm text-slate-400">Kelola akun dan role pengguna</p>
@@ -189,8 +189,8 @@ export default function HalamanUserManager() {
           ))}
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-left text-sm">
+        <div className="card-body overflow-x-auto p-0">
+          <table className="table table-row-dashed align-middle w-full min-w-[760px] text-left text-sm">
             <thead>
                           <tr className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                             <th className="px-6 py-3 font-semibold">No</th>
@@ -283,7 +283,7 @@ export default function HalamanUserManager() {
           </table>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-6 py-4 text-sm text-slate-500">
+        <div className="card-footer flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-6 py-4 text-sm text-slate-500">
           <span>
             Menampilkan {hasil.length === 0 ? 0 : awal + 1}–
             {Math.min(awal + BARIS, hasil.length)} dari {hasil.length} akun
@@ -339,41 +339,6 @@ export default function HalamanUserManager() {
             </div>
 
             <div className="space-y-4 p-6">
-<<<<<<< Updated upstream
-                          <div>
-                            <label className="mb-1 block text-sm font-medium text-slate-700">
-                              Username
-                            </label>
-                            <input
-                              value={username}
-                              onChange={(e) => setUsername(e.target.value)}
-                              autoComplete="off"
-                              className={inputClass}
-                            />
-                          </div>
-                          <div>
-                            <label className="mb-1 block text-sm font-medium text-slate-700">
-                              Email
-                            </label>
-                            <input
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              type="email"
-                              autoComplete="email"
-                              className={inputClass}
-                            />
-                          </div>
-                          <div>
-                            <label className="mb-1 block text-sm font-medium text-slate-700">Role</label>
-=======
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Nickname</label>
-                <input
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">Username</label>
                 <input
@@ -384,8 +349,17 @@ export default function HalamanUserManager() {
                 />
               </div>
               <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Email</label>
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  autoComplete="email"
+                  className={inputClass}
+                />
+              </div>
+              <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">Role</label>
->>>>>>> Stashed changes
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as RoleUser)}

@@ -62,3 +62,4 @@ export async function tambahkanBlc(id: number): Promise<void> {
 export async function ambilLokasiWebsite(): Promise<BlcBaru[]> {
   return baca().website;
 }
+

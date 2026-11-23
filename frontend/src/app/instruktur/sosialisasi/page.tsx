@@ -211,7 +211,7 @@ export default function SosialisasiPage() {
           <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-orange-200 bg-white/60 px-4 py-16 text-center">
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 text-orange-500"><SearchX size={32} /></span>
             <p className="font-medium text-slate-800">Belum ada sosialisasi</p>
-            <p className="text-sm text-slate-500">Ubah rentang tanggal, atau klik "Tambah sosialisasi".</p>
+            <p className="text-sm text-slate-500">Ubah rentang tanggal, atau klik &quot;Tambah sosialisasi&quot;.</p>
           </div>
         ) : (
           <>

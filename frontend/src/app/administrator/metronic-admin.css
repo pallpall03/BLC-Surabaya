@@ -1,0 +1,313 @@
+.admin-metronic {
+  --admin-sidebar-width: 265px;
+  min-height: 100vh;
+  background: var(--bs-app-bg-color, #f5f8fa);
+  color: var(--bs-gray-700, #5e6278);
+  font-family: var(--bs-font-sans-serif, Inter, Helvetica, sans-serif);
+}
+
+.admin-sidebar {
+  display: flex !important;
+  width: var(--admin-sidebar-width);
+  min-width: var(--admin-sidebar-width);
+  height: 100vh;
+  background: var(--bs-app-sidebar-light-bg-color, #fff);
+  border-right: 1px solid var(--bs-gray-200, #eff2f5);
+  box-shadow: none;
+  transition:
+    width 0.2s ease,
+    min-width 0.2s ease,
+    transform 0.3s ease;
+}
+
+.admin-sidebar .app-sidebar-logo {
+  min-height: 70px;
+  border-bottom: 0;
+}
+
+.admin-brand-mark {
+  letter-spacing: -0.04em;
+}
+
+.admin-sidebar .menu {
+  gap: 2px;
+}
+
+.admin-sidebar .menu-link {
+  min-height: 42px;
+  border-radius: 0.475rem;
+  color: var(--bs-gray-700, #5e6278);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.admin-sidebar .menu-link:hover {
+  color: var(--bs-primary, #009ef7);
+  background: var(--bs-primary-light, #f1faff);
+}
+
+.admin-sidebar .menu-link.active {
+  color: var(--bs-primary, #009ef7);
+  background: var(--bs-primary-light, #f1faff);
+  font-weight: 600;
+}
+
+.admin-sidebar .menu-link .menu-icon {
+  color: var(--bs-gray-500, #a1a5b7);
+}
+
+.admin-sidebar .menu-link.active .menu-icon,
+.admin-sidebar .menu-link:hover .menu-icon {
+  color: var(--bs-primary, #009ef7);
+}
+
+.admin-sidebar .menu-sub {
+  display: grid !important;
+}
+
+.admin-sidebar .menu-sub .menu-link {
+  min-height: 38px;
+  font-size: 0.9rem;
+}
+
+.admin-sidebar-compact {
+  width: 84px;
+  min-width: 84px;
+}
+
+.admin-profile-dropdown {
+  z-index: 50;
+  border-color: var(--bs-gray-200, #eff2f5);
+  border-radius: 0.625rem;
+  box-shadow: 0 0.5rem 1.5rem rgb(15 23 42 / 10%);
+}
+
+.admin-metronic .app-wrapper {
+  min-width: 0;
+}
+
+.admin-metronic .app-header {
+  min-height: 70px;
+  border-bottom: 1px solid var(--bs-gray-200, #eff2f5);
+  box-shadow: 0 0.125rem 0.5rem rgb(76 87 125 / 3%);
+}
+
+.admin-metronic .app-header-wrapper {
+  min-height: 70px;
+}
+
+.admin-header-search {
+  height: 40px;
+  padding-top: 0;
+  padding-bottom: 0;
+  background-color: var(--bs-gray-100, #f9f9f9);
+  border-color: transparent;
+}
+
+.admin-header-search:focus {
+  background-color: #fff;
+}
+
+.admin-metronic .app-content {
+  padding-top: 1.5rem;
+}
+
+.admin-metronic .app-container {
+  max-width: none;
+  padding-right: 1.875rem;
+  padding-left: 1.875rem;
+}
+
+.admin-metronic .app-toolbar {
+  margin-bottom: 1.75rem;
+}
+
+.admin-metronic .page-title h1 {
+  color: var(--bs-gray-900, #181c32);
+  font-size: 1.5rem;
+  line-height: 1.3;
+}
+
+.admin-metronic .breadcrumb {
+  margin-bottom: 0;
+}
+
+.admin-metronic .admin-page-content .card,
+.admin-metronic .admin-page-content [class*="rounded-"][class*="border"][class*="bg-white"] {
+  overflow: hidden;
+  background-color: var(--bs-card-bg, #fff);
+  border: 0 !important;
+  border-radius: 0.625rem !important;
+  box-shadow: 0 0 20px 0 rgb(76 87 125 / 4%);
+}
+
+.admin-metronic .admin-page-content .card-header {
+  min-height: 60px;
+  padding: 1rem 1.5rem;
+  background: #fff;
+  border-bottom: 1px solid var(--bs-gray-200, #eff2f5);
+}
+
+.admin-welcome-card {
+  border-left: 4px solid #f59e0b !important;
+}
+
+.admin-welcome-card .card-body {
+  background: var(--bs-primary-light, #f1faff);
+}
+
+.admin-metronic .admin-page-content .table {
+  color: var(--bs-gray-700, #5e6278);
+  vertical-align: middle;
+}
+
+.admin-metronic .admin-page-content .table thead th {
+  color: var(--bs-gray-600, #7e8299);
+  background: var(--bs-gray-100, #f9f9f9);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: none;
+}
+
+.admin-metronic .admin-page-content .table td,
+.admin-metronic .admin-page-content .table th {
+  padding: 0.9rem 1rem;
+}
+
+.admin-metronic .admin-page-content input:not([type="checkbox"], [type="radio"], [type="file"]),
+.admin-metronic .admin-page-content select,
+.admin-metronic .admin-page-content textarea {
+  min-height: 42px;
+  padding: 0.625rem 0.875rem;
+  color: var(--bs-gray-700, #5e6278);
+  background-color: #fff;
+  border: 1px solid var(--bs-gray-300, #e1e3ea);
+  border-radius: 0.475rem;
+  box-shadow: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.admin-metronic .admin-page-content textarea {
+  min-height: 100px;
+}
+
+.admin-metronic .admin-page-content input:focus,
+.admin-metronic .admin-page-content select:focus,
+.admin-metronic .admin-page-content textarea:focus {
+  border-color: var(--bs-primary, #009ef7);
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgb(0 158 247 / 12%);
+}
+
+.admin-metronic .admin-page-content input[type="checkbox"],
+.admin-metronic .admin-page-content input[type="radio"] {
+  accent-color: var(--bs-primary, #009ef7);
+}
+
+.admin-metronic .admin-page-content label {
+  color: var(--bs-gray-700, #5e6278);
+}
+
+.admin-metronic .admin-page-content [class*="bg-violet-600"],
+.admin-metronic .admin-page-content [class*="bg-violet-500"],
+.admin-metronic .admin-page-content [class*="bg-violet-700"] {
+  background-color: var(--bs-primary, #009ef7) !important;
+}
+
+.admin-metronic .admin-page-content [class*="bg-violet-50"] {
+  background-color: var(--bs-primary-light, #f1faff) !important;
+}
+
+.admin-metronic .admin-page-content [class*="text-violet-"] {
+  color: var(--bs-primary, #009ef7) !important;
+}
+
+.admin-metronic .admin-page-content [class*="border-violet-"] {
+  border-color: var(--bs-primary-light, #f1faff) !important;
+}
+
+.admin-metronic .admin-page-content button {
+  border-radius: 0.475rem;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.admin-metronic .admin-page-content button[class*="bg-violet-600"],
+.admin-metronic .admin-page-content button[class*="bg-violet-500"],
+.admin-metronic .admin-page-content button[class*="bg-orange-500"],
+.admin-metronic .admin-page-content button[class*="bg-orange-600"] {
+  color: var(--bs-primary-inverse, #fff) !important;
+  background-color: var(--bs-primary, #009ef7) !important;
+  border-color: var(--bs-primary, #009ef7) !important;
+  box-shadow: none !important;
+}
+
+.admin-metronic .admin-page-content button[class*="bg-violet-600"]:hover,
+.admin-metronic .admin-page-content button[class*="bg-violet-500"]:hover,
+.admin-metronic .admin-page-content button[class*="bg-orange-500"]:hover,
+.admin-metronic .admin-page-content button[class*="bg-orange-600"]:hover {
+  background-color: var(--bs-primary-active, #0095e8) !important;
+}
+
+.admin-metronic .admin-page-content button[class*="bg-violet-50"],
+.admin-metronic .admin-page-content button[class*="bg-orange-50"] {
+  color: var(--bs-primary, #009ef7) !important;
+  background-color: var(--bs-primary-light, #f1faff) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.admin-metronic .admin-page-content button[class*="bg-red-50"] {
+  color: var(--bs-danger, #f1416c) !important;
+  background-color: var(--bs-danger-light, #fff5f8) !important;
+  border-color: transparent !important;
+}
+
+.admin-metronic .admin-page-content button[class*="bg-amber-50"] {
+  color: var(--bs-warning, #ffc700) !important;
+  background-color: var(--bs-warning-light, #fff8dd) !important;
+  border-color: transparent !important;
+}
+
+.admin-metronic .admin-page-content span[class*="bg-emerald-50"],
+.admin-metronic .admin-page-content span[class*="bg-green-50"] {
+  color: var(--bs-success, #50cd89) !important;
+  background-color: var(--bs-success-light, #e8fff3) !important;
+}
+
+.admin-metronic .admin-page-content span[class*="bg-red-50"] {
+  color: var(--bs-danger, #f1416c) !important;
+  background-color: var(--bs-danger-light, #fff5f8) !important;
+}
+
+.admin-metronic .admin-page-content span[class*="bg-amber-50"] {
+  color: var(--bs-warning-active, #f1bc00) !important;
+  background-color: var(--bs-warning-light, #fff8dd) !important;
+}
+
+.admin-metronic .admin-page-content span[class*="bg-violet-50"],
+.admin-metronic .admin-page-content span[class*="bg-orange-50"] {
+  color: var(--bs-primary, #009ef7) !important;
+  background-color: var(--bs-primary-light, #f1faff) !important;
+}
+
+.admin-metronic .admin-page-content [class*="fixed"][class*="inset-0"] > div[class*="rounded-"] {
+  border: 0 !important;
+  border-radius: 0.625rem !important;
+  box-shadow: 0 1rem 3rem rgb(15 23 42 / 18%);
+}
+
+@media (max-width: 767.98px) {
+  .admin-metronic .app-container {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .admin-metronic .app-content {
+    padding-top: 1rem;
+  }
+}

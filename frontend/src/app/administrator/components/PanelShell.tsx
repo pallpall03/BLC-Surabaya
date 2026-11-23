@@ -7,7 +7,6 @@ import {
   LogOut,
   Menu as IkonMenu,
   PanelLeft,
-  ChevronDown,
   Search,
   Bell,
   X,
@@ -70,7 +69,10 @@ export default function PanelShell({
   const tengah = ringkas ? "lg:justify-center lg:px-0" : "";
 
   return (
-    <div className="flex h-screen bg-[#f4f5f7] text-slate-700">
+    <div
+      className="admin-metronic app-root app-page flex min-h-screen flex-row bg-[#f5f8fa] text-slate-700"
+      data-kt-app-layout="light-sidebar"
+    >
       {/* LATAR GELAP (hanya di HP saat drawer terbuka) */}
       {mobileBuka && (
         <div
@@ -81,17 +83,17 @@ export default function PanelShell({
 
       {/* SIDEBAR MELAYANG */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-white transition-all duration-300 lg:static lg:m-3 lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-sm ${
-          ringkas ? "lg:w-[84px]" : "lg:w-72"
-        } ${mobileBuka ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        className={`app-sidebar admin-sidebar ${ringkas ? "admin-sidebar-compact" : ""} fixed inset-y-0 left-0 z-50 flex h-screen w-[265px] flex-col bg-white transition-all duration-300 lg:sticky lg:top-0 ${
+          mobileBuka ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
       >
         {/* logo */}
-        <div className={`flex h-16 shrink-0 items-center justify-between px-5 ${tengah}`}>
+        <div className={`app-sidebar-logo flex h-[70px] shrink-0 items-center justify-between px-6 ${tengah}`}>
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 text-sm font-extrabold text-white shadow-lg shadow-orange-200">
-              blc
+            <span className="admin-brand-mark flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-orange-500 text-sm font-extrabold tracking-wide text-white">
+              BLC
             </span>
-            <p className={`font-bold tracking-tight text-slate-800 ${sembunyi}`}>
+            <p className={`font-semibold tracking-tight text-slate-800 ${sembunyi}`}>
               BLC Surabaya
             </p>
           </div>
@@ -105,27 +107,29 @@ export default function PanelShell({
         </div>
 
         {/* menu */}
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
+        <nav className="app-sidebar-menu menu menu-column menu-rounded menu-sub-indention menu-title-gray-700 menu-icon-gray-500 menu-arrow-gray-500 menu-hover-bg-light-primary flex-1 overflow-y-auto px-4 py-4">
           {menu.map((m) => {
             const Ikon = m.ikon;
 
             // menu tunggal
             if (m.href) {
               return (
-                <Link
-                  key={m.label}
-                  href={m.href}
-                  title={ringkas ? m.label : undefined}
-                  onClick={() => setMobileBuka(false)}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${tengah} ${
-                    aktif(m.href)
-                      ? "bg-orange-50 font-semibold text-orange-600"
-                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-                  }`}
-                >
-                  <Ikon size={19} className="shrink-0" />
-                  <span className={sembunyi}>{m.label}</span>
-                </Link>
+                <div className={`menu-item ${aktif(m.href) ? "here" : ""}`} key={m.label}>
+                  <Link
+                    href={m.href}
+                    title={ringkas ? m.label : undefined}
+                    onClick={() => setMobileBuka(false)}
+                    aria-current={aktif(m.href) ? "page" : undefined}
+                    className={`menu-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${tengah} ${
+                      aktif(m.href) ? "active" : ""
+                    }`}
+                  >
+                    <span className="menu-icon flex w-5 shrink-0 justify-center">
+                      <Ikon size={19} />
+                    </span>
+                    <span className={`menu-title ${sembunyi}`}>{m.label}</span>
+                  </Link>
+                </div>
               );
             }
 
@@ -133,9 +137,10 @@ export default function PanelShell({
             const buka = grupTerbuka(m) && !ringkas;
             const adaAktif = m.anak?.some((a) => aktif(a.href));
             return (
-              <div key={m.label}>
+              <div className={`menu-item menu-accordion ${adaAktif ? "here" : ""} ${buka ? "show" : ""}`} key={m.label}>
                 <button
                   title={ringkas ? m.label : undefined}
+                  aria-expanded={buka}
                   onClick={() => {
                     if (ringkas) {
                       // klik grup saat ringkas: lebarkan sidebar dan buka grupnya
@@ -145,45 +150,43 @@ export default function PanelShell({
                       setGrupBuka((g) => ({ ...g, [m.label]: !grupTerbuka(m) }));
                     }
                   }}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${tengah} ${
-                    adaAktif
-                      ? "font-semibold text-orange-600"
-                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                  className={`menu-link flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${tengah} ${
+                    adaAktif ? "active" : ""
                   }`}
                 >
-                  <Ikon size={19} className="shrink-0" />
-                  <span className={`flex-1 text-left ${sembunyi}`}>{m.label}</span>
-                  <ChevronDown
-                    size={15}
-                    className={`transition-transform duration-300 ${sembunyi} ${
-                      buka ? "rotate-180" : ""
-                    }`}
-                  />
+                  <span className="menu-icon flex w-5 shrink-0 justify-center">
+                    <Ikon size={19} />
+                  </span>
+                  <span className={`menu-title flex-1 text-left ${sembunyi}`}>{m.label}</span>
+                  <span className={`menu-arrow ${sembunyi}`} />
                 </button>
 
                 {/* submenu dengan animasi buka-tutup */}
                 <div
-                  className={`grid transition-all duration-300 ${sembunyi} ${
+                  className={`menu-sub menu-sub-accordion grid transition-all duration-300 ${sembunyi} ${
                     buka ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <div className="ml-[22px] mt-1 space-y-0.5 border-l border-slate-200 pl-3">
+                    <div className="mt-1 space-y-0.5 pl-7">
                       {m.anak?.map((a) => {
                         const IkonAnak = a.ikon;
                         return (
-                          <Link
-                            key={a.href}
-                            href={a.href}
-                            onClick={() => setMobileBuka(false)}
-                            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition ${
-                              aktif(a.href)
-                                ? "bg-orange-50 font-semibold text-orange-600"
-                                : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-                            }`}
-                          >
-                            <IkonAnak size={16} /> {a.label}
-                          </Link>
+                          <div className="menu-item" key={a.href}>
+                            <Link
+                              href={a.href}
+                              onClick={() => setMobileBuka(false)}
+                              aria-current={aktif(a.href) ? "page" : undefined}
+                              className={`menu-link flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition ${
+                                aktif(a.href) ? "active" : ""
+                              }`}
+                            >
+                              <span className="menu-icon flex w-5 shrink-0 justify-center">
+                                <IkonAnak size={16} />
+                              </span>
+                              <span className="menu-title">{a.label}</span>
+                            </Link>
+                          </div>
                         );
                       })}
                     </div>
@@ -196,128 +199,133 @@ export default function PanelShell({
       </aside>
 
       {/* AREA KANAN */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="app-wrapper flex min-w-0 flex-1 flex-col">
         {/* TOPBAR */}
-        <header className="z-30 flex h-16 shrink-0 items-center justify-between gap-4 px-4 sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            <button
-              onClick={() => setMobileBuka(true)}
-              aria-label="Buka menu"
-              className="rounded-lg p-2 text-slate-500 hover:bg-white lg:hidden"
-            >
-              <IkonMenu size={22} />
-            </button>
-            <button
-              onClick={() => setRingkas((r) => !r)}
-              aria-label="Ciutkan atau lebarkan sidebar"
-              className="hidden rounded-lg p-2 text-slate-500 transition hover:bg-white lg:block"
-            >
-              <PanelLeft size={20} />
-            </button>
-
-            {/* breadcrumb */}
-            <p className="truncate text-sm text-slate-400">
-              {induk && (
-                <>
-                  {induk.label} <span className="mx-1">/</span>
-                </>
-              )}
-              <span className="font-medium text-slate-700">{namaHalaman}</span>
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* pencarian (tampilan dulu) */}
-            <div className="relative hidden md:block">
-              <Search
-                size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-              <input
-                placeholder="Cari..."
-                className="w-56 rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-14 text-sm outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-              />
-              <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md border border-slate-200 bg-slate-50 px-1.5 text-[10px] text-slate-400">
-                Ctrl K
-              </kbd>
+        <header className="app-header z-30 flex h-[70px] shrink-0 items-stretch justify-between bg-white px-4 sm:px-6">
+          <div className="app-header-wrapper flex min-w-0 flex-1 items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-4">
+              <button
+                onClick={() => setMobileBuka(true)}
+                aria-label="Buka menu"
+                className="btn btn-icon btn-light-primary lg:hidden"
+              >
+                <IkonMenu size={22} />
+              </button>
+              <button
+                onClick={() => setRingkas((r) => !r)}
+                aria-label="Ciutkan atau lebarkan sidebar"
+                className="btn btn-icon btn-light-primary hidden lg:flex"
+              >
+                <PanelLeft size={20} />
+              </button>
+              <div className="relative hidden w-64 md:block">
+                <Search
+                  size={16}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                />
+                <input
+                  aria-label="Cari"
+                  placeholder="Search..."
+                  className="form-control admin-header-search w-full pl-10"
+                />
+              </div>
             </div>
 
-            {/* notifikasi */}
-            <button
-              aria-label="Notifikasi"
-              className="relative rounded-xl p-2.5 text-slate-500 transition hover:bg-white"
-            >
-              <Bell size={20} />
-              <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-orange-500 ring-2 ring-[#f4f5f7]" />
-            </button>
-
-            {/* PROFIL + DROPDOWN */}
-            <div className="relative" ref={profilRef}>
+            <div className="flex shrink-0 items-center gap-2">
+              {/* notifikasi */}
               <button
-                onClick={() => setProfilBuka((b) => !b)}
-                aria-label="Menu profil"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-sm font-bold text-white ring-2 ring-white transition hover:shadow-lg hover:shadow-orange-200"
+                aria-label="Notifikasi"
+                className="btn btn-icon btn-light-primary relative"
               >
-                {inisial}
+                <Bell size={20} />
+                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-orange-500 ring-2 ring-white" />
               </button>
 
-              {profilBuka && (
-                <div className="absolute right-0 mt-3 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white text-sm shadow-xl shadow-slate-200/60">
-                  <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-4">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 font-bold text-orange-600">
-                      {inisial}
-                    </span>
-                    <div className="leading-tight">
-                      <p className="font-semibold text-slate-800">{namaAkun}</p>
-                      <p className="text-xs text-slate-400">{namaRole}</p>
+              {/* PROFIL + DROPDOWN */}
+              <div className="relative" ref={profilRef}>
+                <button
+                  onClick={() => setProfilBuka((b) => !b)}
+                  aria-label="Menu profil"
+                  className="symbol symbol-40px symbol-circle"
+                >
+                  <span className="symbol-label bg-orange-500 text-sm font-semibold text-white">
+                    {inisial}
+                  </span>
+                </button>
+
+                {profilBuka && (
+                  <div className="admin-profile-dropdown absolute right-0 mt-3 w-64 overflow-hidden rounded-lg border border-slate-200 bg-white text-sm shadow-xl">
+                    <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-4">
+                      <span className="symbol symbol-40px symbol-circle">
+                        <span className="symbol-label bg-orange-500 text-sm font-semibold text-white">
+                          {inisial}
+                        </span>
+                      </span>
+                      <div className="leading-tight">
+                        <p className="font-semibold text-slate-800">{namaAkun}</p>
+                        <p className="text-xs text-slate-400">{namaRole}</p>
+                      </div>
+                    </div>
+
+                    {/* daftar pengaturan: disembunyikan kalau kosong */}
+                    {pengaturan.length > 0 && (
+                      <>
+                        <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                          Pengaturan
+                        </p>
+                        <div className="px-2 pb-2">
+                          {pengaturan.map((p) => {
+                            const Ikon = p.ikon;
+                            return (
+                              <Link
+                                key={p.href}
+                                href={p.href}
+                                onClick={() => setProfilBuka(false)}
+                                className="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 transition hover:bg-orange-50 hover:text-orange-600"
+                              >
+                                <Ikon size={16} /> {p.label}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+
+                    <div className="border-t border-slate-100 p-2">
+                      <Link
+                        href="/login"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-red-500 transition hover:bg-red-50"
+                      >
+                        <LogOut size={16} /> Keluar
+                      </Link>
                     </div>
                   </div>
-
-                  {/* daftar pengaturan: disembunyikan kalau kosong */}
-                  {pengaturan.length > 0 && (
-                    <>
-                      <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-                        Pengaturan
-                      </p>
-                      <div className="px-2 pb-2">
-                        {pengaturan.map((p) => {
-                          const Ikon = p.ikon;
-                          return (
-                            <Link
-                              key={p.href}
-                              href={p.href}
-                              onClick={() => setProfilBuka(false)}
-                              className="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 transition hover:bg-orange-50 hover:text-orange-600"
-                            >
-                              <Ikon size={16} /> {p.label}
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </>
-                  )}
-
-                  <div className="border-t border-slate-100 p-2">
-                    <Link
-                      href="/login" // ganti sesuai alamat login kamu
-                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-red-500 transition hover:bg-red-50"
-                    >
-                      <LogOut size={16} /> Keluar
-                    </Link>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </header>
 
         {/* ISI HALAMAN */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-6xl px-4 pb-10 pt-2 sm:px-6">
-            <h1 className="mb-6 text-2xl font-bold tracking-tight text-slate-800">
-              {namaHalaman}
-            </h1>
-            {children}
+        <main className="app-main flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <div className="app-content flex flex-1 flex-col">
+            <div className="app-container container-fluid w-full px-4 pb-10 sm:px-6">
+              <div className="app-toolbar mb-6 flex flex-wrap items-center justify-between gap-3">
+                <div className="page-title d-flex flex-column justify-content-center">
+                  <h1 className="fs-2 fw-bold mb-1 text-slate-800">
+                    {namaHalaman}
+                  </h1>
+                  <nav aria-label="Breadcrumb" className="breadcrumb breadcrumb-separatorless fw-semibold fs-7">
+                    <span className="text-muted">{induk?.label ?? namaRole}</span>
+                    <span aria-hidden="true" className="breadcrumb-separator text-gray-400">
+                      /
+                    </span>
+                    <span className="text-gray-800">{namaHalaman}</span>
+                  </nav>
+                </div>
+              </div>
+              <div className="admin-page-content">{children}</div>
+            </div>
           </div>
         </main>
       </div>

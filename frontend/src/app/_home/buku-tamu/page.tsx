@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle2, Send } from "lucide-react";
-import { kirimBukuTamu } from "@/lib/buku-tamu";
+import { kirimBukuTamu } from "@/app/administrator/buku_tamu/data";
 
 export default function HalamanBukuTamu() {
   const [nama, setNama] = useState("");

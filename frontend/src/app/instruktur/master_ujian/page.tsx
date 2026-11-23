@@ -86,7 +86,7 @@ export default function MasterUjianPage() {
             <div className="flex flex-col items-center gap-3 px-4 py-16 text-center">
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 text-orange-500"><SearchX size={32} /></span>
               <p className="font-medium text-slate-800">Ujian tidak ditemukan</p>
-              <p className="text-sm text-slate-500">Ubah kata kunci, atau klik "Buat ujian baru".</p>
+              <p className="text-sm text-slate-500">Ubah kata kunci, atau klik &quot;Buat ujian baru&quot;.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">

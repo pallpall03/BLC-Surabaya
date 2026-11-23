@@ -1,20 +1,22 @@
 export type BukuTamu = {
   id: number;
   nama: string;
+  instansi: string; // asal pengunjung (instansi/sekolah/kota)
   email: string;
+  telepon: string;
   pesan: string;
   tanggal: string;
   dibaca: boolean;
 };
 
-export type FormBukuTamu = { nama: string; email: string; pesan: string };
+export type FormTamu = Pick<BukuTamu, "nama" | "instansi" | "email" | "telepon" | "pesan">;
 
 const KUNCI = "blc-buku-tamu";
 
 const awal: BukuTamu[] = [
-  { id: 1, nama: "Rina", email: "rina@mail.com", pesan: "Kelasnya bermanfaat, instrukturnya sabar.", tanggal: "2026-11-20", dibaca: false },
-  { id: 2, nama: "Budi", email: "budi@mail.com", pesan: "Tempatnya nyaman dan internetnya cepat.", tanggal: "2026-11-18", dibaca: true },
-  { id: 3, nama: "Sari", email: "sari@mail.com", pesan: "Kapan ada pelatihan desain grafis lagi?", tanggal: "2026-11-15", dibaca: false },
+  { id: 1, nama: "Rina", instansi: "SMKN 1 Surabaya", email: "rina@mail.com", telepon: "081200000001", pesan: "Kelasnya bermanfaat, instrukturnya sabar.", tanggal: "2026-11-20", dibaca: false },
+  { id: 2, nama: "Budi", instansi: "Warga Rungkut", email: "budi@mail.com", telepon: "081200000002", pesan: "Tempatnya nyaman dan internetnya cepat.", tanggal: "2026-11-18", dibaca: true },
+  { id: 3, nama: "Sari", instansi: "Universitas Airlangga", email: "sari@mail.com", telepon: "081200000003", pesan: "Kapan ada pelatihan desain grafis lagi?", tanggal: "2026-11-15", dibaca: false },
 ];
 
 // SEMENTARA: disimpan di localStorage. NANTI DIGANTI fetch ke backend.
@@ -41,12 +43,10 @@ export async function ambilBukuTamu(): Promise<BukuTamu[]> {
 }
 
 // dipakai form Buku Tamu di home: NANTI DIGANTI fetch POST ke backend
-export async function kirimBukuTamu(form: FormBukuTamu): Promise<BukuTamu> {
+export async function kirimBukuTamu(form: FormTamu): Promise<BukuTamu> {
   const baru: BukuTamu = {
     id: Date.now(),
-    nama: form.nama,
-    email: form.email,
-    pesan: form.pesan,
+    ...form,
     tanggal: new Date().toISOString().slice(0, 10),
     dibaca: false,
   };
@@ -54,7 +54,7 @@ export async function kirimBukuTamu(form: FormBukuTamu): Promise<BukuTamu> {
   return baru;
 }
 
-export async function tandaiDibaca(id: number, dibaca: boolean): Promise<void> {
+export async function tandaiDibaca(id: number, dibaca: boolean = true): Promise<void> {
   tulis(baca().map((b) => (b.id === id ? { ...b, dibaca } : b)));
 }
 

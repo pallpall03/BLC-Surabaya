@@ -94,7 +94,12 @@ export default function FotoKegiatanPage() {
     setDicari({ mulai, sampai });
     setDipilih(new Set());
   };
-  const toggleFoto = (id: number) => setDipilih((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleFoto = (id: number) => setDipilih((s) => {
+    const n = new Set(s);
+    if (n.has(id)) n.delete(id);
+    else n.add(id);
+    return n;
+  });
   const semuaDipilih = hasilLaporan.length > 0 && dipilih.size === hasilLaporan.length;
   const pilihSemua = () => setDipilih(semuaDipilih ? new Set() : new Set(hasilLaporan.map((f) => f.id)));
 
@@ -145,7 +150,7 @@ export default function FotoKegiatanPage() {
             {!aktif && (
               <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-orange-200 bg-white/60 px-4 py-14 text-center">
                 <span className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 text-orange-500"><Search size={30} /></span>
-                <p className="text-sm text-slate-500">Pilih tanggal dan sesi, lalu klik "Cari foto kegiatan".</p>
+                <p className="text-sm text-slate-500">Pilih tanggal dan sesi, lalu klik &quot;Cari foto kegiatan&quot;.</p>
               </div>
             )}
 
@@ -175,7 +180,7 @@ export default function FotoKegiatanPage() {
                   {foto.length === 0 ? (
                     <div className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-orange-200 bg-orange-50/30 py-10 text-center text-sm text-slate-500">
                       <ImagePlus size={32} className="text-orange-300" />
-                      Belum ada foto. Klik "Tambah foto" untuk mengunggah.
+                      Belum ada foto. Klik &quot;Tambah foto&quot; untuk mengunggah.
                     </div>
                   ) : (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -226,7 +231,7 @@ export default function FotoKegiatanPage() {
             {!dicari && (
               <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-orange-200 bg-white/60 px-4 py-14 text-center print:hidden">
                 <span className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 text-orange-500"><Search size={30} /></span>
-                <p className="text-sm text-slate-500">Pilih rentang tanggal lalu klik "Cari laporan".</p>
+                <p className="text-sm text-slate-500">Pilih rentang tanggal lalu klik &quot;Cari laporan&quot;.</p>
               </div>
             )}
 

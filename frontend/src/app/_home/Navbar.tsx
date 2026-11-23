@@ -2,12 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
-import { daftarInformasi, idSection, menuNavbar } from "./data";
+import { idSection, menuNavbar } from "./data";
+import { ambilInformasi, type Informasi } from "../administrator/konten/data";
+import { ambilIkon } from "@/app/administrator/konten/ikon";
 
 export default function Navbar() {
   const [aktif, setAktif] = useState<string>("beranda");
   const [mobile, setMobile] = useState<boolean>(false);
   const [infoBuka, setInfoBuka] = useState<boolean>(false);
+  const [daftarInfo, setDaftarInfo] = useState<Informasi[]>([]);
   const infoRef = useRef<HTMLDivElement>(null);
 
   function ke(id: string) {
@@ -15,6 +18,13 @@ export default function Navbar() {
     setMobile(false);
     setInfoBuka(false);
   }
+
+  // isi dropdown Informasi diatur dari admin
+  useEffect(() => {
+    ambilInformasi().then((data) =>
+      setDaftarInfo(data.filter((i) => i.aktif).sort((a, b) => a.urutan - b.urutan))
+    );
+  }, []);
 
   // tandai menu sesuai section yang sedang terlihat
   useEffect(() => {
@@ -77,18 +87,22 @@ export default function Navbar() {
                   </button>
                   {infoBuka && (
                     <div className="absolute left-0 mt-3 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/60">
-                      {daftarInformasi.map((item) => {
-                        const Ikon = item.ikon;
-                        return (
-                          <button
-                            key={item.id}
-                            onClick={() => ke(`info-${item.id}`)}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-slate-600 transition hover:bg-orange-50 hover:text-orange-600"
-                          >
-                            <Ikon size={16} /> {item.judul}
-                          </button>
-                        );
-                      })}
+                      {daftarInfo.length === 0 ? (
+                        <p className="px-3 py-2 text-sm text-slate-400">Belum ada informasi.</p>
+                      ) : (
+                        daftarInfo.map((item) => {
+                          const Ikon = ambilIkon(item.ikon);
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={() => ke(`info-${item.id}`)}
+                              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-slate-600 transition hover:bg-orange-50 hover:text-orange-600"
+                            >
+                              <Ikon size={16} /> {item.judul}
+                            </button>
+                          );
+                        })
+                      )}
                     </div>
                   )}
                 </div>

@@ -1,4 +1,5 @@
 
+import Image from "next/image";
 import Navbar from "@/components/public/Navbar";
 import Footer from "@/components/public/Footer";
 
@@ -43,11 +44,13 @@ export default function TentangPage() {
             </div>
 
             {/* EDIT: Ganti URL gambar sesuai kebutuhan */}
-            <div className="overflow-hidden rounded-2xl shadow-xl">
-              <img
+            <div className="relative h-[350px] overflow-hidden rounded-2xl shadow-xl">
+              <Image
                 src="/images/blc-hero.jpg"
                 alt="Kegiatan BLC Surabaya"
-                className="h-[350px] w-full object-cover"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
               />
             </div>
 

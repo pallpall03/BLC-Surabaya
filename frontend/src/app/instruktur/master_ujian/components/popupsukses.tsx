@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { CheckCircle2, X } from "lucide-react";
 
 // Popup centang animasi. Kalau `children` diisi, itu jadi tombol aksi (menggantikan tombol "Oke").
@@ -12,14 +12,11 @@ export default function PopupSukses({ judul, detail, onTutup, otomatis = 3000, c
   otomatis?: number;
   children?: React.ReactNode;
 }) {
-  const tutupRef = useRef(onTutup);
-  tutupRef.current = onTutup;
-
   useEffect(() => {
     if (!otomatis) return;
-    const t = setTimeout(() => tutupRef.current(), otomatis);
+    const t = setTimeout(onTutup, otomatis);
     return () => clearTimeout(t);
-  }, [otomatis]);
+  }, [otomatis, onTutup]);
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm" onClick={onTutup} role="alertdialog" aria-live="polite">

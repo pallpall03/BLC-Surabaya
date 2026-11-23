@@ -5,11 +5,14 @@ import {
   UsersRound,
   HelpCircle,
   BookOpen,
-  ShieldCheck,
   List,
   UserCog,
+  Newspaper,
+  Images,
+  MapPin,
+  Tag,
 } from "lucide-react";
-import type { KonfigPeran, MenuItem } from "@/components/panel/tipe";
+import type { KonfigPeran, MenuItem } from "./components/tipe";
 import type { MenuData } from "./menu/data";
 import { ambilIkon } from "./menu/ikon";
 import type { RoleUser } from "./_shared/role";
@@ -30,7 +33,6 @@ export const konfigAdministrator: KonfigPeran = {
       ikon: Users,
       anak: [
         { label: "Manajemen User", href: `${ADMIN}/user_manager`, ikon: UserCog },
-        { label: "Role & Hak Akses", href: `${ADMIN}/role_hak_akses`, ikon: ShieldCheck },
         { label: "Manajemen Menu", href: `${ADMIN}/menu`, ikon: List },
       ],
     },
@@ -38,9 +40,14 @@ export const konfigAdministrator: KonfigPeran = {
       label: "Data Website",
       ikon: Database,
       anak: [
-        { label: "Buku Tamu", href: `${ADMIN}/buku_tamu`, ikon: BookOpen },
-        { label: "FAQ", href: `${ADMIN}/faq`, ikon: HelpCircle },
+        { label: "Artikel", href: `${ADMIN}/artikel`, ikon: Newspaper },
+        { label: "Foto Slider", href: `${ADMIN}/slider`, ikon: Images },
+        { label: "Lokasi BLC", href: `${ADMIN}/lokasi`, ikon: MapPin },
+        { label: "Kategori Artikel", href: `${ADMIN}/artikel`, ikon: Tag },
+        { label: "Testimoni", href: `${ADMIN}/testimoni`, ikon: Users },
         { label: "Tim BLC", href: `${ADMIN}/tim_blc`, ikon: UsersRound },
+        { label: "FAQ", href: `${ADMIN}/faq`, ikon: HelpCircle },
+        { label: "Buku Tamu", href: `${ADMIN}/buku_tamu`, ikon: BookOpen },
       ],
     },
   ],

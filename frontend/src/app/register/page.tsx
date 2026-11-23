@@ -43,7 +43,7 @@ export default function RegisterPage() {
         const pesanField = data.errors ? (Object.values(data.errors).flat()[0] as string | undefined) : undefined;
         setMessage({ type: 'error', text: pesanField || data.message || 'Registrasi gagal' });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'Koneksi ke server gagal' });
     } finally {
       setLoading(false);

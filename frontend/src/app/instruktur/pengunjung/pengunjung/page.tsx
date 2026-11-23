@@ -101,11 +101,17 @@ export default function PengunjungPage() {
   };
   const pilihGrup = (g: Grup) => { setGrup(g); setSub(""); setPage(1); };
 
-  const toggle = (id: number) => setDipilih((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggle = (id: number) => setDipilih((s) => {
+    const n = new Set(s);
+    if (n.has(id)) n.delete(id);
+    else n.add(id);
+    return n;
+  });
   const semuaHalaman = baris.length > 0 && baris.every((b) => dipilih.has(b.id));
   const togglePage = () => setDipilih((s) => {
     const n = new Set(s);
-    semuaHalaman ? baris.forEach((b) => n.delete(b.id)) : baris.forEach((b) => n.add(b.id));
+    if (semuaHalaman) baris.forEach((b) => n.delete(b.id));
+    else baris.forEach((b) => n.add(b.id));
     return n;
   });
   const hapusTerpilih = () => {
@@ -158,7 +164,7 @@ export default function PengunjungPage() {
         {!dicari && (
           <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-orange-200 bg-white/60 px-4 py-14 text-center print:hidden">
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 text-orange-500"><Search size={30} /></span>
-            <p className="text-sm text-slate-500">Pilih rentang tanggal lalu klik "Cari pengunjung".</p>
+            <p className="text-sm text-slate-500">Pilih rentang tanggal lalu klik &quot;Cari pengunjung&quot;.</p>
           </div>
         )}
 
