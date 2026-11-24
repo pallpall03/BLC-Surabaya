@@ -82,6 +82,7 @@ final class EloquentTestimoniRepository implements TestimoniRepository
             kelurahan: $model->kelurahan,
             createdAt: $model->created_at?->toIso8601String(),
             updatedAt: $model->updated_at?->toIso8601String(),
+            status: $model->status  // ✅ Mapping status dari model ke domain
         );
     }
 }

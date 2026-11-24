@@ -26,6 +26,7 @@ final class TestimoniModel extends Model
         'tanggal_lahir',
         'kecamatan',
         'kelurahan',
+        'status',  // ✅ Tambahin baris ini
     ];
 
     protected $casts = [
@@ -45,7 +46,7 @@ final class TestimoniModel extends Model
 
     public function scopeAktif($query)
     {
-        return $query->where('is_surabaya', true);
+        return $query->where('status', 'aktif');  // ✅ Ganti filter is_surabaya jadi status
     }
 
     public function scopeLatest($query)

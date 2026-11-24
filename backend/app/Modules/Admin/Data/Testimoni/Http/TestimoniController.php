@@ -27,8 +27,10 @@ final class TestimoniController extends Controller
             'testimoni' => 'required|string',
             'foto' => 'nullable|string|max:255',
             'urutan' => 'sometimes|integer|min:0',
-            'is_aktif' => 'sometimes|boolean',
+            'status' => 'sometimes|string',  // ✅ Diterima dari frontend (aktif/nonaktif)
         ]);
+
+        $validated['status'] = $request->filled('status') ? $request->status : 'nonaktif';  // ✅ Default ke nonaktif kalau tidak kirim
 
         $testimoniModel = $this->repository->create($validated);
         return response()->json(['data' => $testimoniModel], 201);
@@ -51,8 +53,15 @@ final class TestimoniController extends Controller
             'testimoni' => 'sometimes|required|string',
             'foto' => 'sometimes|string|max:255',
             'urutan' => 'sometimes|integer|min:0',
-            'is_aktif' => 'sometimes|boolean',
+            'status' => 'sometimes|string',  // ✅ Diterima dari frontend (aktif/nonaktif)
         ]);
+
+        // ✅ Pastikan status selalu ada di data yang dikirim ke repository
+        if ($request->filled('status')) {
+            $validated['status'] = $request->status;
+        } elseif (!array_key_exists('status', $validated)) {
+            $validated['status'] = 'nonaktif';  // ✅ Default kalau tidak dikirim
+        }
 
         $testimoni = $this->repository->update($id, $validated);
         return response()->json(['data' => $testimoni]);

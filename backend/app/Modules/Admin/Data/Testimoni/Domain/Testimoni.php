@@ -25,5 +25,6 @@ final class Testimoni
         public readonly ?string $kelurahan = null,
         public readonly ?string $createdAt = null,
         public readonly ?string $updatedAt = null,
+        public readonly ?string $status = null  // ✅ Tambahin status field
     ) {}
 }
