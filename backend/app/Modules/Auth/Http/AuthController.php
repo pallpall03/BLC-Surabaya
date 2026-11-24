@@ -3,34 +3,30 @@
 namespace App\Modules\Auth\Http;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Auth\Application\BukaKunciAkun;
+use App\Modules\Auth\Application\Exceptions\LoginDitolak;
 use App\Modules\Auth\Application\LoginUser;
 use App\Modules\Auth\Application\LogoutUser;
 use App\Modules\Auth\Application\RegisterPengguna;
+use App\Modules\Auth\Contracts\CaptchaService;
 use App\Modules\Auth\Http\Requests\LoginRequest;
 use App\Modules\Auth\Http\Requests\RegisterPenggunaRequest;
 use App\Modules\Auth\Http\Resources\AuthUserResource;
-use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 final class AuthController extends Controller
 {
-    private const MAX_PERCOBAAN = 5;
-
-    private const JEDA_DETIK = 60;
-
     /** POST /api/v1/auth/register — khusus peserta (role selalu peserta). */
     public function register(RegisterPenggunaRequest $request, RegisterPengguna $useCase): JsonResponse
     {
         try {
-            $hasil = $useCase->handle($request->safe()->only(['name', 'email', 'password']));
+            $hasil = $useCase->handle($request->safe()->only(['name', 'nik', 'email', 'password']));
         } catch (UniqueConstraintViolationException) {
-            // Dua pendaftaran dengan email sama pada saat bersamaan: lolos validasi, kalah di constraint DB.
-            throw ValidationException::withMessages(['email' => 'Email sudah terdaftar.']);
+            // Dua pendaftaran dengan email atau NIK sama pada saat bersamaan: lolos validasi, kalah di constraint DB.
+            throw ValidationException::withMessages(['email' => 'Email atau NIK sudah terdaftar.']);
         }
 
         return response()->json([
@@ -41,38 +37,53 @@ final class AuthController extends Controller
         ], 201);
     }
 
-    /** POST /api/v1/auth/login — semua role. */
+    /** GET /api/v1/auth/captcha — captcha baru; frontend memuat ulang tiap `refresh_in` detik. */
+    public function captcha(CaptchaService $captcha): JsonResponse
+    {
+        $baru = $captcha->buat();
+
+        return response()->json([
+            'captcha_id' => $baru['id'],
+            'image' => $baru['image'],
+            'refresh_in' => $baru['refresh_in'],
+        ])->header('Cache-Control', 'no-store');
+    }
+
+    /** POST /api/v1/auth/login — semua role, memakai NIK. */
     public function login(LoginRequest $request, LoginUser $useCase): JsonResponse
     {
-        $email = $request->validated('email');
-        $kunci = $email.'|'.$request->ip();
-
-        if (RateLimiter::tooManyAttempts($kunci, self::MAX_PERCOBAAN)) {
-            $tunggu = RateLimiter::availableIn($kunci);
-
-            return response()->json([
-                'message' => 'Terlalu banyak percobaan login. Coba lagi nanti.',
-                'retry_after' => $tunggu,
-            ], 429)->header('Retry-After', (string) $tunggu);
-        }
-
         try {
-            $hasil = $useCase->handle($email, $request->validated('password'));
-        } catch (AuthenticationException $e) {
-            RateLimiter::hit($kunci, self::JEDA_DETIK);
-
-            return response()->json(['message' => $e->getMessage()], 401);
-        } catch (AuthorizationException $e) {
-            return response()->json(['message' => $e->getMessage()], 403);
+            $hasil = $useCase->handle(
+                $request->validated('nik'),
+                $request->validated('password'),
+                $request->validated('captcha_id'),
+                $request->validated('captcha'),
+            );
+        } catch (LoginDitolak $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'captcha_required' => $e->captchaWajib,
+                'locked' => $e->terkunci,
+                'attempts_left' => $e->sisaPercobaan,
+            ], $e->status);
         }
-
-        RateLimiter::clear($kunci);
 
         return response()->json([
             'token' => $hasil['token'],
             'token_type' => 'Bearer',
             'expires_in' => $hasil['expires_in'],
             'user' => new AuthUserResource($hasil['user']),
+        ]);
+    }
+
+    /** POST /api/v1/administrator/akun/{id}/buka-kunci — hanya path administrator (role superadmin). */
+    public function bukaKunci(int $id, BukaKunciAkun $useCase): JsonResponse
+    {
+        $user = $useCase->handle($id);
+
+        return response()->json([
+            'message' => 'Akun berhasil dibuka.',
+            'user' => new AuthUserResource($user),
         ]);
     }
 

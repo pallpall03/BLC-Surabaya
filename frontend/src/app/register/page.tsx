@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: '',
+    nik: '',
     email: '',
     password: '',
     password_confirmation: '',
@@ -16,7 +17,9 @@ export default function RegisterPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    // NIK hanya angka, maksimal 16 digit
+    const nilai = name === 'nik' ? value.replace(/\D/g, '').slice(0, 16) : value;
+    setFormData(prev => ({ ...prev, [name]: nilai }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -80,6 +83,26 @@ export default function RegisterPage() {
                 value={formData.name}
                 onChange={handleChange}
                 required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                NIK (16 digit)
+              </label>
+              <input
+                type="text"
+                name="nik"
+                inputMode="numeric"
+                autoComplete="off"
+                value={formData.nik}
+                onChange={handleChange}
+                required
+                minLength={16}
+                maxLength={16}
+                pattern="[0-9]{16}"
+                title="NIK harus 16 digit angka"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

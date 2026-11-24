@@ -21,6 +21,7 @@ final class AuthUserResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'nik' => $this->nik,
             'email' => $this->email,
             'role' => $this->role ? [
                 'slug' => $this->role->slug,

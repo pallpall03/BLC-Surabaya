@@ -13,19 +13,24 @@ final class LoginRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (is_string($this->input('email'))) {
-            $this->merge(['email' => mb_strtolower(trim($this->input('email')))]);
+        if (is_string($this->input('nik'))) {
+            $this->merge(['nik' => preg_replace('/\s+/', '', $this->input('nik'))]);
         }
     }
 
     /**
+     * Login semua role memakai NIK. captcha_id dan captcha hanya wajib setelah
+     * dua kali salah password (dicek di LoginUser, bukan di sini).
+     *
      * @return array<string, mixed>
      */
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'nik' => ['required', 'string', 'digits:16'],
             'password' => ['required', 'string'],
+            'captcha_id' => ['nullable', 'string', 'max:64'],
+            'captcha' => ['nullable', 'string', 'max:10'],
         ];
     }
 
@@ -35,8 +40,8 @@ final class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
+            'nik.required' => 'NIK wajib diisi.',
+            'nik.digits' => 'NIK harus 16 digit angka.',
             'password.required' => 'Password wajib diisi.',
         ];
     }

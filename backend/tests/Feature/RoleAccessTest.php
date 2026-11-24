@@ -71,27 +71,27 @@ class RoleAccessTest extends TestCase
         }
     }
 
-    public function test_pengguna_tidak_boleh_masuk_area_instruktur_atau_koordinator(): void
+    public function test_peserta_tidak_boleh_masuk_area_instruktur_atau_koordinator(): void
     {
-        $this->sebagai('pengguna');
+        $this->sebagai('peserta');
 
         foreach ([...self::INSTRUKTUR_URLS, ...self::KOORDINATOR_URLS] as $url) {
             $this->getJson($url)->assertStatus(403);
         }
     }
 
-    public function test_admin_tidak_otomatis_boleh_ke_area_instruktur_atau_koordinator(): void
+    public function test_superadmin_tidak_otomatis_boleh_ke_area_instruktur_atau_koordinator(): void
     {
-        $this->sebagai('admin');
+        $this->sebagai('superadmin');
 
         foreach ([...self::INSTRUKTUR_URLS, ...self::KOORDINATOR_URLS] as $url) {
             $this->getJson($url)->assertStatus(403);
         }
     }
 
-    public function test_pengguna_boleh_ke_area_peserta_dan_instruktur_ditolak(): void
+    public function test_peserta_boleh_ke_area_peserta_dan_instruktur_ditolak(): void
     {
-        $this->sebagai('pengguna');
+        $this->sebagai('peserta');
 
         // lolos middleware lalu controller placeholder melempar error (belum ada skema) => bukan 401/403
         $this->assertNotContains($this->getJson('/api/v1/peserta/modul')->status(), [401, 403]);

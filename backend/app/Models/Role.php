@@ -19,6 +19,18 @@ final class Role extends Model
     public const OPERATOR = 'operator';
     public const PESERTA = 'peserta';
 
+    /**
+     * Slug di path URL (/api/v1/{slug}/...) => slug role yang berhak membukanya.
+     * Dipakai middleware `role.path`. Path 'administrator' dipegang role superadmin.
+     */
+    public const PATH_ROLE = [
+        'administrator' => self::SUPERADMIN,
+        'operator' => self::OPERATOR,
+        'koordinator' => self::KOORDINATOR,
+        'instruktur' => self::INSTRUKTUR,
+        'peserta' => self::PESERTA,
+    ];
+
     protected $fillable = ['slug', 'name'];
 
     /**

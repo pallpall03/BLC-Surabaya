@@ -16,6 +16,7 @@ final class PenggunaModel extends BaseUser
     protected $fillable = [
         'role_id',
         'username',
+        'nik',
         'password',
         'name',
         'email',
