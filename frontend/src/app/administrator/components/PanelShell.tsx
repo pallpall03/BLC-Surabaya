@@ -172,7 +172,7 @@ export default function PanelShell({
                       {m.anak?.map((a) => {
                         const IkonAnak = a.ikon;
                         return (
-                          <div className="menu-item" key={a.href}>
+                          <div className="menu-item" key={a.label}>
                             <Link
                               href={a.href}
                               onClick={() => setMobileBuka(false)}

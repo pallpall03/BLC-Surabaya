@@ -99,11 +99,11 @@ export default function HalamanLokasi() {
   }
 
   async function handleSimpan() {
-    if (
-      !form.nama.trim() ||
-      !form.alamat.trim() ||
-      !form.kecamatan.trim()
-    ) {
+      if (
+        !form.nama?.trim() ||
+        !form.alamat?.trim() ||
+        !form.kecamatan?.trim()
+      ) {
       setGalat("Nama, alamat, dan kecamatan wajib diisi.");
       return;
     }

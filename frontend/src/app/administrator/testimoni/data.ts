@@ -1,4 +1,3 @@
-
 export type StatusTestimoni = "aktif" | "nonaktif";
 
 export type Testimoni = {
@@ -17,6 +16,7 @@ export type FormTestimoni = {
 };
 
 const KEY = "blc-testimoni";
+const API_BASE_URL = "/api/v1";
 
 const dataAwal: Testimoni[] = [
   {
@@ -69,75 +69,127 @@ function tulisData(data: Testimoni[]) {
   }
 }
 
-export function ambilTestimoni(): Testimoni[] {
-  return bacaData().sort(
-    (a, b) =>
-      new Date(b.modifiedAt).getTime() -
-      new Date(a.modifiedAt).getTime()
-  );
+export async function ambilTestimoni(): Promise<Testimoni[]> {
+  // Coba ambil dari API, jika gagal fallback ke localStorage
+  try {
+    const res = await fetch(`${API_BASE_URL}/testimoni`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("API error");
+    const json = await res.json();
+    // Laravel API wrapper: { data: [...] } -> ambil data saja
+    const raw = json.data ?? json ?? [];
+    // Mapping field API ke tipe Testimoni: keperluan -> isi, createdAt -> modifiedAt
+    return raw.map((item: any) => ({
+      id: item.id,
+      nama: item.nama,
+      isi: item.keperluan || item.isi || "",
+      status: item.status || "nonaktif",
+      author: item.author || "Super Admin",
+      modifiedAt: item.createdAt || item.updatedAt || "2026-11-19T09:30:00",
+    }));
+  } catch (e) {
+    console.warn("Gagal fetch testimoni API, gunakan lokal:", e);
+    return bacaData().sort(
+      (a, b) =>
+        new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime()
+    );
+  }
 }
 
-export function simpanTestimoni(
+export async function simpanTestimoni(
   form: FormTestimoni,
   id?: number
-): Testimoni {
-  const data = bacaData();
+): Promise<{ success: true; data: Testimoni[] } | { success: false; fallback: true }> {
+  try {
+    const method = id ? "PATCH" : "POST"
+    const url = id ? `/api/v1/testimoni/${id}` : `/api/v1/testimoni`
 
-  const sekarang = new Date().toISOString();
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ 
+              ...form, 
+              author: "Super Admin",
+              // Mapping field: frontend kirim `isi` → backend terima `testimoni`
+              testimoni: form.isi,
+              // Tambah: status dikirim langsung sesuai form
+              status: form.status 
+            })
+    })
 
-  if (id !== undefined) {
-    const index = data.findIndex((item) => item.id === id);
+    if (!res.ok) throw new Error("API error")
 
-    if (index === -1) {
-      throw new Error("Data testimoni tidak ditemukan.");
+    // ✅ Success: ambil data baru dari API
+    const fresh = await ambilTestimoni()
+    // tulisData(fresh)              // juga simpan ke localStorage backup (optional)
+    // window.dispatchEvent(new Event("testimoni-berubah"))  // akan dipanggil di caller
+    return { success: true, data: fresh }
+  } catch (e) {
+    // ⚠️ Fallback: ke localStorage jika API gagal
+    const data = bacaData()
+    const sekarang = new Date().toISOString()
+
+    if (id !== undefined) {
+      const index = data.findIndex((item) => item.id === id)
+      if (index !== -1) {
+        data[index] = { ...data[index], ...form, author: "Super Admin", modifiedAt: sekarang }
+      }
+    } else {
+      const baru: Testimoni = {
+        id: data.length > 0 ? Math.max(...data.map((item) => item.id)) + 1 : 1,
+        ...form,
+        author: "Super Admin",
+        modifiedAt: sekarang,
+      }
+      data.push(baru)
     }
-
-    const diperbarui: Testimoni = {
-      ...data[index],
-      ...form,
-      author: "Super Admin",
-      modifiedAt: sekarang,
-    };
-
-    data[index] = diperbarui;
-    tulisData(data);
-
-    return diperbarui;
+    tulisData(data)
+    return { success: false, fallback: true }
   }
-
-  const baru: Testimoni = {
-    id:
-      data.length > 0
-        ? Math.max(...data.map((item) => item.id)) + 1
-        : 1,
-    ...form,
-    author: "Super Admin",
-    modifiedAt: sekarang,
-  };
-
-  data.push(baru);
-  tulisData(data);
-
-  return baru;
 }
 
-export function hapusTestimoni(id: number): void {
-  const data = bacaData();
-  tulisData(data.filter((item) => item.id !== id));
+export async function hapusTestimoni(id: number): Promise<void> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/testimoni/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("API error");
+    return;
+  } catch (e) {
+    // ⚠️ Fallback: ke localStorage jika API gagal
+    const data = bacaData();
+    tulisData(data.filter((item) => item.id !== id));
+  }
 }
 
-export function ubahStatusTestimoni(id: number): void {
-  const data = bacaData();
+export async function ubahStatusTestimoni(id: number): Promise<void> {
+  try {
+    // Dapatkan status baru terlebih dahulu dari localStorage sebelum kirim ke API
+    const data = bacaData();
+    const itemLama = data.find((item) => item.id === id)!;
+    const statusBaru = itemLama.status === "aktif" ? "nonaktif" : "aktif";
 
-  const diperbarui = data.map((item): Testimoni => {
-    if (item.id !== id) return item;
-
-    return {
-      ...item,
-      status: item.status === "aktif" ? "nonaktif" : "aktif",
-      modifiedAt: new Date().toISOString(),
-    };
-  });
-
-  tulisData(diperbarui);
+    const res = await fetch(`${API_BASE_URL}/testimoni/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ status: statusBaru }),
+    });
+    if (!res.ok) throw new Error("API error");
+    return;
+  } catch (e) {
+    // ⚠️ Fallback: ke localStorage jika API gagal
+    const data = bacaData();
+    const diperbarui = data.map((item): Testimoni => {
+      if (item.id !== id) return item;
+      return { ...item, status: item.status === "aktif" ? "nonaktif" : "aktif", modifiedAt: new Date().toISOString() };
+    });
+    tulisData(diperbarui);
+  }
 }
+

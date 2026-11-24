@@ -43,8 +43,8 @@ export default function TestimoniPage() {
   const [form, setForm] = useState<FormTestimoni>(formAwal);
   const [pesanError, setPesanError] = useState("");
 
-  function muatData() {
-    setData(ambilTestimoni());
+  async function muatData() {
+    setData(await ambilTestimoni());
   }
 
   useEffect(() => {
@@ -61,12 +61,12 @@ export default function TestimoniPage() {
 
   const dataFilter = useMemo(() => {
     const kata = kataKunci.toLowerCase().trim();
+    const daftar = Array.isArray(data) ? data : [];
 
-    return data.filter(
+    return daftar.filter(
       (item) =>
         item.nama.toLowerCase().includes(kata) ||
-        item.isi.toLowerCase().includes(kata) ||
-        item.author.toLowerCase().includes(kata)
+        item.isi.toLowerCase().includes(kata)
     );
   }, [data, kataKunci]);
 
@@ -140,36 +140,36 @@ export default function TestimoniPage() {
     }
   }
 
-  function handleHapus(item: Testimoni) {
-    const yakin = window.confirm(
-      `Apakah kamu yakin ingin menghapus testimoni dari "${item.nama}"?`
-    );
+  async function handleHapus(item: Testimoni) {
+      const yakin = window.confirm(
+        `Apakah kamu yakin ingin menghapus testimoni dari "${item.nama}"?`
+      );
 
-    if (!yakin) return;
+      if (!yakin) return;
 
-    hapusTestimoni(item.id);
-    muatData();
+      await hapusTestimoni(item.id);
+      muatData();
 
-    if (dataTampil.length === 1 && halaman > 1) {
-      setHalaman((prev) => prev - 1);
+      if (dataTampil.length === 1 && halaman > 1) {
+        setHalaman((prev) => prev - 1);
+      }
     }
-  }
 
-  function handleUbahStatus(item: Testimoni) {
-    const statusBaru =
-      item.status === "aktif" ? "nonaktif" : "aktif";
+    async function handleUbahStatus(item: Testimoni) {
+      const statusBaru =
+        item.status === "aktif" ? "nonaktif" : "aktif";
 
-    const konfirmasi = window.confirm(
-      statusBaru === "aktif"
-        ? `Tampilkan testimoni dari "${item.nama}" di website?`
-        : `Sembunyikan testimoni dari "${item.nama}" dari website?`
-    );
+      const konfirmasi = window.confirm(
+        statusBaru === "aktif"
+          ? `Tampilkan testimoni dari "${item.nama}" di website?`
+          : `Sembunyikan testimoni dari "${item.nama}" dari website?`
+      );
 
-    if (!konfirmasi) return;
+      if (!konfirmasi) return;
 
-    ubahStatusTestimoni(item.id);
-    muatData();
-  }
+      await ubahStatusTestimoni(item.id);
+      muatData();
+    }
 
   function formatTanggal(tanggal: string) {
     return new Date(tanggal).toLocaleString("id-ID", {
@@ -243,7 +243,7 @@ export default function TestimoniPage() {
             <Eye className="text-green-600" size={22} />
           </div>
           <p className="mt-2 text-2xl font-bold text-green-600">
-            {data.filter((item) => item.status === "aktif").length}
+            {(data || []).filter((item) => item.status === "aktif").length}
           </p>
         </div>
 
@@ -253,7 +253,7 @@ export default function TestimoniPage() {
             <EyeOff className="text-red-600" size={22} />
           </div>
           <p className="mt-2 text-2xl font-bold text-red-600">
-            {data.filter((item) => item.status === "nonaktif").length}
+            {(data || []).filter((item) => item.status === "nonaktif").length}
           </p>
         </div>
       </div>
@@ -311,9 +311,6 @@ export default function TestimoniPage() {
                   Status
                 </th>
                 <th className="border-b border-gray-200 px-4 py-3 font-semibold">
-                  Author
-                </th>
-                <th className="border-b border-gray-200 px-4 py-3 font-semibold">
                   Modified at
                 </th>
                 <th className="border-b border-gray-200 px-4 py-3 font-semibold">
@@ -358,9 +355,6 @@ export default function TestimoniPage() {
                       </button>
                     </td>
 
-                    <td className="border-b border-gray-100 px-4 py-3 text-gray-600">
-                      {item.author}
-                    </td>
 
                     <td className="whitespace-nowrap border-b border-gray-100 px-4 py-3 text-gray-600">
                       {formatTanggal(item.modifiedAt)}

@@ -16,8 +16,6 @@ import {
   Filter,
   FileSpreadsheet,
 } from "lucide-react";
-import * as XLSX from "xlsx";
-
 type Pengunjung = {
   id: number;
   tanggal: string; // Format YYYY-MM-DD
