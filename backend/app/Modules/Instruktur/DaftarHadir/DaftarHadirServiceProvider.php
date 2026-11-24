@@ -20,7 +20,7 @@ final class DaftarHadirServiceProvider extends ServiceProvider
      */
     public static function routes(): void
     {
-        Route::middleware(['auth:api', 'role.path'])
+        Route::middleware(['auth:api', 'role:instruktur'])
             ->prefix('instruktur/daftar-hadir')
             ->group(function (): void {
                 Route::get('/', [Http\DaftarHadirController::class, 'index']);

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { ChevronDown, LogOut, Menu, UserCircle } from "lucide-react";
+import { logout } from "@/lib/api";
 
 // Judul topbar per rute. Tanda * = satu bagian alamat yang berubah (misalnya nomor).
 // Urutan penting: yang lebih spesifik ditaruh di atas.
@@ -37,7 +38,6 @@ const cocok = (pola: string, alamat: string) =>
 
 export default function Topbar({ bukaMenu }: { bukaMenu: () => void }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [akun, setAkun] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -50,8 +50,7 @@ export default function Topbar({ bukaMenu }: { bukaMenu: () => void }) {
   }, []);
 
   const keluar = () => {
-    // TODO: panggil API logout Laravel + hapus token/session
-    router.push("/");
+    void logout();
   };
 
   return (
