@@ -21,7 +21,7 @@ final class ModulServiceProvider extends ServiceProvider
      */
     public static function routes(): void
     {
-        Route::middleware(['auth:api', 'role:pengguna'])
+        Route::middleware(['auth:api', 'role.path'])
             ->prefix('peserta/modul')
             ->group(function (): void {
                 Route::get('/', [Http\ModulController::class, 'index']);

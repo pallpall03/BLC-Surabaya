@@ -25,8 +25,8 @@ final class FaqController extends Controller
             'pertanyaan' => 'required|string|max:255',
             'jawaban' => 'required|string',
             'kategori' => 'nullable|string|max:100',
-            'urutan' => 'integer|default:0',
-            'is_aktif' => 'boolean',
+            'urutan' => 'sometimes|integer|min:0',
+            'is_aktif' => 'sometimes|boolean',
         ]);
 
         $faq = $this->repository->create($validated);
@@ -48,7 +48,7 @@ final class FaqController extends Controller
             'pertanyaan' => 'sometimes|required|string|max:255',
             'jawaban' => 'sometimes|required|string',
             'kategori' => 'sometimes|string|max:100',
-            'urutan' => 'sometimes|integer',
+            'urutan' => 'sometimes|integer|min:0',
             'is_aktif' => 'sometimes|boolean',
         ]);
 
@@ -58,7 +58,7 @@ final class FaqController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $this->repository->softDelete($id);
+        $this->repository->delete($id);
         return response()->json(['message' => 'Deleted']);
     }
 

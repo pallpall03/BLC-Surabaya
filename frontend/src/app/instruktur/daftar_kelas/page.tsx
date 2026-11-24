@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Activity, CalendarDays, CheckCircle2, Clock, Pencil, Plus, Printer, RotateCcw, Search, SearchX, Trash2, UserPlus, Users,
@@ -8,35 +8,113 @@ import {
 } from "lucide-react";
 import HeaderHalaman from "./components/headerhalaman";
 import JadwalKelas from "./components/jadwalkelas";
-import { jamSesi, KELAS_CONTOH, type Kelas } from "./data";
+import { jamSesi } from "./data";
+import { getKelas, createKelas, updateKelas, deleteKelas, type Kelas } from "@/lib/api";
 
 type Filter = "Semua" | "Aktif" | "Selesai";
 
 export default function DaftarKelasPage() {
-  const [kelas, setKelas] = useState<Kelas[]>(KELAS_CONTOH);
+  const [kelas, setKelas] = useState<Kelas[]>([]);
   const [filter, setFilter] = useState<Filter>("Semua");
   const [cari, setCari] = useState("");
   const [pesan, setPesan] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
 
-  const tampil = useMemo(() => {
-    const q = cari.trim().toLowerCase();
-    return kelas.filter((k) => (filter === "Semua" || k.status === filter) && (!q || k.nama.toLowerCase().includes(q) || k.materi.toLowerCase().includes(q)));
-  }, [kelas, filter, cari]);
+    // Fetch kelas dari API
+    const fetchKelas = async () => {
+      try {
+        setLoading(true);
+        const res = await getKelas();
+        setKelas(res.data ?? []);
+      } catch (e) {
+        console.error(e);
+        setPesan("Gagal memuat data kelas");
+        setTimeout(() => setPesan(""), 3000);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
+    useEffect(() => {
+      fetchKelas();
+    }, []);
+
+    const tampil = useMemo(() => {
+      const q = cari.trim().toLowerCase();
+      return kelas.filter((k) =>
+        (filter === "Semua" || k.status === filter) &&
+        (!q || k.nama.toLowerCase().includes(q) || k.materi.toLowerCase().includes(q))
+      );
+    }, [kelas, filter, cari]);
+
+    const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
+
+    const handleCreate = async (data: Omit<Kelas, "id" | "totalPeserta">) => {
+      try {
+        setSubmitting(true);
+        const res = await createKelas({
+          nama_kelas: data.nama,
+          materi_id: data.materi,
+          sesi_id: data.sesi,
+          hari: data.hari,
+          lokasi_blc_id: 1, // TODO: get from user context
+        });
+        setKelas((prev) => [...prev, res.data]);
+        toast("Kelas berhasil dibuat");
+        return true;
+      } catch (e) {
+        console.error(e);
+        toast("Gagal membuat kelas");
+        return false;
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+    const handleUpdate = async (id: number, data: Partial<Kelas>) => {
+      try {
+        setSubmitting(true);
+        const payload: Record<string, unknown> = {};
+        if (data.nama !== undefined) payload.nama_kelas = data.nama;
+        if (data.materi !== undefined) payload.materi_id = data.materi;
+        if (data.sesi !== undefined) payload.sesi_id = data.sesi;
+        if (data.hari !== undefined) payload.hari = data.hari;
+        if (data.status !== undefined) payload.status = data.status === "Aktif" ? 1 : 0;
+        const res = await updateKelas(id, payload);
+        setKelas((prev) => prev.map((k) => (k.id === id ? res.data : k)));
+        toast("Kelas berhasil diperbarui");
+        return true;
+      } catch (e) {
+        console.error(e);
+        toast("Gagal memperbarui kelas");
+        return false;
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+    const handleDelete = async (id: number) => {
+      if (!window.confirm("Hapus kelas ini?")) return;
+      try {
+        await deleteKelas(id);
+        setKelas((prev) => prev.filter((k) => k.id !== id));
+        toast("Kelas dihapus");
+      } catch (e) {
+        console.error(e);
+        toast("Gagal menghapus kelas");
+      }
+    };
+
   const ubahStatus = (id: number, status: Kelas["status"]) => {
-    // TODO: kirim perubahan status ke API
-    setKelas((d) => d.map((k) => (k.id === id ? { ...k, status } : k)));
-    toast(status === "Selesai" ? "Kelas ditandai selesai." : "Kelas diaktifkan kembali.");
+    handleUpdate(id, { status });
   };
-  const hapus = (k: Kelas) => {
-    if (!window.confirm(`Hapus kelas ${k.nama}?`)) return;
-    setKelas((d) => d.filter((x) => x.id !== k.id));
-    toast("Kelas dihapus.");
-  };
+
+  const hapus = (k: Kelas) => handleDelete(k.id);
 
   const jumlah = (f: Filter) => (f === "Semua" ? kelas.length : kelas.filter((k) => k.status === f).length);
 
+<<<<<<< HEAD
   const statistik: { kunci: Filter; label: string; icon: LucideIcon; warna: string; aktif: string }[] = [
     { kunci: "Semua", label: "Semua kelas", icon: CalendarDays, warna: "bg-light-primary text-primary", aktif: "border-primary" },
     { kunci: "Aktif", label: "Kelas aktif", icon: Activity, warna: "bg-light-success text-success", aktif: "border-success" },
@@ -56,6 +134,30 @@ export default function DaftarKelasPage() {
           <div className="card-toolbar">
             {/* TODO: ganti dengan ekspor PDF dari backend jika perlu */}
             <button type="button" onClick={() => window.print()} className="btn btn-sm btn-light-primary d-inline-flex align-items-center gap-2">
+=======
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent" />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
+      <div className="mx-auto max-w-6xl">
+        <HeaderHalaman icon={CalendarDays} judul="Daftar kelas" deskripsi="Lihat jadwal kelas aktif dan kelola semua kelas." />
+
+        <section className={`${kartu} mb-6`}>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 font-semibold text-slate-900"><Clock size={20} className="text-orange-500" /> Jadwal kelas aktif</h2>
+            <button type="button" onClick={() => window.print()}
+              className="inline-flex items-center gap-2 rounded-xl border border-orange-200 px-4 py-2 text-sm font-medium text-orange-700 hover:bg-orange-50">
+>>>>>>> 76d4f7dd648545a996f558989eb874d401051596
               <Printer size={16} /> Cetak jadwal
             </button>
           </div>

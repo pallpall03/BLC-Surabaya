@@ -16,7 +16,14 @@ final class ArtikelModel extends Model
     protected $fillable = [
         'kategori_artikel_id',
         'judul',
+        'slug',
         'keterangan',
+        'konten',
+        'ringkasan',
+        'gambar_utama',
+        'penulis',
+        'tanggal_publikasi',
+        'is_aktif',
         'lokasi',
         'created_by',
         'sesi_id',
@@ -25,6 +32,8 @@ final class ArtikelModel extends Model
 
     protected $casts = [
         'is_delete' => 'boolean',
+        'is_aktif' => 'boolean',
+        'tanggal_publikasi' => 'date',
     ];
 
     public function kategori(): BelongsTo

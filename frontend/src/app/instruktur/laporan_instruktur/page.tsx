@@ -62,7 +62,7 @@ const geser = (ym: string, n: number) => {
 
 export default function LaporanInstrukturPage() {
   const [bulan, setBulan] = useState(BULAN_AWAL);
-  const data = DATA[bulan] ?? [];
+  const data = useMemo(() => DATA[bulan] ?? [], [bulan]);
 
   const ringkas = useMemo(() => {
     const semua = data.flatMap((h) => h.pertemuan);

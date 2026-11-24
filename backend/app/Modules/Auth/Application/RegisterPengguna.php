@@ -19,7 +19,7 @@ final class RegisterPengguna
     }
 
     /**
-     * @param  array{name: string, email: string, password: string}  $data
+     * @param  array{name: string, nik: string, email: string, password: string}  $data
      * @return array{user: User, token: string, expires_in: int}
      */
     public function handle(array $data, string $roleSlug = Role::PESERTA): array

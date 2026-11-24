@@ -77,7 +77,10 @@ export default function DaftarHadirPage() {
     setBukaKelas(false);
   };
 
-  const peserta = dicari ? PESERTA[dicari.kelasId] ?? [] : [];
+  const peserta = useMemo(
+    () => (dicari ? PESERTA[dicari.kelasId] ?? [] : []),
+    [dicari]
+  );
   const jumlahHadir = peserta.filter((p) => hadir[p.id] === "hadir").length;
 
   const tampil = useMemo(() => {
@@ -304,7 +307,7 @@ export default function DaftarHadirPage() {
               {foto.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-orange-200 bg-orange-50/30 py-10 text-center text-sm text-slate-500">
                   <ImagePlus size={32} className="text-orange-300" />
-                  Belum ada foto. Klik "Tambah foto" untuk mengunggah.
+                  Belum ada foto. Klik &quot;Tambah foto&quot; untuk mengunggah.
                 </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

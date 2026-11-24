@@ -109,6 +109,7 @@ final class PenggunaController extends Controller
                 'role' => 'sometimes|string|in:administrator,operator,instruktur,koordinator',
                 'nama_lengkap' => 'required|string|max:255',
                 'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($ignoreId)],
+                'nik' => ['nullable', 'digits:16', Rule::unique('users', 'nik')->ignore($ignoreId)],
                 'username' => ['sometimes', 'string', 'max:255', Rule::unique('users', 'username')->ignore($ignoreId)],
                 'password' => $ignoreId ? 'nullable|string|min:6|confirmed' : 'required|string|min:6|confirmed',
                 'telepon' => 'nullable|string|max:20',

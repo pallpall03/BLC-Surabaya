@@ -11,6 +11,11 @@ use App\Modules\Auth\Contracts\UserRepository;
  */
 final class EloquentUserRepository implements UserRepository
 {
+    public function findByNik(string $nik): ?User
+    {
+        return User::query()->with('role')->where('nik', trim($nik))->first();
+    }
+
     public function findByEmail(string $email): ?User
     {
         return User::query()
@@ -29,6 +34,7 @@ final class EloquentUserRepository implements UserRepository
         // password berupa teks biasa: di-hash otomatis oleh cast 'hashed' pada model User.
         $user = User::create([
             'name' => $data['name'],
+            'nik' => $data['nik'],
             'email' => mb_strtolower(trim($data['email'])),
             'password' => $data['password'],
             'role_id' => $role->id,

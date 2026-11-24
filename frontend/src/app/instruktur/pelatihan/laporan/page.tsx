@@ -110,7 +110,12 @@ export default function LaporanPage() {
   const mulaiIdx = (halaman - 1) * perPage;
   const baris = hasil.slice(mulaiIdx, mulaiIdx + perPage);
 
-  const toggleFoto = (id: number) => setDipilih((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleFoto = (id: number) => setDipilih((s) => {
+    const n = new Set(s);
+    if (n.has(id)) n.delete(id);
+    else n.add(id);
+    return n;
+  });
   const semuaDipilih = dipilih.size === DATA_FOTO.length;
   const pilihSemua = () => setDipilih(semuaDipilih ? new Set() : new Set(DATA_FOTO.map((f) => f.id)));
 
@@ -354,7 +359,7 @@ export default function LaporanPage() {
         {!dicari && (
           <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-orange-200 bg-white/60 px-4 py-14 text-center print:hidden">
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 text-orange-500"><Search size={30} /></span>
-            <p className="text-sm text-slate-500">Pilih periode lalu klik "Cari laporan".</p>
+            <p className="text-sm text-slate-500">Pilih periode lalu klik &quot;Cari laporan&quot;.</p>
           </div>
         )}
       </div>

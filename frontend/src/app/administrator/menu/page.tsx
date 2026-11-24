@@ -1,171 +1,316 @@
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Lock, Pencil, Plus, Trash2, X, List } from "lucide-react";
-import { ambilMenu, simpanMenu, hapusMenu, type MenuData } from "@/lib/menu";
-import { daftarRole, type RoleUser } from "@/lib/password";
-import { ambilIkon, daftarIkon } from "@/lib/ikon";
+import {
+  Lock,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+  List,
+  Search,
+} from "lucide-react";
 
-// menu yang tidak boleh dihapus/dinonaktifkan, supaya admin tidak mengunci dirinya sendiri
+import {
+  ambilMenu,
+  simpanMenu,
+  hapusMenu,
+  type MenuData,
+  type FormMenu,
+} from "./data";
+
+import { ambilIkon, daftarIkon } from "./ikon";
+import { daftarRole, type RoleUser } from "../_shared/role";
+
+// Menu penting yang tidak boleh dihapus atau dinonaktifkan
 const DILINDUNGI = [
   "/administrator/menu",
-  "/administrator/user-manager",
+  "/administrator/user_manager",
 ];
-const dilindungi = (m: MenuData) =>
-  m.role === "administrator" && DILINDUNGI.includes(m.href);
+
+function dilindungi(menu: MenuData) {
+  return (
+    menu.role === "administrator" &&
+    DILINDUNGI.includes(menu.href)
+  );
+}
+
+const inputClass =
+  "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100";
 
 export default function HalamanMenu() {
   const [daftar, setDaftar] = useState<MenuData[]>([]);
-  const [memuat, setMemuat] = useState<boolean>(true);
+  const [memuat, setMemuat] = useState(true);
   const [tab, setTab] = useState<RoleUser>("administrator");
-
-  // modal tambah/ubah: null = tertutup, {} = tambah, {id} = ubah
-  const [modal, setModal] = useState<{ id?: number } | null>(null);
-  const [nama, setNama] = useState("");
-  const [href, setHref] = useState("");
-  const [ikon, setIkon] = useState("Circle");
-  const [indukId, setIndukId] = useState<number | "">("");
-  const [role, setRole] = useState<RoleUser>("administrator");
-  const [urutan, setUrutan] = useState<number>(1);
-  const [aktif, setAktif] = useState<boolean>(true);
+  const [cari, setCari] = useState("");
   const [galat, setGalat] = useState("");
 
+  const [modal, setModal] = useState<{ id?: number } | null>(null);
+
+  const [nama, setNama] = useState("");
+  const [href, setHref] = useState("");
+  const [ikon, setIkon] = useState("Home");
+  const [indukId, setIndukId] = useState<number | "">("");
+  const [role, setRole] = useState<RoleUser>("administrator");
+  const [urutan, setUrutan] = useState(1);
+  const [aktif, setAktif] = useState(true);
+  const [menyimpan, setMenyimpan] = useState(false);
+
+  // Mengambil data menu
+  async function muatData() {
+    try {
+      setMemuat(true);
+      const hasil = await ambilMenu();
+      setDaftar(hasil);
+    } catch {
+      setGalat("Gagal mengambil data menu.");
+    } finally {
+      setMemuat(false);
+    }
+  }
+
   useEffect(() => {
-    ambilMenu()
-      .then(setDaftar)
-      .finally(() => setMemuat(false));
+    muatData();
   }, []);
 
-  // susun baris berhierarki untuk role yang dipilih: induk, lalu submenunya
+  // Menyusun menu induk dan submenu
   const baris = useMemo(() => {
     const milik = daftar.filter((m) => m.role === tab);
-    const urut = (a: MenuData, b: MenuData) => a.urutan - b.urutan;
     const hasil: { m: MenuData; anak: boolean }[] = [];
-    milik
-      .filter((m) => m.indukId === null)
-      .sort(urut)
-      .forEach((induk) => {
-        hasil.push({ m: induk, anak: false });
-        milik
-          .filter((x) => x.indukId === induk.id)
-          .sort(urut)
-          .forEach((x) => hasil.push({ m: x, anak: true }));
-      });
-    return hasil;
-  }, [daftar, tab]);
 
-  // pilihan induk di form: menu utama dari role yang dipilih (kecuali dirinya sendiri)
+    const induk = milik
+      .filter((m) => m.indukId === null)
+      .sort((a, b) => a.urutan - b.urutan);
+
+    induk.forEach((item) => {
+      hasil.push({ m: item, anak: false });
+
+      const anak = milik
+        .filter((m) => m.indukId === item.id)
+        .sort((a, b) => a.urutan - b.urutan);
+
+      anak.forEach((submenu) => {
+        hasil.push({ m: submenu, anak: true });
+      });
+    });
+
+    return hasil.filter(({ m }) => {
+      const indukMenu = milik.find((x) => x.id === m.indukId);
+
+      return (
+        m.nama.toLowerCase().includes(cari.toLowerCase()) ||
+        m.href.toLowerCase().includes(cari.toLowerCase()) ||
+        (indukMenu?.nama.toLowerCase().includes(cari.toLowerCase()) ?? false)
+      );
+    });
+  }, [daftar, tab, cari]);
+
+  // Menghitung jumlah menu berdasarkan role
+  function jumlahMenu(kode: RoleUser) {
+    return daftar.filter((m) => m.role === kode).length;
+  }
+
+  // Pilihan menu induk untuk form
   const pilihanInduk = daftar.filter(
-    (m) => m.role === role && m.indukId === null && m.id !== modal?.id
+    (m) =>
+      m.role === role &&
+      m.indukId === null &&
+      m.id !== modal?.id
   );
 
+  // Membuka modal tambah
   function bukaTambah() {
     setNama("");
     setHref("");
-    setIkon("Circle");
+    setIkon("Home");
     setIndukId("");
     setRole(tab);
-    setUrutan(daftar.filter((m) => m.role === tab).length + 1);
+    setUrutan(jumlahMenu(tab) + 1);
     setAktif(true);
     setGalat("");
     setModal({});
   }
 
-  function bukaUbah(m: MenuData) {
-    setNama(m.nama);
-    setHref(m.href);
-    setIkon(m.ikon);
-    setIndukId(m.indukId ?? "");
-    setRole(m.role);
-    setUrutan(m.urutan);
-    setAktif(m.aktif);
+  // Membuka modal ubah
+  function bukaUbah(menu: MenuData) {
+    setNama(menu.nama);
+    setHref(menu.href);
+    setIkon(menu.ikon);
+    setIndukId(menu.indukId ?? "");
+    setRole(menu.role);
+    setUrutan(menu.urutan);
+    setAktif(menu.aktif);
     setGalat("");
-    setModal({ id: m.id });
+    setModal({ id: menu.id });
   }
 
+  // Menyimpan menu
   async function handleSimpan() {
-    const id = modal?.id;
-    const alamat = href.trim();
-
-    if (!nama.trim()) return setGalat("Nama menu wajib diisi.");
-    if (alamat && !alamat.startsWith("/")) {
-      return setGalat("Alamat harus diawali tanda / (contoh: /dashboard/administrator/faq).");
-    }
-
-    const hasilSimpan = await simpanMenu(
-      {
-        nama: nama.trim(),
-        href: alamat,
-        ikon,
-        indukId: indukId === "" ? null : indukId,
-        role,
-        urutan,
-        aktif,
-      },
-      id
-    );
-    setDaftar((lama) =>
-      id ? lama.map((m) => (m.id === id ? hasilSimpan : m)) : [...lama, hasilSimpan]
-    );
-    // pindah ke tab role yang baru dipilih supaya hasilnya langsung terlihat
-    setTab(role);
-    setModal(null);
-  }
-
-  async function handleHapus(m: MenuData) {
-    if (daftar.some((x) => x.indukId === m.id)) {
-      window.alert("Menu ini masih punya submenu. Hapus submenunya dulu.");
+    if (!nama.trim()) {
+      setGalat("Nama menu wajib diisi.");
       return;
     }
-    if (!window.confirm(`Hapus menu "${m.nama}"?`)) return;
-    await hapusMenu(m.id);
-    setDaftar((lama) => lama.filter((x) => x.id !== m.id));
+
+    const alamat = href.trim();
+
+    if (alamat && !alamat.startsWith("/")) {
+      setGalat("Alamat harus diawali tanda /.");
+      return;
+    }
+
+    if (indukId !== "") {
+      const induk = daftar.find((m) => m.id === indukId);
+
+      if (!induk || induk.role !== role || induk.indukId !== null) {
+        setGalat("Pilih menu induk yang valid.");
+        return;
+      }
+    }
+
+    if (modal?.id !== undefined && indukId === modal.id) {
+      setGalat("Menu tidak bisa menjadi induk bagi dirinya sendiri.");
+      return;
+    }
+
+    if (urutan < 1 || !Number.isInteger(urutan)) {
+      setGalat("Urutan harus berupa angka bulat minimal 1.");
+      return;
+    }
+
+    const dataBaru: FormMenu = {
+      nama: nama.trim(),
+      href: alamat,
+      ikon,
+      indukId: indukId === "" ? null : indukId,
+      role,
+      urutan,
+      aktif,
+    };
+
+    try {
+      setMenyimpan(true);
+      setGalat("");
+
+      const hasil = await simpanMenu(dataBaru, modal?.id);
+
+      setDaftar((lama) =>
+        modal?.id !== undefined
+          ? lama.map((m) => (m.id === modal.id ? hasil : m))
+          : [...lama, hasil]
+      );
+
+      setTab(role);
+      setModal(null);
+    } catch {
+      setGalat("Gagal menyimpan menu. Silakan coba lagi.");
+    } finally {
+      setMenyimpan(false);
+    }
   }
 
-  async function handleToggle(m: MenuData) {
-    const baru = { ...m, aktif: !m.aktif };
-    await simpanMenu(baru, m.id);
-    setDaftar((lama) => lama.map((x) => (x.id === m.id ? baru : x)));
+  // Menghapus menu
+  async function handleHapus(menu: MenuData) {
+    if (dilindungi(menu)) {
+      window.alert("Menu ini dilindungi dan tidak bisa dihapus.");
+      return;
+    }
+
+    if (daftar.some((m) => m.indukId === menu.id)) {
+      window.alert("Menu ini masih memiliki submenu. Hapus submenunya terlebih dahulu.");
+      return;
+    }
+
+    if (!window.confirm(`Apakah kamu yakin ingin menghapus menu "${menu.nama}"?`)) {
+      return;
+    }
+
+    try {
+      await hapusMenu(menu.id);
+      setDaftar((lama) => lama.filter((m) => m.id !== menu.id));
+    } catch {
+      window.alert("Gagal menghapus menu.");
+    }
   }
 
-  const inputClass =
-    "w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100";
+  // Mengaktifkan atau menonaktifkan menu
+  async function handleToggle(menu: MenuData) {
+    if (dilindungi(menu)) return;
+
+    const dataBaru: FormMenu = {
+      nama: menu.nama,
+      href: menu.href,
+      ikon: menu.ikon,
+      indukId: menu.indukId,
+      role: menu.role,
+      urutan: menu.urutan,
+      aktif: !menu.aktif,
+    };
+
+    try {
+      const hasil = await simpanMenu(dataBaru, menu.id);
+
+      setDaftar((lama) =>
+        lama.map((m) => (m.id === menu.id ? hasil : m))
+      );
+    } catch {
+      window.alert("Gagal mengubah status menu.");
+    }
+  }
+
+  function tutupModal() {
+    setModal(null);
+    setGalat("");
+  }
 
   return (
-    <div>
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        {/* BAR ATAS */}
+    <div className="space-y-5">
+      <section className="card overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+        {/* HEADER */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-5">
           <div>
-            <h3 className="text-lg font-semibold text-slate-800">Data Menu</h3>
-            <p className="text-sm text-slate-400">Atur menu sidebar untuk tiap role</p>
+            <h3 className="text-lg font-semibold text-slate-800">
+              Data Menu
+            </h3>
+            <p className="text-sm text-slate-400">
+              Atur menu sidebar untuk tiap role
+            </p>
           </div>
+
           <button
             onClick={bukaTambah}
-            className="flex items-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-violet-200 transition hover:bg-violet-700"
+            className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-violet-700"
           >
-            <Plus size={16} /> Tambah Menu
+            <Plus size={16} />
+            Tambah Menu
           </button>
         </div>
 
-        {/* TAB PER ROLE */}
+        {/* TAB ROLE */}
         <div className="flex gap-2 overflow-x-auto border-b border-slate-100 px-6 py-3">
           {daftarRole.map((r) => {
-            const jumlah = daftar.filter((m) => m.role === r.kode).length;
+            const jumlah = jumlahMenu(r.kode);
+
             return (
               <button
                 key={r.kode}
-                onClick={() => setTab(r.kode)}
-                className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-1.5 text-sm transition ${
+                onClick={() => {
+                  setTab(r.kode);
+                  setCari("");
+                }}
+                className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm transition ${
                   tab === r.kode
-                    ? "bg-violet-600 font-medium text-white shadow-sm shadow-violet-200"
+                    ? "bg-violet-600 font-medium text-white shadow-sm"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
                 {r.label}
                 <span
                   className={`rounded-full px-1.5 text-xs ${
-                    tab === r.kode ? "bg-white/25" : "bg-white text-slate-500"
+                    tab === r.kode
+                      ? "bg-white/25 text-white"
+                      : "bg-white text-slate-500"
                   }`}
                 >
                   {jumlah}
@@ -175,23 +320,45 @@ export default function HalamanMenu() {
           })}
         </div>
 
+        {/* PENCARIAN */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+          <div className="relative w-full max-w-sm">
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              value={cari}
+              onChange={(e) => setCari(e.target.value)}
+              placeholder="Cari menu..."
+              className={`${inputClass} pl-9`}
+            />
+          </div>
+
+          <p className="text-xs text-slate-400">
+            {daftar.filter((m) => m.role === tab && m.aktif).length} menu aktif
+            {" "}dari {jumlahMenu(tab)} menu
+          </p>
+        </div>
+
         {/* TABEL */}
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[680px] text-left text-sm">
+          <table className="table table-row-dashed align-middle w-full min-w-[750px] text-left text-sm">
             <thead>
               <tr className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                <th className="px-6 py-3 font-semibold">Urutan</th>
-                <th className="px-4 py-3 font-semibold">Menu</th>
-                <th className="px-4 py-3 font-semibold">Alamat</th>
-                <th className="px-4 py-3 font-semibold">Aktif</th>
-                <th className="px-6 py-3 text-right font-semibold">Aksi</th>
+                <th className="px-6 py-4 font-semibold">Urutan</th>
+                <th className="px-4 py-4 font-semibold">Menu</th>
+                <th className="px-4 py-4 font-semibold">Alamat</th>
+                <th className="px-4 py-4 font-semibold">Aktif</th>
+                <th className="px-6 py-4 text-right font-semibold">Aksi</th>
               </tr>
             </thead>
+
             <tbody className="divide-y divide-slate-100">
               {memuat ? (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-slate-400">
-                    Memuat data...
+                    Memuat data menu...
                   </td>
                 </tr>
               ) : baris.length === 0 ? (
@@ -207,27 +374,43 @@ export default function HalamanMenu() {
                 baris.map(({ m, anak }) => {
                   const Ikon = ambilIkon(m.ikon);
                   const terkunci = dilindungi(m);
+
                   return (
                     <tr
                       key={m.id}
-                      className={`transition hover:bg-slate-50 ${m.aktif ? "" : "opacity-50"}`}
+                      className={`transition hover:bg-slate-50 ${
+                        m.aktif ? "" : "opacity-50"
+                      }`}
                     >
-                      <td className="px-6 py-3.5 text-slate-400">{m.urutan}</td>
-                      <td className="px-4 py-3.5">
+                      <td className="px-6 py-4 text-slate-400">
+                        {m.urutan}
+                      </td>
+
+                      <td className="px-4 py-4">
                         <div className={`flex items-center gap-3 ${anak ? "pl-8" : ""}`}>
-                          {anak && <span className="text-slate-300">└</span>}
+                          {anak && (
+                            <span className="text-slate-300">└</span>
+                          )}
+
                           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600">
                             <Ikon size={18} />
                           </span>
+
                           <span className={anak ? "text-slate-700" : "font-semibold text-slate-800"}>
                             {m.nama}
                           </span>
+
                           {terkunci && (
-                            <Lock size={13} className="text-slate-400" aria-label="Dilindungi" />
+                            <Lock
+                              size={13}
+                              className="text-slate-400"
+                              aria-label="Menu dilindungi"
+                            />
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3.5">
+
+                      <td className="px-4 py-4">
                         {m.href ? (
                           <code className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-600">
                             {m.href}
@@ -238,14 +421,14 @@ export default function HalamanMenu() {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3.5">
+
+                      <td className="px-4 py-4">
                         <button
                           type="button"
                           role="switch"
                           aria-checked={m.aktif}
                           disabled={terkunci}
                           onClick={() => handleToggle(m)}
-                          title={terkunci ? "Menu ini dilindungi" : undefined}
                           className={`relative h-6 w-11 rounded-full transition disabled:cursor-not-allowed disabled:opacity-60 ${
                             m.aktif ? "bg-violet-600" : "bg-slate-300"
                           }`}
@@ -257,20 +440,24 @@ export default function HalamanMenu() {
                           />
                         </button>
                       </td>
-                      <td className="px-6 py-3.5">
+
+                      <td className="px-6 py-4">
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => bukaUbah(m)}
-                            className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-600 transition hover:bg-amber-100"
+                            className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-600 transition hover:bg-amber-100"
                           >
-                            <Pencil size={14} /> Ubah
+                            <Pencil size={14} />
+                            Ubah
                           </button>
+
                           <button
                             onClick={() => handleHapus(m)}
                             disabled={terkunci}
-                            className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40"
                           >
-                            <Trash2 size={14} /> Hapus
+                            <Trash2 size={14} />
+                            Hapus
                           </button>
                         </div>
                       </td>
@@ -283,42 +470,54 @@ export default function HalamanMenu() {
         </div>
       </section>
 
-      {/* MODAL TAMBAH / UBAH */}
-      {modal && (
+      {/* MODAL TAMBAH DAN UBAH */}
+      {modal !== null && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-slate-900/40 p-4 backdrop-blur-sm">
-          <div className="my-auto w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+          <div className="my-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-              <h4 className="font-semibold text-slate-800">
-                {modal.id ? "Ubah Menu" : "Tambah Menu"}
-              </h4>
+              <div>
+                <h3 className="font-semibold text-slate-800">
+                  {modal.id ? "Ubah Menu" : "Tambah Menu"}
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Lengkapi informasi menu di bawah ini
+                </p>
+              </div>
+
               <button
-                onClick={() => setModal(null)}
-                aria-label="Tutup"
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100"
+                onClick={tutupModal}
+                className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="space-y-4 p-6">
+            <div className="max-h-[70vh] space-y-4 overflow-y-auto p-6">
+
+              {/* NAMA DAN ROLE */}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">
-                    Nama menu
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                    Nama Menu
                   </label>
                   <input
                     value={nama}
                     onChange={(e) => setNama(e.target.value)}
+                    placeholder="Contoh: Artikel"
                     className={inputClass}
                   />
                 </div>
+
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">Role</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                    Role
+                  </label>
                   <select
                     value={role}
                     onChange={(e) => {
                       setRole(e.target.value as RoleUser);
-                      setIndukId(""); // induk milik role lama tidak berlaku lagi
+                      setIndukId("");
                     }}
                     className={inputClass}
                   >
@@ -331,34 +530,38 @@ export default function HalamanMenu() {
                 </div>
               </div>
 
+              {/* ALAMAT */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Alamat halaman
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Alamat Halaman
                 </label>
                 <input
                   value={href}
                   onChange={(e) => setHref(e.target.value)}
-                  placeholder="/dashboard/administrator/faq"
+                  placeholder="/administrator/artikel"
                   className={inputClass}
                 />
-                <p className="mt-1 text-xs text-slate-400">
-                  Kosongkan kalau menu ini hanya induk (grup) untuk submenu.
+                <p className="mt-1.5 text-xs text-slate-400">
+                  Kosongkan jika menu hanya berfungsi sebagai grup.
                 </p>
               </div>
 
+              {/* INDUK DAN URUTAN */}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">
-                    Induk menu
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                    Menu Induk
                   </label>
                   <select
                     value={indukId}
                     onChange={(e) =>
-                      setIndukId(e.target.value ? Number(e.target.value) : "")
+                      setIndukId(
+                        e.target.value ? Number(e.target.value) : ""
+                      )
                     }
                     className={inputClass}
                   >
-                    <option value="">Menu utama (tanpa induk)</option>
+                    <option value="">Menu utama</option>
                     {pilihanInduk.map((m) => (
                       <option key={m.id} value={m.id}>
                         {m.nama}
@@ -366,21 +569,29 @@ export default function HalamanMenu() {
                     ))}
                   </select>
                 </div>
+
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">Urutan</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                    Urutan
+                  </label>
                   <input
                     type="number"
                     min={1}
                     value={urutan}
-                    onChange={(e) => setUrutan(Number(e.target.value) || 1)}
+                    onChange={(e) =>
+                      setUrutan(Number(e.target.value) || 1)
+                    }
                     className={inputClass}
                   />
                 </div>
               </div>
 
-              {/* PEMILIH IKON */}
+              {/* IKON */}
               <div>
-                <p className="mb-2 text-sm font-medium text-slate-700">Ikon</p>
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  Pilih Ikon
+                </label>
+
                 <div className="grid grid-cols-7 gap-2">
                   {Object.entries(daftarIkon).map(([kode, IkonItem]) => (
                     <button
@@ -400,19 +611,22 @@ export default function HalamanMenu() {
                 </div>
               </div>
 
-              {/* SAKLAR AKTIF */}
+              {/* STATUS */}
               <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
                 <div>
-                  <p className="text-sm font-medium text-slate-700">Menu aktif</p>
+                  <p className="text-sm font-medium text-slate-700">
+                    Menu Aktif
+                  </p>
                   <p className="text-xs text-slate-400">
-                    Menu nonaktif tidak tampil di sidebar.
+                    Menu nonaktif tidak ditampilkan di sidebar.
                   </p>
                 </div>
+
                 <button
                   type="button"
                   role="switch"
                   aria-checked={aktif}
-                  onClick={() => setAktif((a) => !a)}
+                  onClick={() => setAktif((sebelumnya) => !sebelumnya)}
                   className={`relative h-6 w-11 rounded-full transition ${
                     aktif ? "bg-violet-600" : "bg-slate-300"
                   }`}
@@ -425,21 +639,29 @@ export default function HalamanMenu() {
                 </button>
               </div>
 
-              {galat && <p className="text-sm text-red-600">{galat}</p>}
+              {galat && (
+                <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+                  {galat}
+                </div>
+              )}
             </div>
 
+            {/* TOMBOL MODAL */}
             <div className="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-6 py-4">
               <button
-                onClick={() => setModal(null)}
+                onClick={tutupModal}
+                disabled={menyimpan}
                 className="rounded-xl px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-200"
               >
                 Batal
               </button>
+
               <button
                 onClick={handleSimpan}
-                className="rounded-xl bg-violet-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-violet-700"
+                disabled={menyimpan}
+                className="rounded-xl bg-violet-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-violet-700 disabled:opacity-60"
               >
-                Simpan
+                {menyimpan ? "Menyimpan..." : "Simpan"}
               </button>
             </div>
           </div>

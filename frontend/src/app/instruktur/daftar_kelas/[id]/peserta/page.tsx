@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { CheckCircle2, ClipboardList, Mars, Search, SearchX, UserCheck, UserMinus, UserPlus, Venus } from "lucide-react";
 import HeaderHalaman from "../../components/headerhalaman";
-import { CALON_PESERTA, jamSesi, KELAS_CONTOH, type CalonPeserta } from "../../data";
+import { jamSesi, type Kelas } from "../../data";
+import { getKelasDetail, getCalonPeserta, getKelasPeserta, addPesertaToKelas, removePesertaFromKelas, type Peserta } from "@/lib/api";
 
 const JK = ({ jk }: { jk: "L" | "P" }) =>
   jk === "L" ? (
@@ -15,47 +16,102 @@ const JK = ({ jk }: { jk: "L" | "P" }) =>
 
 const THEAD = "text-start text-muted fw-bold fs-7 text-uppercase gs-0";
 
+type CalonPeserta = Peserta & { noDaftar: string };
+
 export default function PesertaKelasPage() {
   const { id } = useParams<{ id: string }>();
-  // TODO: ambil kelas, calon peserta, dan peserta terdaftar dari API
-  const kelas = KELAS_CONTOH.find((k) => k.id === Number(id));
+  const kelasId = Number(id);
 
-  const [tersedia, setTersedia] = useState<CalonPeserta[]>(CALON_PESERTA);
+  const [kelas, setKelas] = useState<Kelas | null>(null);
+  const [tersedia, setTersedia] = useState<CalonPeserta[]>([]);
   const [terdaftar, setTerdaftar] = useState<CalonPeserta[]>([]);
   const [dipilih, setDipilih] = useState<number[]>([]);
   const [cari, setCari] = useState("");
   const [area, setArea] = useState("");
   const [pesan, setPesan] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const daftarArea = useMemo(() => Array.from(new Set(CALON_PESERTA.map((p) => p.blc))).sort(), []);
+  const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
+
+  // Fetch data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [kelasRes, calonRes, terdaftarRes] = await Promise.all([
+          getKelasDetail(kelasId),
+          getCalonPeserta(kelasId),
+          getKelasPeserta(kelasId),
+        ]);
+        setKelas(kelasRes.data);
+        setTersedia(calonRes.data.map(p => ({ ...p, noDaftar: `-` })));
+        setTerdaftar(terdaftarRes.data.map(p => ({ ...p, noDaftar: `-` })));
+      } catch (e) {
+        console.error(e);
+        toast("Gagal memuat data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [kelasId]);
+
+  const daftarArea = useMemo(() => Array.from(new Set(tersedia.map((p) => p.blc))).sort(), [tersedia]);
   const tampil = useMemo(() => {
     const q = cari.trim().toLowerCase();
-    return tersedia.filter((p) => (!q || p.nama.toLowerCase().includes(q) || p.nik.includes(q) || p.noDaftar.includes(q)) && (!area || p.blc === area));
+    return tersedia.filter((p) => (!q || p.nama.toLowerCase().includes(q) || p.nik.includes(q)) && (!area || p.blc === area));
   }, [tersedia, cari, area]);
 
+<<<<<<< HEAD
   if (!kelas) {
     return <div className="card"><div className="card-body text-center text-gray-600 py-15">Kelas tidak ditemukan.</div></div>;
   }
+=======
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent" />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!kelas) return <main className="p-10 text-center text-slate-600">Kelas tidak ditemukan.</main>;
+>>>>>>> 76d4f7dd648545a996f558989eb874d401051596
 
   const semua = tampil.length > 0 && tampil.every((p) => dipilih.includes(p.id));
   const toggle = (pid: number) => setDipilih((d) => (d.includes(pid) ? d.filter((x) => x !== pid) : [...d, pid]));
   const toggleSemua = () =>
     setDipilih((d) => (semua ? d.filter((i) => !tampil.some((p) => p.id === i)) : Array.from(new Set([...d, ...tampil.map((p) => p.id)]))));
-  const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
 
-  const daftarkan = () => {
-    // TODO: kirim ke API, mis. POST /api/kelas/{id}/peserta dengan daftar id
+  const daftarkan = async () => {
     const pindah = tersedia.filter((p) => dipilih.includes(p.id));
-    setTerdaftar((t) => [...t, ...pindah]);
-    setTersedia((t) => t.filter((p) => !dipilih.includes(p.id)));
-    setDipilih([]);
-    toast(`${pindah.length} peserta didaftarkan.`);
+    if (pindah.length === 0) return;
+    try {
+      await addPesertaToKelas(kelasId, pindah.map(p => p.id));
+      setTerdaftar((t) => [...t, ...pindah]);
+      setTersedia((t) => t.filter((p) => !dipilih.includes(p.id)));
+      setDipilih([]);
+      toast(`${pindah.length} peserta didaftarkan.`);
+    } catch (e) {
+      console.error(e);
+      toast("Gagal mendaftarkan peserta");
+    }
   };
-  const keluarkan = (p: CalonPeserta) => {
-    // TODO: DELETE /api/kelas/{id}/peserta/{pesertaId}
-    setTerdaftar((t) => t.filter((x) => x.id !== p.id));
-    setTersedia((t) => [...t, p]);
-    toast("Peserta dikeluarkan dari kelas.");
+
+  const keluarkan = async (p: CalonPeserta) => {
+    try {
+      await removePesertaFromKelas(kelasId, p.id);
+      setTerdaftar((t) => t.filter((x) => x.id !== p.id));
+      setTersedia((t) => [...t, p]);
+      toast("Peserta dikeluarkan dari kelas.");
+    } catch (e) {
+      console.error(e);
+      toast("Gagal mengeluarkan peserta");
+    }
   };
 
   return (

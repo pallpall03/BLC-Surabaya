@@ -12,31 +12,25 @@ final class FotoSliderModel extends Model
     protected $table = 'foto_slider';
 
     protected $fillable = [
-        'file_brosur',
-        'ket_brosur',
-        'tgl',
-        'tipe',
-        'status',
+        'judul',
+        'deskripsi',
+        'gambar',
         'urutan',
+        'aktif',
     ];
 
     protected $casts = [
-        'tgl' => 'datetime',
         'urutan' => 'integer',
+        'aktif' => 'boolean',
     ];
 
     public function scopeAktif($query)
     {
-        return $query->where('status', '1');
-    }
-
-    public function scopeTipe($query, string $tipe)
-    {
-        return $query->where('tipe', $tipe);
+        return $query->where('aktif', true);
     }
 
     public function scopeOrdered($query)
     {
-        return $query->orderBy('urutan')->orderByDesc('tgl');
+        return $query->orderBy('urutan');
     }
 }
