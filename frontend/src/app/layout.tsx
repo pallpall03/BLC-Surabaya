@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./administrator/metronic-admin.css";
+import "./admin-glass.css";
 
 export const metadata: Metadata = {
   title: "BLC Surabaya",
