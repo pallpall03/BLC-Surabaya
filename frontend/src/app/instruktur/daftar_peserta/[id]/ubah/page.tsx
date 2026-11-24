@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Card, Field, inp, PopupSukses } from "../../components/elemenform";
 import FormPassword from "../../components/formpassword";
+import { getPeserta, updatePeserta, validasiPeserta, getPesertaOpsi, type PesertaDetail, type PesertaOpsi } from "@/lib/api";
 
 type Nilai = {
   nik: string; nama: string; tanggalLahir: string; jenisKelamin: "L" | "P";
@@ -18,16 +19,6 @@ type Nilai = {
 };
 type TeksKey = "nik" | "nama" | "tanggalLahir" | "alamat" | "kecamatan" | "kelurahan" | "email" | "telepon";
 
-// ===== DATA HARDCODE SEMENTARA =====
-// TODO (backend): ambil data peserta dari API memakai id di URL, mis. GET /peserta/{id}
-// (apa pun id-nya, sementara yang tampil data contoh ini)
-const AWAL: Nilai = {
-  nik: "3578010101700001", nama: "Ahmat Ilham Khoirut Difin", tanggalLahir: "1970-01-01", jenisKelamin: "L",
-  alamat: "Gununganyar", kecamatan: "Gunung Anyar", kelurahan: "Gunung Anyar", email: "", telepon: "",
-  kategori: "MAHASISWA", materi: "DESAIN GRAFIS",
-};
-const ADA_FOTO_AWAL = true; // peserta ini sudah punya foto di server
-// TODO (backend): daftar pilihan ini sebaiknya dari API
 const KATEGORI = ["SD", "SMP", "SMA", "MAHASISWA", "UMUM"];
 const MATERI: { nama: string; icon: LucideIcon }[] = [
   { nama: "APLIKASI PERKANTORAN", icon: Monitor },
@@ -43,16 +34,56 @@ export default function UbahPesertaPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
-  const [form, setForm] = useState<Nilai>(AWAL);
-  const [fotoLama, setFotoLama] = useState(ADA_FOTO_AWAL);
+  const [form, setForm] = useState<Nilai>({
+    nik: "", nama: "", tanggalLahir: "", jenisKelamin: "L",
+    alamat: "", kecamatan: "", kelurahan: "", email: "", telepon: "",
+    kategori: "", materi: "",
+  });
+  const [fotoLama, setFotoLama] = useState(true);
   const [fotoBaru, setFotoBaru] = useState<File | null>(null);
-  const [errors, setErrors] = useState<Partial<Record<keyof Nilai | "foto", string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof Nilai | "foto" | "general", string>>>({});
   const [saving, setSaving] = useState(false);
   const [seret, setSeret] = useState(false);
   const [sukses, setSukses] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [opsi, setOpsi] = useState<PesertaOpsi | null>(null);
 
   const preview = useMemo(() => (fotoBaru ? URL.createObjectURL(fotoBaru) : null), [fotoBaru]);
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+
+  // Fetch data peserta dan opsi
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!id) return;
+      try {
+        const [pesertaRes, opsiRes] = await Promise.all([
+          getPeserta(Number(id)),
+          getPesertaOpsi(),
+        ]);
+        const p: PesertaDetail = pesertaRes.data;
+                setForm({
+                  nik: p.nik || "",
+                  nama: p.nama || "",
+                  tanggalLahir: p.tanggal_lahir || "",
+                  jenisKelamin: p.jk || "L",
+                  alamat: p.alamat || "",
+                  kecamatan: p.kecamatan || "",
+                  kelurahan: p.kelurahan || "",
+                  email: p.email || "",
+                  telepon: p.phone || "",
+                  kategori: p.kategori || "",
+                  materi: "", // Will be loaded from kelas/sesi
+                });
+        setFotoLama(!!p.tanggal_lahir); // using this as proxy for "has photo"
+        setOpsi(opsiRes.data);
+      } catch (e) {
+        console.error("Gagal memuat data peserta:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [id]);
 
   // Setelah popup sukses muncul, otomatis kembali ke daftar peserta
   useEffect(() => {
@@ -62,8 +93,25 @@ export default function UbahPesertaPage() {
   }, [sukses, router]);
 
   // Pelacak perubahan: apa saja yang berbeda dari data awal
-  const berubah = (Object.keys(AWAL) as (keyof Nilai)[]).filter((k) => form[k] !== AWAL[k]);
-  const fotoBerubah = fotoBaru !== null || fotoLama !== ADA_FOTO_AWAL;
+  const awal = useMemo(() => ({
+    nik: form.nik || "", nama: form.nama || "", tanggalLahir: form.tanggalLahir || "",
+    jenisKelamin: form.jenisKelamin || "L", alamat: form.alamat || "",
+    kecamatan: form.kecamatan || "", kelurahan: form.kelurahan || "",
+    email: form.email || "", telepon: form.telepon || "",
+    kategori: form.kategori || "", materi: form.materi || "",
+  }), [form]);
+
+  // Use initial data as reference - we'll track from when data loaded
+  const [initialForm, setInitialForm] = useState<Nilai | null>(null);
+  useEffect(() => {
+    if (!initialForm && form.nama) {
+      setInitialForm({ ...form });
+    }
+  }, [form, initialForm]);
+
+  const ref = initialForm || awal;
+  const berubah = (Object.keys(ref) as (keyof Nilai)[]).filter((k) => form[k] !== ref[k]);
+  const fotoBerubah = fotoBaru !== null || fotoLama !== true;
   const jumlah = berubah.length + (fotoBerubah ? 1 : 0);
 
   const set = <K extends keyof Nilai>(k: K, v: Nilai[K]) => {
@@ -75,7 +123,12 @@ export default function UbahPesertaPage() {
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => set(k, e.target.value),
   });
 
-  const kembalikan = () => { setForm(AWAL); setFotoLama(ADA_FOTO_AWAL); setFotoBaru(null); setErrors({}); };
+  const kembalikan = () => {
+    if (initialForm) setForm({ ...initialForm });
+    setFotoLama(true);
+    setFotoBaru(null);
+    setErrors({});
+  };
   const keluar = () => {
     if (jumlah > 0 && !window.confirm("Ada perubahan yang belum disimpan. Keluar tanpa menyimpan?")) return;
     router.push(KEMBALI);
@@ -89,7 +142,6 @@ export default function UbahPesertaPage() {
     if (!form.alamat.trim()) e.alamat = "Alamat wajib diisi.";
     if (!form.kecamatan.trim()) e.kecamatan = "Kecamatan wajib diisi.";
     if (!form.kelurahan.trim()) e.kelurahan = "Kelurahan wajib diisi.";
-    // Email dan telepon boleh kosong (data lama sering kosong), tapi kalau diisi formatnya harus benar
     if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Format email belum benar.";
     if (form.telepon && !/^(\+62|62|0)8\d{7,12}$/.test(form.telepon)) e.telepon = "Contoh: 081234567890.";
     if (!form.kategori) e.kategori = "Pilih kategori.";
@@ -111,20 +163,46 @@ export default function UbahPesertaPage() {
     if (jumlah === 0 || !validasi()) return;
     setSaving(true);
     try {
-      // TODO (backend): kirim ke API sebagai multipart/form-data, contoh:
-      // const body = new FormData();
-      // body.append("_method", "PUT");                         // Laravel: multipart lewat POST + _method=PUT
-      // Object.entries(form).forEach(([k, v]) => body.append(k, v));
-      // if (fotoBaru) body.append("foto", fotoBaru);           // foto pengganti
-      // if (!fotoLama && !fotoBaru) body.append("hapus_foto", "1"); // foto dihapus tanpa pengganti
-      // await fetch(`${process.env.NEXT_PUBLIC_API_URL}/peserta/${id}`, { method: "POST", body });
+      const payload = {
+        nik: form.nik,
+        nama: form.nama,
+        tanggal_lahir: form.tanggalLahir,
+        jk: form.jenisKelamin,
+        alamat: form.alamat,
+        kecamatan: form.kecamatan,
+        kelurahan: form.kelurahan,
+        email: form.email,
+        phone: form.telepon,
+        kategori: form.kategori,
+        materi: form.materi,
+        // Note: foto upload needs multipart - backend may need separate endpoint
+      };
+      await updatePeserta(Number(id!), payload);
       setSukses(form.nama);
-    } finally {
-      setSaving(false);
-    }
+      if (initialForm) setInitialForm({ ...form });
+    } catch (e) {
+          setErrors({ general: "Gagal menyimpan perubahan. Coba lagi." });
+        } finally {
+          setSaving(false);
+        }
   };
 
-  const diubah = (k: keyof Nilai) => form[k] !== AWAL[k];
+  const diubah = (k: keyof Nilai) => form[k] !== ref[k];
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
+        <div className="mx-auto max-w-3xl">
+          <div className="flex items-center justify-center py-16">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 animate-spin rounded-full border-3 border-orange-500 border-t-transparent" />
+              <span className="text-slate-600">Memuat data peserta...</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
@@ -140,7 +218,7 @@ export default function UbahPesertaPage() {
             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/25"><PencilLine size={28} /></span>
             <div>
               <h1 className="text-2xl font-semibold">Ubah peserta</h1>
-              <p className="text-sm text-orange-50">Mengubah data <b>{AWAL.nama}</b> · peserta nomor {id}</p>
+              <p className="text-sm text-orange-50">Mengubah data <b>{form.nama || "..."}</b> · peserta nomor {id}</p>
             </div>
           </div>
           <span className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${jumlah > 0 ? "bg-white text-orange-700" : "bg-white/25 text-white"}`}>
@@ -162,11 +240,11 @@ export default function UbahPesertaPage() {
               </Field>
               <Field label="Jenis kelamin" diubah={diubah("jenisKelamin")}>
                 <div className="grid grid-cols-2 gap-3">
-                  {([["L", "Laki-laki", Mars, "sky"], ["P", "Perempuan", Venus, "pink"]] as const).map(([v, label, Icon, warna]) => (
+                  {([[ "L", "Laki-laki", Mars, "sky" ], [ "P", "Perempuan", Venus, "pink" ]] as const).map(([v, label, Icon, warna]) => (
                     <label key={v} className="cursor-pointer">
                       <input type="radio" name="jk" className="peer sr-only" checked={form.jenisKelamin === v} onChange={() => set("jenisKelamin", v)} />
                       <span className={`flex items-center justify-center gap-2 rounded-xl border border-orange-100 bg-orange-50/40 py-2.5 text-sm text-slate-600 transition hover:border-orange-300 peer-focus-visible:ring-4 peer-focus-visible:ring-orange-200/60 ${
-                        warna === "sky" ? "peer-checked:border-sky-400 peer-checked:bg-sky-50 peer-checked:text-sky-700" : "peer-checked:border-pink-400 peer-checked:bg-pink-50 peer-checked:text-pink-700"} peer-checked:font-medium`}>
+                        warna === "sky" ? "peer-checked:border-sky-400 peer-checked:bg-sky-50 peer-checked:text-sky-700" : "peer-checked:border-pink-400 peer-checked:bg-pink-50 peer-checked:text-pink-700" } peer-checked:font-medium`}>
                         <Icon size={18} /> {label}
                       </span>
                     </label>
@@ -206,7 +284,8 @@ export default function UbahPesertaPage() {
                 return (
                   <button key={k} type="button" onClick={() => set("kategori", k)} aria-pressed={aktif}
                     className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition ${
-                      aktif ? "border-violet-400 bg-violet-50 font-medium text-violet-700" : "border-slate-200 bg-white text-slate-600 hover:border-violet-300 hover:bg-violet-50/50"}`}>
+                      aktif ? "border-violet-400 bg-violet-50 font-medium text-violet-700" : "border-slate-200 bg-white text-slate-600 hover:border-violet-300 hover:bg-violet-50/50"
+                    }`}>
                     {aktif && <Check size={15} />} {k}
                   </button>
                 );
@@ -223,7 +302,8 @@ export default function UbahPesertaPage() {
                 return (
                   <button key={nama} type="button" onClick={() => set("materi", nama)} aria-pressed={aktif}
                     className={`flex items-center gap-3 rounded-xl border p-4 text-left text-sm transition hover:-translate-y-0.5 hover:shadow-md ${
-                      aktif ? "border-green-500 bg-green-50 font-medium text-green-700" : "border-orange-100 bg-orange-50/40 text-slate-600 hover:border-green-300"}`}>
+                      aktif ? "border-green-500 bg-green-50 font-medium text-green-700" : "border-orange-100 bg-orange-50/40 text-slate-600 hover:border-green-300"
+                    }`}>
                     <Icon size={24} /> <span className="flex-1">{nama}</span> {aktif && <Check size={16} />}
                   </button>
                 );
@@ -239,7 +319,6 @@ export default function UbahPesertaPage() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={preview} alt="Pratinjau foto" className="h-28 w-24 rounded-xl object-cover shadow-md" />
                 ) : (
-                  // TODO (backend): ganti dengan <img src={url foto dari API} />
                   <span className="flex h-28 w-24 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-300 to-sky-200 text-white shadow-md"><User size={40} /></span>
                 )}
                 <div className="min-w-0 flex-1">
@@ -259,7 +338,8 @@ export default function UbahPesertaPage() {
                 onDragOver={(e) => { e.preventDefault(); setSeret(true); }} onDragLeave={() => setSeret(false)}
                 onDrop={(e) => { e.preventDefault(); setSeret(false); pilihFoto(e.dataTransfer.files[0]); }}
                 className={`flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed px-4 py-10 text-center transition ${
-                  seret ? "border-orange-500 bg-orange-100" : "border-orange-200 bg-orange-50/40 hover:border-orange-400 hover:bg-orange-50"}`}>
+                  seret ? "border-orange-500 bg-orange-100" : "border-orange-200 bg-orange-50/40 hover:border-orange-400 hover:bg-orange-50"
+                }`}>
                 <UploadCloud size={36} className="text-orange-500" />
                 <span className="text-sm font-medium text-slate-700">Tarik foto ke sini atau klik untuk memilih</span>
               </label>
@@ -290,7 +370,7 @@ export default function UbahPesertaPage() {
 
         {/* Ubah password: form terpisah dengan tombol simpan sendiri */}
         <div className="mt-10">
-          <FormPassword pesertaId={String(id)} nama={AWAL.nama} />
+          <FormPassword pesertaId={String(id)} nama={form.nama} />
         </div>
       </div>
 

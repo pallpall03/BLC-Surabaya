@@ -9,6 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('pengguna', function (Blueprint $table) {
+            // Add status column if not exists (using is_aktif as source)
+            if (!Schema::hasColumn('pengguna', 'status')) {
+                $table->string('status', 20)->nullable()->default('aktif')->after('is_aktif');
+            }
             // Fix status: change from char(1) to varchar(20)
             $table->string('status', 20)->default('aktif')->change();
             // Fix tipe: change from char(1) to varchar(50)

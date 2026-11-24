@@ -13,19 +13,22 @@ final class LoginRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (is_string($this->input('email'))) {
-            $this->merge(['email' => mb_strtolower(trim($this->input('email')))]);
+        $loginIdentifier = $this->input('nik') ?? $this->input('username');
+        if (is_string($loginIdentifier)) {
+            $this->merge(['login_identifier' => trim($loginIdentifier)]);
         }
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function rules(): array
+    protected function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'login_identifier' => ['required', 'string', 'max:50'],
             'password' => ['required', 'string'],
+            'captcha' => ['sometimes', 'string'],
+            'captcha_key' => ['sometimes', 'string'],
         ];
     }
 
@@ -35,9 +38,10 @@ final class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
+            'login_identifier.required' => 'NIK atau username wajib diisi.',
+            'login_identifier.string' => 'NIK atau username tidak valid.',
             'password.required' => 'Password wajib diisi.',
+            'captcha.required' => 'Captcha wajib diisi.',
         ];
     }
 }

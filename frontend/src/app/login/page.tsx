@@ -13,11 +13,15 @@ const HALAMAN_ROLE: Record<string, string> = {
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
-    email: '',
+    login_identifier: '',
     password: '',
+    captcha: '',
+    captcha_key: '',
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [showCaptcha, setShowCaptcha] = useState(false);
+  const [captchaQuestion, setCaptchaQuestion] = useState('');
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,34 +34,59 @@ export default function LoginPage() {
     setLoading(true);
     setMessage({ type: '', text: '' });
 
+    // Validasi: login_identifier diisi
+    if (!formData.login_identifier) {
+      setMessage({ type: 'error', text: 'NIK atau Username wajib diisi' });
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/v1/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          login_identifier: formData.login_identifier,
+          password: formData.password,
+          captcha: formData.captcha,
+          captcha_key: formData.captcha_key,
+        }),
       });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (response.ok) {
-        setMessage({ type: 'success', text: 'Login berhasil! Mengalihkan...' });
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('auth_user', JSON.stringify(data.user));
-        const tujuan = HALAMAN_ROLE[data.user?.role?.slug] ?? '/';
-        setTimeout(() => router.push(tujuan), 800);
-      } else {
-        setMessage({ type: 'error', text: data.message || 'Login gagal' });
+        if (response.ok) {
+          setMessage({ type: 'success', text: 'Login berhasil! Mengalihkan...' });
+          localStorage.setItem('auth_token', data.token);
+          localStorage.setItem('auth_user', JSON.stringify(data.user));
+        
+          // Set cookie for middleware access
+          const maxAge = 60 * 60 * 24; // 24 hours
+          document.cookie = `auth_token=${data.token}; Path=/; Max-Age=${maxAge}; SameSite=Strict${location.protocol === 'https:' ? '; Secure' : ''}`;
+        
+          const tujuan = HALAMAN_ROLE[data.user?.role?.slug] ?? '/';
+          setTimeout(() => router.push(tujuan), 800);
+        } else {
+          // If captcha required, show captcha field and fetch new captcha
+          if (data.captcha_required) {
+            setShowCaptcha(true);
+            if (data.captcha_key && data.captcha_question) {
+                        setFormData(prev => ({ ...prev, captcha_key: data.captcha_key ?? '', captcha: '' }));
+                        setCaptchaQuestion(data.captcha_question);
+                      }
+          }
+          setMessage({ type: 'error', text: data.message || 'Login gagal' });
+        }
+      } catch (error) {
+        setMessage({ type: 'error', text: 'Koneksi ke server gagal' });
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Koneksi ke server gagal' });
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  return (
+    return (
     <div className="min-h-screen bg-gray-100">
       <div className="flex flex-col items-center justify-center h-screen p-6">
         <div className="w-full max-w-md space-y-6 bg-white rounded-lg shadow-lg p-8">
@@ -79,12 +108,12 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                NIK / Username
               </label>
               <input
-                type="email"
-                name="email"
-                value={formData.email}
+                type="text"
+                name="login_identifier"
+                value={formData.login_identifier ?? ''}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -98,12 +127,34 @@ export default function LoginPage() {
               <input
                 type="password"
                 name="password"
-                value={formData.password}
+                value={formData.password ?? ''}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+
+            {showCaptcha && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Captcha: {captchaQuestion}
+                </label>
+                <div className="flex items-center gap-2">
+                  <div className="w-32 h-12 bg-gray-100 flex items-center justify-center text-sm text-gray-500 border border-gray-300 rounded-md">
+                    {captchaQuestion}
+                  </div>
+                  <input
+                    type="text"
+                    name="captcha"
+                    value={formData.captcha ?? ''}
+                    onChange={handleChange}
+                    required
+                    className="w-32 h-12 px-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Jawaban"
+                  />
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"
