@@ -1,150 +1,230 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { CheckCircle2, ClipboardList, Mars, Search, SearchX, UserCheck, UserMinus, UserPlus, Venus } from "lucide-react";
 import HeaderHalaman from "../../components/headerhalaman";
-import { CALON_PESERTA, jamSesi, KELAS_CONTOH, type CalonPeserta } from "../../data";
+import { jamSesi, type Kelas } from "../../data";
+import { getKelasDetail, getCalonPeserta, getKelasPeserta, addPesertaToKelas, removePesertaFromKelas, type Peserta } from "@/lib/api";
 
-const kartu = "rounded-2xl border border-orange-200 bg-white shadow-xl shadow-orange-300/40";
 const JK = ({ jk }: { jk: "L" | "P" }) =>
-  jk === "L" ? <span className="inline-flex items-center gap-1 text-sky-600"><Mars size={15} /> L</span>
-             : <span className="inline-flex items-center gap-1 text-pink-600"><Venus size={15} /> P</span>;
+  jk === "L" ? (
+    <span className="badge badge-light-info d-inline-flex align-items-center gap-1 fs-8 py-2 px-3"><Mars size={14} /> L</span>
+  ) : (
+    <span className="badge badge-light-danger d-inline-flex align-items-center gap-1 fs-8 py-2 px-3"><Venus size={14} /> P</span>
+  );
+
+const THEAD = "text-start text-muted fw-bold fs-7 text-uppercase gs-0";
+
+type CalonPeserta = Peserta & { noDaftar: string };
 
 export default function PesertaKelasPage() {
   const { id } = useParams<{ id: string }>();
-  // TODO: ambil kelas, calon peserta, dan peserta terdaftar dari API
-  const kelas = KELAS_CONTOH.find((k) => k.id === Number(id));
+  const kelasId = Number(id);
 
-  const [tersedia, setTersedia] = useState<CalonPeserta[]>(CALON_PESERTA);
+  const [kelas, setKelas] = useState<Kelas | null>(null);
+  const [tersedia, setTersedia] = useState<CalonPeserta[]>([]);
   const [terdaftar, setTerdaftar] = useState<CalonPeserta[]>([]);
   const [dipilih, setDipilih] = useState<number[]>([]);
   const [cari, setCari] = useState("");
   const [area, setArea] = useState("");
   const [pesan, setPesan] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const daftarArea = useMemo(() => Array.from(new Set(CALON_PESERTA.map((p) => p.blc))).sort(), []);
+  const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
+
+  // Fetch data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [kelasRes, calonRes, terdaftarRes] = await Promise.all([
+          getKelasDetail(kelasId),
+          getCalonPeserta(kelasId),
+          getKelasPeserta(kelasId),
+        ]);
+        setKelas(kelasRes.data);
+        setTersedia(calonRes.data.map(p => ({ ...p, noDaftar: `-` })));
+        setTerdaftar(terdaftarRes.data.map(p => ({ ...p, noDaftar: `-` })));
+      } catch (e) {
+        console.error(e);
+        toast("Gagal memuat data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [kelasId]);
+
+  const daftarArea = useMemo(() => Array.from(new Set(tersedia.map((p) => p.blc))).sort(), [tersedia]);
   const tampil = useMemo(() => {
     const q = cari.trim().toLowerCase();
-    return tersedia.filter((p) => (!q || p.nama.toLowerCase().includes(q) || p.nik.includes(q) || p.noDaftar.includes(q)) && (!area || p.blc === area));
+    return tersedia.filter((p) => (!q || p.nama.toLowerCase().includes(q) || p.nik.includes(q)) && (!area || p.blc === area));
   }, [tersedia, cari, area]);
 
+<<<<<<< HEAD
+  if (!kelas) {
+    return <div className="card"><div className="card-body text-center text-gray-600 py-15">Kelas tidak ditemukan.</div></div>;
+  }
+=======
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent" />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   if (!kelas) return <main className="p-10 text-center text-slate-600">Kelas tidak ditemukan.</main>;
+>>>>>>> 76d4f7dd648545a996f558989eb874d401051596
 
   const semua = tampil.length > 0 && tampil.every((p) => dipilih.includes(p.id));
   const toggle = (pid: number) => setDipilih((d) => (d.includes(pid) ? d.filter((x) => x !== pid) : [...d, pid]));
   const toggleSemua = () =>
     setDipilih((d) => (semua ? d.filter((i) => !tampil.some((p) => p.id === i)) : Array.from(new Set([...d, ...tampil.map((p) => p.id)]))));
-  const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
 
-  const daftarkan = () => {
-    // TODO: kirim ke API, mis. POST /api/kelas/{id}/peserta dengan daftar id
+  const daftarkan = async () => {
     const pindah = tersedia.filter((p) => dipilih.includes(p.id));
-    setTerdaftar((t) => [...t, ...pindah]);
-    setTersedia((t) => t.filter((p) => !dipilih.includes(p.id)));
-    setDipilih([]);
-    toast(`${pindah.length} peserta didaftarkan.`);
-  };
-  const keluarkan = (p: CalonPeserta) => {
-    // TODO: DELETE /api/kelas/{id}/peserta/{pesertaId}
-    setTerdaftar((t) => t.filter((x) => x.id !== p.id));
-    setTersedia((t) => [...t, p]);
-    toast("Peserta dikeluarkan dari kelas.");
+    if (pindah.length === 0) return;
+    try {
+      await addPesertaToKelas(kelasId, pindah.map(p => p.id));
+      setTerdaftar((t) => [...t, ...pindah]);
+      setTersedia((t) => t.filter((p) => !dipilih.includes(p.id)));
+      setDipilih([]);
+      toast(`${pindah.length} peserta didaftarkan.`);
+    } catch (e) {
+      console.error(e);
+      toast("Gagal mendaftarkan peserta");
+    }
   };
 
-  const th = "px-4 py-3 font-medium";
+  const keluarkan = async (p: CalonPeserta) => {
+    try {
+      await removePesertaFromKelas(kelasId, p.id);
+      setTerdaftar((t) => t.filter((x) => x.id !== p.id));
+      setTersedia((t) => [...t, p]);
+      toast("Peserta dikeluarkan dari kelas.");
+    } catch (e) {
+      console.error(e);
+      toast("Gagal mengeluarkan peserta");
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
-      <div className="mx-auto max-w-6xl">
-        <HeaderHalaman icon={ClipboardList} judul="Pendaftaran peserta" kembali="/instruktur/daftar_kelas"
-          deskripsi={
-            <span className="flex flex-wrap items-center gap-2">
-              Kelas <b>{kelas.nama}</b>
-              {kelas.hari.map((h) => <span key={h} className="rounded-full bg-white/25 px-2.5 py-0.5 text-xs font-medium">{h}</span>)}
-              <span className="text-orange-100">Sesi {kelas.sesi} · {jamSesi(kelas.sesi)}</span>
+    <>
+      <HeaderHalaman icon={ClipboardList} judul="Pendaftaran peserta" kembali="/instruktur/daftar_kelas"
+        deskripsi={
+          <span className="d-flex flex-wrap align-items-center gap-2">
+            Kelas <b className="text-gray-900">{kelas.nama}</b>
+            {kelas.hari.map((h) => <span key={h} className="badge badge-light-info fs-8">{h}</span>)}
+            <span>Sesi {kelas.sesi} · {jamSesi(kelas.sesi)}</span>
+          </span>
+        } />
+
+      {/* Belum terdaftar */}
+      <div className="card mb-6">
+        <div className="card-header border-0 pt-6">
+          <div className="card-title flex-wrap gap-3">
+            <span className="d-flex align-items-center gap-2 fs-4 fw-bold">
+              <UserPlus size={20} className="text-primary" /> Peserta belum terdaftar
+              <span className="badge badge-light-primary fs-8">{tersedia.length}</span>
             </span>
-          } />
-
-        {/* Belum terdaftar */}
-        <section className={`${kartu} mb-6`}>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-orange-100 p-4">
-            <h2 className="flex items-center gap-2 font-semibold text-slate-900">
-              <UserPlus size={20} className="text-orange-500" /> Peserta belum terdaftar
-              <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-xs text-orange-700">{tersedia.length}</span>
-            </h2>
-            <div className="flex flex-wrap gap-3">
-              <div className="relative">
-                <Search size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-orange-400" />
-                <input type="search" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama, NIK, no. pendaftaran" aria-label="Cari peserta"
-                  className="w-64 rounded-xl border border-orange-100 bg-orange-50/40 py-2 pl-9 pr-3 text-sm outline-none transition hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60" />
-              </div>
-              <select value={area} onChange={(e) => setArea(e.target.value)} aria-label="Filter area BLC"
-                className="rounded-xl border border-orange-100 bg-orange-50/40 px-3 py-2 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-200/60">
-                <option value="">Semua area BLC</option>
-                {daftarArea.map((a) => <option key={a}>{a}</option>)}
-              </select>
-            </div>
           </div>
+          <div className="card-toolbar flex-wrap gap-3">
+            <div className="d-flex align-items-center position-relative my-1">
+              <Search size={18} className="position-absolute ms-5 text-gray-500" style={{ pointerEvents: "none" }} />
+              <input type="search" value={cari} onChange={(e) => setCari(e.target.value)}
+                placeholder="Cari nama, NIK, no. pendaftaran" aria-label="Cari peserta"
+                className="form-control form-control-solid w-300px ps-14" />
+            </div>
+            <select value={area} onChange={(e) => setArea(e.target.value)} aria-label="Filter area BLC"
+              className="form-select form-select-solid w-200px">
+              <option value="">Semua area BLC</option>
+              {daftarArea.map((a) => <option key={a}>{a}</option>)}
+            </select>
+          </div>
+        </div>
 
+        <div className="card-body py-4">
           {tampil.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 py-12 text-center text-slate-500">
-              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-orange-500"><SearchX size={28} /></span>
-              {tersedia.length === 0 ? "Semua peserta sudah didaftarkan." : "Tidak ada peserta yang cocok."}
+            <div className="d-flex flex-column align-items-center gap-3 text-center py-15">
+              <span className="symbol symbol-80px symbol-circle">
+                <span className="symbol-label bg-light-primary text-primary"><SearchX size={32} /></span>
+              </span>
+              <p className="fs-6 text-gray-500 mb-0">
+                {tersedia.length === 0 ? "Semua peserta sudah didaftarkan." : "Tidak ada peserta yang cocok."}
+              </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px] text-left text-sm">
-                <thead className="bg-orange-50 text-orange-900">
-                  <tr>
-                    <th className={`${th} w-12`}><input type="checkbox" checked={semua} onChange={toggleSemua} aria-label="Pilih semua" className="h-4 w-4 accent-orange-500" /></th>
-                    <th className={th}>NIK</th><th className={th}>No. pendaftaran</th><th className={th}>Nama lengkap</th>
-                    <th className={th}>L/P</th><th className={th}>Kategori</th><th className={th}>BLC</th>
+            <div className="table-responsive">
+              <table className="table align-middle table-row-dashed fs-6 gy-5">
+                <thead>
+                  <tr className={THEAD}>
+                    <th className="w-10px pe-2">
+                      <div className="form-check form-check-sm form-check-custom form-check-solid">
+                        <input type="checkbox" className="form-check-input" checked={semua} onChange={toggleSemua} aria-label="Pilih semua" />
+                      </div>
+                    </th>
+                    <th>NIK</th><th>No. pendaftaran</th><th>Nama lengkap</th><th>L/P</th><th>Kategori</th><th>BLC</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-orange-100">
+                <tbody className="text-gray-600 fw-semibold">
                   {tampil.map((p) => (
-                    <tr key={p.id} onClick={() => toggle(p.id)} className={`cursor-pointer transition ${dipilih.includes(p.id) ? "bg-orange-50" : "hover:bg-orange-50/50"}`}>
-                      <td className="px-4 py-3"><input type="checkbox" checked={dipilih.includes(p.id)} onChange={() => toggle(p.id)} onClick={(e) => e.stopPropagation()} aria-label={`Pilih ${p.nama}`} className="h-4 w-4 accent-orange-500" /></td>
-                      <td className="px-4 py-3 tabular-nums text-slate-600">{p.nik}</td>
-                      <td className="px-4 py-3 text-slate-600">{p.noDaftar}</td>
-                      <td className="px-4 py-3 font-medium text-slate-900">{p.nama}</td>
-                      <td className="px-4 py-3"><JK jk={p.jk} /></td>
-                      <td className="px-4 py-3"><span className="rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-medium text-violet-700">{p.kategori}</span></td>
-                      <td className="px-4 py-3 text-slate-700">{p.blc}</td>
+                    <tr key={p.id} onClick={() => toggle(p.id)} style={{ cursor: "pointer" }} className={dipilih.includes(p.id) ? "table-active" : ""}>
+                      <td>
+                        <div className="form-check form-check-sm form-check-custom form-check-solid">
+                          <input type="checkbox" className="form-check-input" checked={dipilih.includes(p.id)} onChange={() => toggle(p.id)}
+                            onClick={(e) => e.stopPropagation()} aria-label={`Pilih ${p.nama}`} />
+                        </div>
+                      </td>
+                      <td>{p.nik}</td>
+                      <td>{p.noDaftar}</td>
+                      <td className="fw-bold text-gray-900">{p.nama}</td>
+                      <td><JK jk={p.jk} /></td>
+                      <td><span className="badge badge-light-primary fs-8 py-2 px-3">{p.kategori}</span></td>
+                      <td>{p.blc}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-        </section>
+        </div>
+      </div>
 
-        {/* Sudah terdaftar */}
-        <section className={kartu}>
-          <div className="border-b border-orange-100 p-4">
-            <h2 className="flex items-center gap-2 font-semibold text-slate-900">
-              <UserCheck size={20} className="text-emerald-600" /> Peserta terdaftar
-              <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs text-emerald-700">{terdaftar.length}</span>
-            </h2>
+      {/* Sudah terdaftar */}
+      <div className="card">
+        <div className="card-header">
+          <div className="card-title d-flex align-items-center gap-2 fs-4 fw-bold">
+            <UserCheck size={20} className="text-success" /> Peserta terdaftar
+            <span className="badge badge-light-success fs-8">{terdaftar.length}</span>
           </div>
+        </div>
+        <div className="card-body py-4">
           {terdaftar.length === 0 ? (
-            <p className="py-12 text-center text-sm text-slate-500">Belum ada peserta. Centang peserta di atas lalu klik &quot;Daftarkan&quot;.</p>
+            <p className="text-center fs-7 text-gray-500 py-10 mb-0">Belum ada peserta. Centang peserta di atas lalu klik &quot;Daftarkan&quot;.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px] text-left text-sm">
-                <thead className="bg-emerald-50 text-emerald-900">
-                  <tr><th className={th}>NIK</th><th className={th}>No. pendaftaran</th><th className={th}>Nama lengkap</th><th className={th}>L/P</th><th className={th}>Kategori</th><th className={`${th} text-right`}>Aksi</th></tr>
+            <div className="table-responsive">
+              <table className="table align-middle table-row-dashed fs-6 gy-5">
+                <thead>
+                  <tr className={THEAD}>
+                    <th>NIK</th><th>No. pendaftaran</th><th>Nama lengkap</th><th>L/P</th><th>Kategori</th><th className="text-end">Aksi</th>
+                  </tr>
                 </thead>
-                <tbody className="divide-y divide-orange-100">
+                <tbody className="text-gray-600 fw-semibold">
                   {terdaftar.map((p) => (
-                    <tr key={p.id} className="transition hover:bg-emerald-50/40">
-                      <td className="px-4 py-3 tabular-nums text-slate-600">{p.nik}</td>
-                      <td className="px-4 py-3 text-slate-600">{p.noDaftar}</td>
-                      <td className="px-4 py-3 font-medium text-slate-900">{p.nama}</td>
-                      <td className="px-4 py-3"><JK jk={p.jk} /></td>
-                      <td className="px-4 py-3"><span className="rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-medium text-violet-700">{p.kategori}</span></td>
-                      <td className="px-4 py-3 text-right">
-                        <button type="button" onClick={() => keluarkan(p)} className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                    <tr key={p.id}>
+                      <td>{p.nik}</td>
+                      <td>{p.noDaftar}</td>
+                      <td className="fw-bold text-gray-900">{p.nama}</td>
+                      <td><JK jk={p.jk} /></td>
+                      <td><span className="badge badge-light-primary fs-8 py-2 px-3">{p.kategori}</span></td>
+                      <td className="text-end">
+                        <button type="button" onClick={() => keluarkan(p)} className="btn btn-sm btn-light-danger d-inline-flex align-items-center gap-2">
                           <UserMinus size={15} /> Keluarkan
                         </button>
                       </td>
@@ -154,21 +234,28 @@ export default function PesertaKelasPage() {
               </table>
             </div>
           )}
-        </section>
+        </div>
       </div>
 
       {dipilih.length > 0 && (
-        <div className="fixed inset-x-4 bottom-4 z-40 mx-auto flex max-w-xl items-center justify-between gap-3 rounded-2xl border border-orange-100 bg-white/95 p-4 shadow-2xl shadow-orange-300/50 backdrop-blur">
-          <span className="text-sm text-slate-600"><b className="text-slate-900">{dipilih.length}</b> peserta dipilih</span>
-          <div className="flex gap-2">
-            <button type="button" onClick={() => setDipilih([])} className="rounded-xl px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">Batal</button>
-            <button type="button" onClick={daftarkan} className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-5 py-2 text-sm font-medium text-white shadow-md shadow-green-600/30 hover:bg-green-700">
-              <CheckCircle2 size={17} /> Daftarkan
-            </button>
+        <div className="position-fixed bottom-0 start-50 translate-middle-x mb-6 card shadow"
+          style={{ zIndex: 1080, width: "min(560px, calc(100% - 2rem))" }}>
+          <div className="card-body d-flex align-items-center justify-content-between gap-3 py-4">
+            <span className="fs-7 text-gray-600"><b className="text-gray-900">{dipilih.length}</b> peserta dipilih</span>
+            <div className="d-flex gap-2">
+              <button type="button" onClick={() => setDipilih([])} className="btn btn-sm btn-light">Batal</button>
+              <button type="button" onClick={daftarkan} className="btn btn-sm btn-success d-inline-flex align-items-center gap-2">
+                <CheckCircle2 size={16} /> Daftarkan
+              </button>
+            </div>
           </div>
         </div>
       )}
-      {pesan && <div role="status" className="fixed right-6 top-6 z-50 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-lg">{pesan}</div>}
-    </main>
+      {pesan && (
+        <div role="status" className="position-fixed top-0 end-0 m-6 rounded px-5 py-3 bg-dark text-white shadow fs-7" style={{ zIndex: 1090 }}>
+          {pesan}
+        </div>
+      )}
+    </>
   );
 }

@@ -6,11 +6,14 @@ use App\Models\User;
 
 interface UserRepository
 {
+    /** Login memakai NIK atau username. */
+    public function findByLogin(string $login): ?User;
+
     /** Pencarian email tidak peka huruf besar/kecil. */
     public function findByEmail(string $email): ?User;
 
     /**
-     * @param  array{name: string, email: string, password: string}  $data
+     * @param  array{name: string, nik: string, email: string, password: string}  $data
      */
     public function createWithRole(array $data, string $roleSlug): User;
 }

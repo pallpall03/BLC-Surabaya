@@ -20,14 +20,16 @@ final class MenuServiceProvider extends ServiceProvider
      */
     public static function routes(): void
     {
-        Route::prefix('menu')->group(function (): void {
-            Route::get('/', [Http\MenuController::class, 'index']);
-            Route::get('/flat', [Http\MenuController::class, 'flat']);
-            Route::post('/', [Http\MenuController::class, 'store']);
-            Route::get('/{id}', [Http\MenuController::class, 'show']);
-            Route::put('/{id}', [Http\MenuController::class, 'update']);
-            Route::patch('/{id}', [Http\MenuController::class, 'update']);
-            Route::delete('/{id}', [Http\MenuController::class, 'destroy']);
-        });
+        Route::middleware(['auth:api', 'role:superadmin'])
+            ->prefix('menu')
+            ->group(function (): void {
+                Route::get('/', [Http\MenuController::class, 'index']);
+                Route::get('/flat', [Http\MenuController::class, 'flat']);
+                Route::post('/', [Http\MenuController::class, 'store']);
+                Route::get('/{id}', [Http\MenuController::class, 'show']);
+                Route::put('/{id}', [Http\MenuController::class, 'update']);
+                Route::patch('/{id}', [Http\MenuController::class, 'update']);
+                Route::delete('/{id}', [Http\MenuController::class, 'destroy']);
+            });
     }
 }

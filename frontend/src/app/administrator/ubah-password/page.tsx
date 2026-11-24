@@ -1,275 +1,585 @@
+
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, Eye, EyeOff, KeyRound, Search, ChevronDown, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  ambilUserPerRole,
-  daftarRole,
-  resetPassword,
-  type AkunUser,
-  type RoleUser,
-} from "@/lib/password";
+  Search,
+  KeyRound,
+  RefreshCw,
+  X,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 
-export default function HalamanUbahPassword() {
-  const [role, setRole] = useState<RoleUser>("administrator");
-  const [users, setUsers] = useState<AkunUser[]>([]);
-  const [idUser, setIdUser] = useState<number | "">("");
-  const [baru, setBaru] = useState("");
-  const [ulang, setUlang] = useState("");
-  const [lihat, setLihat] = useState<boolean>(false);
-  const [galat, setGalat] = useState("");
-  const [sukses, setSukses] = useState("");
-  const [proses, setProses] = useState<boolean>(false);
+import {
+  ambilUser,
+  resetPasswordUser,
+  type User,
+} from "../user_manager/data";
 
-  // searchable dropdown state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+import type { RoleUser } from "../_shared/role";
 
-  // ambil daftar pengguna setiap kali role diganti
-  useEffect(() => {
-    ambilUserPerRole(role).then(setUsers);
-  }, [role]);
+const daftarRole: { value: RoleUser; label: string }[] = [
+  { value: "administrator", label: "Administrator" },
+  { value: "operator", label: "Operator" },
+  { value: "instruktur", label: "Instruktur" },
+  { value: "koordinator", label: "Koordinator" },
+  { value: "peserta", label: "Peserta" },
+];
 
-  // close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
+const penggunaContoh: User[] = [
+  {
+    id: -1,
+    nickname: "Admin Contoh",
+    username: "admin.contoh",
+    email: "admin@example.test",
+    aktif: true,
+    role: "administrator",
+  },
+  {
+    id: -2,
+    nickname: "Operator Contoh",
+    username: "operator.contoh",
+    email: "operator@example.test",
+    aktif: true,
+    role: "operator",
+  },
+  {
+    id: -3,
+    nickname: "Instruktur Contoh",
+    username: "instruktur.contoh",
+    email: "instruktur@example.test",
+    aktif: true,
+    role: "instruktur",
+  },
+  {
+    id: -4,
+    nickname: "Koordinator Contoh",
+    username: "koordinator.contoh",
+    email: "koordinator@example.test",
+    aktif: true,
+    role: "koordinator",
+  },
+  {
+    id: -5,
+    nickname: "Peserta Contoh",
+    username: "peserta.contoh",
+    email: "peserta@example.test",
+    aktif: true,
+    role: "peserta",
+  },
+];
+
+export default function UbahPasswordPage() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modeContoh, setModeContoh] = useState(false);
+  const [pencarian, setPencarian] = useState("");
+  const [filterRole, setFilterRole] = useState("semua");
+
+  const [userDipilih, setUserDipilih] = useState<User | null>(null);
+  const [password, setPassword] = useState("");
+  const [konfirmasi, setKonfirmasi] = useState("");
+  const [lihatPassword, setLihatPassword] = useState(false);
+  const [lihatKonfirmasi, setLihatKonfirmasi] = useState(false);
+  const [menyimpan, setMenyimpan] = useState(false);
+  const [pesanError, setPesanError] = useState("");
+  const [pesanSukses, setPesanSukses] = useState("");
+
+  async function muatUsers() {
+    try {
+      setLoading(true);
+      setPesanError("");
+      const hasil = await ambilUser();
+      setUsers(hasil);
+      setModeContoh(false);
+    } catch {
+      setUsers(penggunaContoh);
+      setModeContoh(true);
+      setPesanError(
+        "API pengguna belum tersedia. Mode Demo aktif: aksi hanya menguji form dan validasi, tidak mengubah akun asli atau menyimpan password."
+      );
+    } finally {
+      setLoading(false);
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // kekuatan password: 4 syarat sederhana
-  const skor = [
-    baru.length >= 8,
-    /[A-Z]/.test(baru),
-    /[0-9]/.test(baru),
-    /[^A-Za-z0-9]/.test(baru),
-  ].filter(Boolean).length;
-  const labelKuat = ["Sangat lemah", "Lemah", "Cukup", "Kuat", "Sangat kuat"][skor];
-  const warnaBar = ["bg-red-400", "bg-red-400", "bg-amber-400", "bg-emerald-400", "bg-emerald-500"][skor];
-
-  const filteredUsers = users.filter((u) =>
-    u.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  async function handleSimpan() {
-    setSukses("");
-    const user = users.find((u) => u.id === idUser);
-
-    if (!user) return setGalat("Pilih pengguna dulu.");
-    if (baru.length < 8) return setGalat("Password minimal 8 karakter.");
-    if (baru !== ulang) return setGalat("Konfirmasi password tidak sama.");
-
-    setGalat("");
-    setProses(true);
-    await resetPassword(user.id, baru);
-    setProses(false);
-
-    setSukses(`Password ${user.nama} berhasil diubah.`);
-    setBaru("");
-    setUlang("");
-    setIdUser("");
-    setSearchQuery("");
   }
 
-  const inputClass =
-    "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100";
+  useEffect(() => {
+    let masihAktif = true;
 
-  const selectedUser = users.find((u) => u.id === idUser);
+    ambilUser()
+      .then((hasil) => {
+        if (!masihAktif) return;
+        setUsers(hasil);
+        setModeContoh(false);
+      })
+      .catch(() => {
+        if (!masihAktif) return;
+        setUsers(penggunaContoh);
+        setModeContoh(true);
+        setPesanError(
+          "API pengguna belum tersedia. Mode Demo aktif: aksi hanya menguji form dan validasi, tidak mengubah akun asli atau menyimpan password."
+        );
+      })
+      .finally(() => {
+        if (masihAktif) setLoading(false);
+      });
+
+    return () => {
+      masihAktif = false;
+    };
+  }, []);
+
+  const usersFilter = useMemo(() => {
+    return users.filter((user) => {
+      const cocokRole =
+        filterRole === "semua" || user.role === filterRole;
+
+      const kata = pencarian.toLowerCase();
+
+      const cocokCari =
+        user.nickname.toLowerCase().includes(kata) ||
+        user.username.toLowerCase().includes(kata) ||
+        user.email.toLowerCase().includes(kata);
+
+      return cocokRole && cocokCari;
+    });
+  }, [users, pencarian, filterRole]);
+
+  function bukaModal(user: User) {
+    setUserDipilih(user);
+    setPassword("");
+    setKonfirmasi("");
+    setPesanError("");
+    setPesanSukses("");
+  }
+
+  function tutupModal() {
+    if (menyimpan) return;
+
+    setUserDipilih(null);
+    setPassword("");
+    setKonfirmasi("");
+    setPesanError("");
+  }
+
+  async function handleReset(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    if (!userDipilih) return;
+
+    if (password.length < 8) {
+      setPesanError("Password minimal harus 8 karakter.");
+      return;
+    }
+
+    if (password !== konfirmasi) {
+      setPesanError("Konfirmasi password tidak sama.");
+      return;
+    }
+
+    if (modeContoh) {
+      setPesanError("");
+      setPesanSukses(
+        "Simulasi berhasil. Password tidak disimpan dan akun asli tidak berubah."
+      );
+      setPassword("");
+      setKonfirmasi("");
+      window.setTimeout(() => {
+        setUserDipilih(null);
+        setPesanSukses("");
+      }, 2500);
+      return;
+    }
+
+    try {
+      setMenyimpan(true);
+      setPesanError("");
+
+      await resetPasswordUser(userDipilih.id, password, false);
+
+      setPesanSukses(
+        `Password akun ${userDipilih.nickname} berhasil diperbarui.`
+      );
+
+      setPassword("");
+      setKonfirmasi("");
+      setModeContoh(false);
+
+      setTimeout(() => {
+        setUserDipilih(null);
+        setPesanSukses("");
+      }, 1500);
+    } catch (error) {
+      setPesanError(
+        error instanceof Error
+          ? error.message
+          : "Gagal mengubah password."
+      );
+    } finally {
+      setMenyimpan(false);
+    }
+  }
+
+  function namaRole(role: RoleUser) {
+    return daftarRole.find((item) => item.value === role)?.label ?? role;
+  }
 
   return (
-    <div className="max-w-2xl space-y-5">
-      {sukses && (
-        <div className="flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-          <CheckCircle2 size={18} /> {sukses}
+    <div className="space-y-6">
+      {/* INFORMASI */}
+      <div className="admin-password-notice flex gap-3 rounded-xl border p-4">
+        <ShieldCheck className="mt-0.5 shrink-0" size={22} />
+        <div>
+          <p className="font-semibold">
+            Pengelolaan Password oleh Administrator
+          </p>
+          <p className="mt-1 text-sm">
+            Administrator memiliki kewenangan untuk mengubah password akun
+            Administrator, Operator, Instruktur, Koordinator, dan Peserta.
+          </p>
+        </div>
+      </div>
+
+      {pesanError && !userDipilih && (
+        <div
+          role="alert"
+          className={`rounded-lg border px-4 py-3 text-sm ${
+            modeContoh
+              ? "admin-password-fallback"
+              : "border-red-200 bg-red-50 text-red-700"
+          }`}
+        >
+          {pesanError}
         </div>
       )}
 
-      <section className="card rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center gap-2 border-b border-slate-100 px-6 py-4">
-          <KeyRound size={18} className="text-violet-600" />
-          <h3 className="font-semibold text-slate-800">Ubah Password Pengguna</h3>
+      {/* RINGKASAN */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="card">
+          <div className="card-body flex items-center justify-between p-5">
+            <div>
+            <p className="text-sm text-gray-500">Total Pengguna</p>
+              <p className="mt-2 text-2xl font-bold text-gray-800">
+              {loading ? "-" : users.length}
+              </p>
+            </div>
+            <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-light-primary text-primary">
+              <Users size={22} />
+            </span>
+          </div>
         </div>
 
-        <div className="space-y-5 p-6">
-          {/* PILIH ROLE */}
-          <div>
-            <p className="mb-2 text-sm font-medium text-slate-700">Role</p>
-            <div className="flex flex-wrap gap-2">
-              {daftarRole.map((r) => (
-                <button
-                  key={r.kode}
-                  onClick={() => {
-                    setRole(r.kode);
-                    setIdUser("");
-                    setSearchQuery("");
-                    setIsOpen(false);
-                  }}
-                  className={`rounded-full px-4 py-1.5 text-sm transition ${
-                    role === r.kode
-                      ? "bg-violet-600 font-medium text-white shadow-sm shadow-violet-200"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
-                >
-                  {r.label}
-                </button>
-              ))}
+        <div className="card">
+          <div className="card-body flex items-center justify-between p-5">
+            <div>
+              <p className="text-sm text-gray-500">Total Role</p>
+              <p className="mt-2 text-2xl font-bold text-gray-800">
+                {daftarRole.length}
+              </p>
             </div>
+            <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-light-success text-success">
+              <ShieldCheck size={22} />
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* DAFTAR PENGGUNA */}
+      <section className="card overflow-hidden">
+        <div className="card-header flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="font-semibold text-gray-800">
+              Daftar Akun Pengguna
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Pilih akun untuk mengubah password.
+            </p>
           </div>
 
-          {/* PILIH PENGGUNA - Searchable Dropdown */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">Pengguna</label>
-                      <div ref={dropdownRef} className="relative">
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={selectedUser ? selectedUser.nama : searchQuery}
-                            onChange={(e) => {
-                              if (selectedUser) {
-                                setIdUser("");
-                                setSearchQuery(e.target.value);
-                                setIsOpen(true);
-                              } else {
-                                setSearchQuery(e.target.value);
-                                setIsOpen(true);
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              if (selectedUser && (e.key === "Backspace" || e.key === "Delete")) {
-                                e.preventDefault();
-                                setIdUser("");
-                                setSearchQuery("");
-                                setIsOpen(true);
-                              }
-                            }}
-                            onFocus={() => setIsOpen(true)}
-                            placeholder={users.length === 0 ? "Belum ada pengguna di role ini" : "Cari nama atau email..."}
-                            className={`${inputClass} pr-11 ${selectedUser ? "bg-slate-50" : ""}`}
-                          />
-                          {!selectedUser && (
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400">
-                              <Search size={18} />
-                              <ChevronDown size={18} className={isOpen ? "rotate-180" : ""} />
-                            </div>
-                          )}
-                          {selectedUser && (
-                            <button
-                              type="button"
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                setIdUser("");
-                                setSearchQuery("");
-                                setIsOpen(false);
-                              }}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500"
-                              aria-label="Hapus pilihan"
-                            >
-                              <X size={18} />
-                            </button>
-                          )}
-                        </div>
+          <button
+            type="button"
+            onClick={() => void muatUsers()}
+            disabled={loading}
+            className="btn btn-light-primary inline-flex items-center justify-center gap-2"
+          >
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+            {loading ? "Memuat..." : "Muat Ulang"}
+          </button>
+        </div>
 
-                        {isOpen && users.length > 0 && (
-                          <div className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-xl border border-slate-200 bg-white shadow-lg">
-                            {filteredUsers.length === 0 ? (
-                              <div className="px-3 py-2 text-sm text-slate-400">Tidak ada pengguna cocok</div>
-                            ) : (
-                              filteredUsers.map((u) => (
-                                <button
-                                  key={u.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setIdUser(u.id);
-                                    setSearchQuery("");
-                                    setIsOpen(false);
-                                  }}
-                                  className={`w-full px-3 py-2 text-sm text-left transition ${
-                                    idUser === u.id
-                                      ? "bg-violet-50 text-violet-700"
-                                      : "text-slate-700 hover:bg-slate-50"
-                                  }`}
-                                >
-                                  <div className="font-medium">{u.nama}</div>
-                                  <div className="text-xs text-slate-400">{u.email}</div>
-                                </button>
-                              ))
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-          {/* PASSWORD BARU */}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Password baru</label>
-            <div className="relative">
-              <input
-                type={lihat ? "text" : "password"}
-                value={baru}
-                onChange={(e) => setBaru(e.target.value)}
-                autoComplete="new-password"
-                className={`${inputClass} pr-11`}
-              />
-              <button
-                type="button"
-                onClick={() => setLihat((l) => !l)}
-                aria-label="Tampilkan atau sembunyikan password"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-              >
-                {lihat ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-
-            {baru && (
-              <div className="mt-2">
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4].map((n) => (
-                    <span
-                      key={n}
-                      className={`h-1.5 flex-1 rounded-full ${n <= skor ? warnaBar : "bg-slate-200"}`}
-                    />
-                  ))}
-                </div>
-                <p className="mt-1 text-xs text-slate-400">
-                  Kekuatan: {labelKuat}. Gunakan huruf besar, angka, dan simbol.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* ULANGI PASSWORD */}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Ulangi password baru
-            </label>
+        {/* PENCARIAN DAN FILTER */}
+        <div className="flex flex-col gap-3 border-b border-gray-200 p-4 md:flex-row">
+          <div className="relative flex-1">
+            <Search
+              size={17}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
             <input
-              type={lihat ? "text" : "password"}
-              value={ulang}
-              onChange={(e) => setUlang(e.target.value)}
-              autoComplete="new-password"
-              className={inputClass}
+              aria-label="Cari pengguna"
+              value={pencarian}
+              onChange={(e) => setPencarian(e.target.value)}
+              placeholder="Cari nama, username, atau email..."
+              className="admin-input-ikon w-full rounded-lg border border-gray-300 py-2.5 pl-9 pr-3 text-sm outline-none focus:border-primary"
             />
           </div>
 
-          {galat && <p className="text-sm text-red-600">{galat}</p>}
+          <select
+            aria-label="Filter berdasarkan role"
+            value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value)}
+            className="min-w-44 rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-primary"
+          >
+            <option value="semua">Semua Role</option>
+            {daftarRole.map((role) => (
+              <option key={role.value} value={role.value}>
+                {role.label}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div className="flex justify-end border-t border-slate-100 bg-slate-50 px-6 py-4">
-          <button
-            onClick={handleSimpan}
-            disabled={proses}
-            className="rounded-xl bg-violet-600 px-5 py-2 text-sm font-medium text-white shadow-sm shadow-violet-200 transition hover:bg-violet-700 disabled:opacity-60"
-          >
-            {proses ? "Menyimpan..." : "Simpan Password"}
-          </button>
+        {/* TABEL */}
+        <div className="overflow-x-auto">
+          <table className="table w-full min-w-[750px] text-left text-sm">
+            <thead className="bg-gray-50 text-gray-600">
+              <tr>
+                <th className="px-4 py-3">No</th>
+                <th className="px-4 py-3">Nama Pengguna</th>
+                <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">Role</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Aksi</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-gray-500">
+                    Memuat data pengguna...
+                  </td>
+                </tr>
+              ) : usersFilter.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-gray-500">
+                    Data pengguna tidak ditemukan.
+                  </td>
+                </tr>
+              ) : (
+                usersFilter.map((user, index) => (
+                  <tr
+                    key={user.id}
+                    className="border-t border-gray-100 hover:bg-gray-50"
+                  >
+                    <td className="px-4 py-3">{index + 1}</td>
+
+                    <td className="px-4 py-3">
+                      <p className="font-semibold text-gray-800">
+                        {user.nickname}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {user.username}
+                      </p>
+                      {modeContoh && (
+                        <span className="mt-1 inline-flex rounded-full bg-light-warning px-2 py-0.5 text-xs font-medium text-warning">
+                          Data contoh
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-3 text-gray-600">
+                      {user.email}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                        {namaRole(user.role)}
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-md px-2.5 py-1 text-xs font-semibold ${
+                          user.aktif
+                            ? "bg-green-50 text-green-700"
+                            : "bg-red-50 text-red-700"
+                        }`}
+                      >
+                        {user.aktif ? "Aktif" : "Nonaktif"}
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => bukaModal(user)}
+                        disabled={!user.aktif}
+                        title={
+                          modeContoh
+                            ? "Mode Demo: form dapat diuji, tetapi password akun asli tidak berubah."
+                            : undefined
+                        }
+                        className="btn btn-sm btn-primary inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <KeyRound size={14} />
+                        {modeContoh ? "Uji Aksi (Demo)" : "Ubah Password"}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="border-t border-gray-200 px-4 py-3 text-sm text-gray-500">
+          Menampilkan {usersFilter.length} dari {users.length} pengguna.
         </div>
       </section>
+
+      {/* MODAL UBAH PASSWORD */}
+      {userDipilih && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ubah-password-title"
+            className="card w-full max-w-md overflow-hidden"
+          >
+            <div className="card-header flex items-center justify-between">
+              <div>
+                <h2 id="ubah-password-title" className="font-bold text-gray-800">
+                  Ubah Password
+                </h2>
+                <p className="mt-1 text-xs text-gray-500">
+                  Akun: {userDipilih.nickname}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={tutupModal}
+                disabled={menyimpan}
+                aria-label="Tutup form ubah password"
+                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+              >
+                <X size={19} />
+              </button>
+            </div>
+
+            <form onSubmit={handleReset}>
+              <div className="card-body space-y-4 p-5">
+                <div className="rounded-lg bg-gray-50 p-3 text-sm">
+                  <p className="font-semibold text-gray-800">
+                    {userDipilih.nickname}
+                  </p>
+                  <p className="text-gray-500">{userDipilih.email}</p>
+                  <p className="mt-1 text-xs text-blue-600">
+                    {namaRole(userDipilih.role)}
+                  </p>
+                </div>
+
+                <div>
+                  <label htmlFor="password-baru" className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Password Baru
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="password-baru"
+                      type={lihatPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Minimal 8 karakter"
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-11 text-sm outline-none focus:border-blue-500"
+                      minLength={8}
+                      autoComplete="new-password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setLihatPassword(!lihatPassword)}
+                      aria-label={lihatPassword ? "Sembunyikan password" : "Tampilkan password"}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    >
+                      {lihatPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="konfirmasi-password" className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Konfirmasi Password Baru
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="konfirmasi-password"
+                      type={lihatKonfirmasi ? "text" : "password"}
+                      value={konfirmasi}
+                      onChange={(e) => setKonfirmasi(e.target.value)}
+                      placeholder="Ulangi password baru"
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-11 text-sm outline-none focus:border-blue-500"
+                      autoComplete="new-password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setLihatKonfirmasi(!lihatKonfirmasi)
+                      }
+                      aria-label={lihatKonfirmasi ? "Sembunyikan konfirmasi password" : "Tampilkan konfirmasi password"}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    >
+                      {lihatKonfirmasi ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {pesanError && (
+                  <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                    {pesanError}
+                  </p>
+                )}
+
+                {pesanSukses && (
+                  <p className="rounded-lg bg-green-50 p-3 text-sm text-green-700">
+                    {pesanSukses}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2 border-t border-gray-200 bg-gray-50 p-4">
+                <button
+                  type="button"
+                  onClick={tutupModal}
+                  disabled={menyimpan}
+                  className="btn btn-light"
+                >
+                  Batal
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={menyimpan}
+                  className="btn btn-primary disabled:opacity-50"
+                >
+                  {menyimpan
+                    ? "Menyimpan..."
+                    : modeContoh
+                      ? "Submit"
+                      : "Simpan Password"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

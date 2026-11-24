@@ -1,5 +1,6 @@
 .admin-metronic {
   --admin-sidebar-width: 265px;
+  --admin-sidebar-compact-width: 84px;
   min-height: 100vh;
   background: var(--bs-app-bg-color, #f5f8fa);
   color: var(--bs-gray-700, #5e6278);
@@ -70,9 +71,19 @@
   font-size: 0.9rem;
 }
 
-.admin-sidebar-compact {
-  width: 84px;
-  min-width: 84px;
+/*
+  Mode ringkas (sidebar diciutkan).
+  Spesifisitas dinaikkan + !important supaya tidak dikalahkan aturan lebar
+  bawaan Metronic ([data-kt-app-sidebar-fixed] .app-sidebar).
+*/
+.admin-metronic .admin-sidebar {
+  width: var(--admin-sidebar-width) !important;
+  min-width: var(--admin-sidebar-width) !important;
+}
+
+.admin-metronic .admin-sidebar.admin-sidebar-compact {
+  width: var(--admin-sidebar-compact-width) !important;
+  min-width: var(--admin-sidebar-compact-width) !important;
 }
 
 .admin-profile-dropdown {
@@ -82,11 +93,25 @@
   box-shadow: 0 0.5rem 1.5rem rgb(15 23 42 / 10%);
 }
 
+/*
+  Netralkan offset layout bawaan Metronic.
+  Body punya atribut data-kt-app-sidebar-fixed dan data-kt-app-header-fixed,
+  yang memberi .app-wrapper margin kiri selebar sidebar dan membuat header
+  position: fixed. PanelShell sudah menaruh sidebar di dalam flex row,
+  jadi offset itu terhitung dua kali.
+*/
 .admin-metronic .app-wrapper {
   min-width: 0;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .admin-metronic .app-header {
+  position: sticky !important;
+  top: 0 !important;
+  right: auto !important;
+  left: auto !important;
+  width: auto !important;
   min-height: 70px;
   border-bottom: 1px solid var(--bs-gray-200, #eff2f5);
   box-shadow: 0 0.125rem 0.5rem rgb(76 87 125 / 3%);
@@ -106,6 +131,11 @@
 
 .admin-header-search:focus {
   background-color: #fff;
+}
+
+/* Ruang untuk ikon di search header (2 class, mengalahkan .form-control) */
+.form-control.admin-header-search {
+  padding-left: 2.5rem;
 }
 
 .admin-metronic .app-content {
@@ -186,6 +216,11 @@
   box-shadow: none;
   font-size: 0.95rem;
   font-weight: 500;
+}
+
+/* Input yang punya ikon di kiri (harus di bawah aturan input di atas) */
+.admin-metronic .admin-page-content input.admin-input-ikon {
+  padding-left: 2.5rem;
 }
 
 .admin-metronic .admin-page-content textarea {
@@ -309,5 +344,248 @@
 
   .admin-metronic .app-content {
     padding-top: 1rem;
+  }
+}
+
+/* Metronic Demo 1 - sidebar gelap */
+.admin-sidebar {
+  color: #fff;
+  background: #1e1e2d;
+  border-right: 0;
+}
+
+.admin-sidebar .app-sidebar-logo {
+  background: #1e1e2d;
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+}
+
+/* Teks logo harus putih (sebelumnya tertimpa warna link/biru Metronic) */
+.admin-sidebar .app-sidebar-logo a,
+.admin-sidebar .app-sidebar-logo a span {
+  color: #fff !important;
+}
+
+.admin-sidebar .menu-content {
+  color: #92929f !important;
+}
+
+.admin-sidebar .menu-link {
+  color: #cdcdde;
+}
+
+.admin-sidebar .menu-link:hover,
+.admin-sidebar .menu-link.active,
+.admin-sidebar .menu-item.here > .menu-link {
+  color: #fff;
+  background: var(--bs-primary, #009ef7);
+}
+
+.admin-sidebar .menu-link .menu-icon,
+.admin-sidebar .menu-link.active .menu-icon,
+.admin-sidebar .menu-link:hover .menu-icon {
+  color: inherit;
+}
+
+.admin-sidebar .menu-sub .menu-link {
+  color: #a1a5b7;
+}
+
+.admin-sidebar .menu-sub .menu-link.active {
+  color: #fff;
+  background: rgb(255 255 255 / 8%);
+}
+
+.admin-sidebar > div:last-child {
+  border-top-color: rgb(255 255 255 / 8%) !important;
+}
+
+/* Token visual Metronic untuk seluruh konten administrator */
+.admin-metronic .admin-page-content {
+  --bs-card-bg: #fff;
+  color: var(--bs-gray-700, #5e6278);
+}
+
+.admin-metronic .admin-page-content .card {
+  border: 0;
+  border-radius: 0.625rem;
+  box-shadow: 0 0 20px 0 rgb(76 87 125 / 5%);
+}
+
+.admin-metronic .admin-page-content .card-header {
+  background: #fff;
+  border-bottom: 1px solid var(--bs-gray-200, #eff2f5);
+}
+
+.admin-metronic .admin-page-content [class*="divide-slate-"],
+.admin-metronic .admin-page-content [class*="divide-gray-"] {
+  border-color: var(--bs-gray-200, #eff2f5);
+}
+
+.admin-metronic .admin-page-content [class*="border-slate-"],
+.admin-metronic .admin-page-content [class*="border-gray-"] {
+  border-color: var(--bs-gray-200, #eff2f5) !important;
+}
+
+.admin-metronic .admin-page-content [class*="bg-slate-50"],
+.admin-metronic .admin-page-content [class*="bg-gray-50"] {
+  background-color: var(--bs-gray-100, #f9f9f9) !important;
+}
+
+.admin-metronic .admin-page-content [class*="text-slate-"],
+.admin-metronic .admin-page-content [class*="text-gray-"] {
+  color: var(--bs-gray-700, #5e6278) !important;
+}
+
+.admin-metronic .admin-page-content [class*="text-slate-400"],
+.admin-metronic .admin-page-content [class*="text-gray-400"] {
+  color: var(--bs-gray-500, #a1a5b7) !important;
+}
+
+.admin-metronic .admin-page-content [class*="text-slate-800"],
+.admin-metronic .admin-page-content [class*="text-slate-900"],
+.admin-metronic .admin-page-content [class*="text-gray-800"],
+.admin-metronic .admin-page-content [class*="text-gray-900"] {
+  color: var(--bs-gray-900, #181c32) !important;
+}
+
+.admin-metronic .admin-page-content [class*="rounded-xl"],
+.admin-metronic .admin-page-content [class*="rounded-2xl"],
+.admin-metronic .admin-page-content [class*="rounded-lg"] {
+  border-radius: 0.625rem !important;
+}
+
+.admin-metronic .admin-page-content [class*="shadow-sm"],
+.admin-metronic .admin-page-content [class*="shadow-md"],
+.admin-metronic .admin-page-content [class*="shadow-lg"],
+.admin-metronic .admin-page-content [class*="shadow-xl"],
+.admin-metronic .admin-page-content [class*="shadow-2xl"] {
+  box-shadow: 0 0 20px 0 rgb(76 87 125 / 5%) !important;
+}
+
+.admin-metronic .admin-page-content .btn,
+.admin-metronic .admin-page-content button {
+  min-height: 38px;
+  border-radius: 0.475rem;
+  font-weight: 500;
+}
+
+.admin-metronic .admin-page-content [class*="bg-violet-600"],
+.admin-metronic .admin-page-content [class*="bg-violet-500"],
+.admin-metronic .admin-page-content [class*="bg-violet-700"],
+.admin-metronic .admin-page-content [class*="bg-orange-500"],
+.admin-metronic .admin-page-content [class*="bg-orange-600"] {
+  background-color: var(--bs-primary, #009ef7) !important;
+  border-color: var(--bs-primary, #009ef7) !important;
+  color: #fff !important;
+}
+
+.admin-metronic .admin-page-content [class*="bg-violet-100"],
+.admin-metronic .admin-page-content [class*="bg-violet-50"],
+.admin-metronic .admin-page-content [class*="bg-orange-100"],
+.admin-metronic .admin-page-content [class*="bg-orange-50"] {
+  background-color: var(--bs-primary-light, #f1faff) !important;
+  color: var(--bs-primary, #009ef7) !important;
+}
+
+.admin-metronic .admin-page-content [class*="text-violet-"],
+.admin-metronic .admin-page-content [class*="text-orange-"] {
+  color: var(--bs-primary, #009ef7) !important;
+}
+
+.admin-metronic .admin-page-content [class*="border-violet-"],
+.admin-metronic .admin-page-content [class*="border-orange-"] {
+  border-color: var(--bs-primary-light, #f1faff) !important;
+}
+
+.admin-metronic .admin-page-content [class*="fixed"][class*="inset-0"] {
+  background-color: rgb(24 28 50 / 38%) !important;
+  backdrop-filter: blur(2px);
+}
+
+.admin-metronic .admin-page-content [class*="fixed"][class*="inset-0"] > [class*="rounded-"] {
+  border: 0 !important;
+  border-radius: 0.625rem !important;
+  box-shadow: 0 1rem 3rem rgb(15 23 42 / 18%) !important;
+}
+
+.admin-metronic .admin-page-content [class*="overflow-x-auto"] table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-metronic .admin-page-content [class*="overflow-x-auto"] thead tr {
+  background: var(--bs-gray-100, #f9f9f9) !important;
+}
+
+.admin-metronic .admin-page-content [class*="overflow-x-auto"] tbody tr {
+  border-bottom: 1px solid var(--bs-gray-200, #eff2f5);
+}
+
+.admin-metronic .admin-page-content [class*="overflow-x-auto"] tbody tr:hover {
+  background: var(--bs-gray-100, #f9f9f9) !important;
+}
+
+/* Tampilkan kontrol drawer hanya pada layar yang membutuhkan drawer. */
+.admin-metronic .admin-mobile-menu-button,
+.admin-metronic .admin-mobile-close {
+  display: inline-flex !important;
+}
+
+.admin-metronic .admin-desktop-sidebar-toggle {
+  display: none !important;
+}
+
+@media (min-width: 1024px) {
+  .admin-metronic .admin-mobile-menu-button,
+  .admin-metronic .admin-mobile-close {
+    display: none !important;
+  }
+
+  .admin-metronic .admin-desktop-sidebar-toggle {
+    display: inline-flex !important;
+  }
+
+  .admin-metronic .admin-sidebar {
+    position: sticky !important;
+    transform: translateX(0) !important;
+  }
+}
+
+/* Sidebar ringkas (desktop): sembunyikan teks, tampilkan hanya ikon di tengah */
+@media (min-width: 1024px) {
+  .admin-metronic .admin-sidebar.admin-sidebar-compact .app-sidebar-menu {
+    overflow-x: hidden;
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+  }
+
+  .admin-metronic .admin-sidebar.admin-sidebar-compact .menu-title,
+  .admin-metronic .admin-sidebar.admin-sidebar-compact .menu-arrow,
+  .admin-metronic .admin-sidebar.admin-sidebar-compact .menu-content,
+  .admin-metronic .admin-sidebar.admin-sidebar-compact .menu-sub,
+  .admin-metronic .admin-sidebar.admin-sidebar-compact .app-sidebar-logo a > span + span,
+  .admin-metronic .admin-sidebar.admin-sidebar-compact > div:last-child p {
+    display: none !important;
+  }
+
+  .admin-metronic .admin-sidebar.admin-sidebar-compact .app-sidebar-logo {
+    justify-content: center;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .admin-metronic .admin-sidebar.admin-sidebar-compact .menu-link {
+    justify-content: center;
+    gap: 0;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .admin-metronic .admin-sidebar.admin-sidebar-compact .menu-link .menu-icon {
+    display: flex !important;
+    width: 20px;
+    color: inherit;
+    opacity: 1;
+    visibility: visible;
   }
 }

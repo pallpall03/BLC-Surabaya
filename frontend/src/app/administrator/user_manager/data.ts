@@ -1,3 +1,4 @@
+import { authHeaders } from "@/lib/api";
 import type { RoleUser } from "../_shared/role";
 
 export type User = {
@@ -49,7 +50,7 @@ function transformUser(backendUser: {
 }
 
 export async function ambilUser(): Promise<User[]> {
-  const res = await fetch("/api/v1/users");
+  const res = await fetch("/api/v1/users", { headers: authHeaders() });
   const data = await res.json();
   const raw = Array.isArray(data) ? data : data?.data ?? [];
   return raw.map(transformUser);
@@ -68,7 +69,7 @@ export async function simpanUser(data: FormUser, id?: number): Promise<User> {
 
   const res = await fetch(id ? `/api/v1/users/${id}` : "/api/v1/users", {
     method: id ? "PUT" : "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { ...authHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
   const saved = await res.json();
@@ -83,7 +84,7 @@ export async function resetPasswordUser(
   void _wajibGanti;
   const res = await fetch(`/api/v1/users/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: { ...authHeaders(), "Content-Type": "application/json" },
     body: JSON.stringify({
       password,
       password_confirmation: password,
@@ -96,5 +97,5 @@ export async function resetPasswordUser(
 }
 
 export async function hapusUser(id: number): Promise<void> {
-  await fetch(`/api/v1/users/${id}`, { method: "DELETE" });
+  await fetch(`/api/v1/users/${id}`, { method: "DELETE", headers: authHeaders() });
 }

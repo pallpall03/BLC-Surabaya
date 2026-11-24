@@ -22,6 +22,23 @@ return new class extends Migration
             $table->boolean('is_aktif')->default(true)->after('last_login_at');
         });
 
+        // 1b. Database lokal: pengguna belum tentu punya username/status/tipe/plain_password.
+        Schema::table('pengguna', function (Blueprint $table) {
+            if (! Schema::hasColumn('pengguna', 'username')) {
+                $table->string('username')->nullable();
+            }
+            if (! Schema::hasColumn('pengguna', 'status')) {
+                $table->string('status', 20)->default('aktif');
+            }
+            if (! Schema::hasColumn('pengguna', 'tipe')) {
+                $table->string('tipe', 50)->nullable();
+            }
+            if (! Schema::hasColumn('pengguna', 'plain_password')) {
+                $table->string('plain_password')->nullable();
+            }
+        });
+        DB::statement("UPDATE pengguna SET username = split_part(email, '@', 1) || '_' || id WHERE username IS NULL");
+
         // 2. Migrate data from pengguna to users
         // Map role_id from pengguna.role_id (already points to roles table)
         DB::statement("
@@ -43,7 +60,7 @@ return new class extends Migration
             ON CONFLICT (email) DO UPDATE SET
                 name = EXCLUDED.name,
                 password = EXCLUDED.password,
-                role_id = EXCLUDED.role_id,
+                role_id = COALESCE(EXCLUDED.role_id, users.role_id),
                 username = EXCLUDED.username,
                 status = EXCLUDED.status,
                 tipe = EXCLUDED.tipe,

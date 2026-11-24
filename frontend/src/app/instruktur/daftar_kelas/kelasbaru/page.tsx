@@ -1,21 +1,43 @@
 "use client";
 
-
+<<<<<<< HEAD
 import { useState } from "react";
+=======
+import { useEffect, useState } from "react";
+>>>>>>> 76d4f7dd648545a996f558989eb874d401051596
 import { useRouter } from "next/navigation";
 import { CalendarPlus, Clock } from "lucide-react";
 import HeaderHalaman from "../components/headerhalaman";
 import JadwalKelas from "../components/jadwalkelas";
 import FormKelas, { type NilaiKelas } from "../components/formkelas";
-import { cariBentrok, KELAS_CONTOH, validasiKelas } from "../data";
+import { cariBentrok, validasiKelas, type Kelas } from "../data";
+import { getKelas, createKelas } from "@/lib/api";
 
 export default function BuatKelasPage() {
   const router = useRouter();
   const [nilai, setNilai] = useState<NilaiKelas>({ sesi: 1, hari: [], materi: "" });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [kelasList, setKelasList] = useState<Kelas[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const bentrok = cariBentrok(KELAS_CONTOH, nilai.sesi, nilai.hari);
+  // Fetch existing kelas for conflict checking
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await getKelas();
+        setKelasList(res.data);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const bentrok = cariBentrok(kelasList, nilai.sesi, nilai.hari);
 
   // Klik sel kosong di jadwal: ganti sesi, atau tambah/hapus hari pada sesi yang sama
   const klikKosong = (hari: string, sesi: number) => {
@@ -33,27 +55,56 @@ export default function BuatKelasPage() {
     if (pesan) return setError(pesan);
     setSaving(true);
     try {
-      // TODO: kirim ke API Laravel, mis. POST /api/kelas dengan body nilai
+      await createKelas({ nama_kelas: "", materi_id: nilai.materi, sesi_id: nilai.sesi, hari: nilai.hari, lokasi_blc_id: 1 });
       router.push("/instruktur/daftar_kelas");
+    } catch (e) {
+      console.error(e);
+      setError("Gagal membuat kelas");
     } finally {
       setSaving(false);
     }
   };
 
-  return (
-    <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
-      <div className="mx-auto max-w-5xl">
-        <HeaderHalaman icon={CalendarPlus} judul="Buat kelas baru" kembali="/instruktur/daftar_kelas"
-          deskripsi="Lihat jadwal di bawah untuk memilih sesi dan hari yang masih kosong." />
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
+        <div className="mx-auto max-w-5xl">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent" />
+          </div>
+        </div>
+      </main>
+    );
+  }
 
+  return (
+    <>
+      <HeaderHalaman icon={CalendarPlus} judul="Buat kelas baru" kembali="/instruktur/daftar_kelas"
+        deskripsi="Lihat jadwal di bawah untuk memilih sesi dan hari yang masih kosong." />
+
+<<<<<<< HEAD
+      <div className="card mb-6">
+        <div className="card-header">
+          <div className="card-title d-flex align-items-center gap-2 fs-4 fw-bold">
+            <Clock size={20} className="text-primary" /> Jadwal kelas aktif
+          </div>
+        </div>
+        <div className="card-body">
+          <JadwalKelas kelas={KELAS_CONTOH} dipilih={nilai} onKlikKosong={klikKosong} />
+        </div>
+=======
         <section className="mb-6 rounded-2xl border border-orange-200 bg-white p-5 shadow-xl shadow-orange-300/40">
           <h2 className="mb-4 flex items-center gap-2 font-semibold text-slate-900"><Clock size={20} className="text-orange-500" /> Jadwal kelas aktif</h2>
-          <JadwalKelas kelas={KELAS_CONTOH} dipilih={nilai} onKlikKosong={klikKosong} />
+          <JadwalKelas kelas={kelasList} dipilih={nilai} onKlikKosong={klikKosong} />
         </section>
 
         <FormKelas nilai={nilai} onChange={(n) => { setError(""); setNilai(n); }} onSubmit={simpan}
           saving={saving} bentrok={bentrok} error={error} kembali="/instruktur/daftar_kelas" />
+>>>>>>> 76d4f7dd648545a996f558989eb874d401051596
       </div>
-    </main>
+
+      <FormKelas nilai={nilai} onChange={(n) => { setError(""); setNilai(n); }} onSubmit={simpan}
+        saving={saving} bentrok={bentrok} error={error} kembali="/instruktur/daftar_kelas" />
+    </>
   );
 }

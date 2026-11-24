@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             MenuAksesSeeder::class,
             // Admin - System (pengaturan sistem/user)
             PenggunaSeeder::class,
+            // Akun uji login ber-NIK (hanya untuk lokal/staging)
+            LoginDemoSeeder::class,
             // Admin - Data (konten landing page)
             KategoriArtikelSeeder::class,
             ArtikelSeeder::class,

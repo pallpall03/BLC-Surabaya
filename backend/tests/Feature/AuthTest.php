@@ -19,9 +19,12 @@ class AuthTest extends TestCase
         $this->seed(RoleSeeder::class);
     }
 
-    private function buatUser(string $roleSlug, ?string $email = null, string $password = 'rahasia123'): User
+    private const NIK = '3578010101900001';
+
+    private function buatUser(string $roleSlug, ?string $email = null, string $password = 'rahasia123', ?string $nik = null): User
     {
         return User::factory()->create([
+            'nik' => $nik ?? self::NIK,
             'email' => $email ?? $roleSlug.'@blc.test',
             'password' => $password,
             'role_id' => Role::where('slug', $roleSlug)->value('id'),
@@ -32,6 +35,7 @@ class AuthTest extends TestCase
     {
         return array_merge([
             'name' => 'Budi',
+            'nik' => '3578010101900099',
             'email' => 'budi@blc.test',
             'password' => 'rahasia123',
             'password_confirmation' => 'rahasia123',
@@ -75,9 +79,10 @@ class AuthTest extends TestCase
 
         $this->postJson('/api/v1/auth/register', [
             'name' => 'X',
+            'nik' => '123',
             'email' => 'ada@blc.test',
             'password' => 'pendek',
-        ])->assertStatus(422)->assertJsonValidationErrors(['email', 'password']);
+        ])->assertStatus(422)->assertJsonValidationErrors(['nik', 'email', 'password']);
     }
 
     public function test_register_menolak_email_kembar_walau_beda_huruf_besar(): void
@@ -120,75 +125,69 @@ class AuthTest extends TestCase
             ->assertJsonValidationErrors(['password']);
     }
 
-    public function test_semua_role_bisa_login_dan_mendapat_role_yang_benar(): void
+    public function test_semua_role_bisa_login_dengan_username_dan_mendapat_role_yang_benar(): void
     {
-        foreach (array_keys(Role::daftar()) as $slug) {
-            $this->buatUser($slug);
+        foreach (array_keys(Role::daftar()) as $urut => $slug) {
+            $nik = '357801010190010'.$urut;
+            $username = $slug.'.demo';
+            $user = $this->buatUser($slug, nik: $nik);
+            $user->forceFill(['username' => $username])->save();
 
             $this->postJson('/api/v1/auth/login', [
-                'email' => $slug.'@blc.test',
+                'login' => $username,
                 'password' => 'rahasia123',
             ])->assertOk()
+                ->assertJsonPath('user.id', $user->id)
                 ->assertJsonPath('user.role.slug', $slug)
                 ->assertJsonStructure(['token']);
         }
     }
 
-    public function test_login_tidak_peka_huruf_besar_pada_email(): void
+    public function test_login_dengan_nik_atau_username_mengembalikan_user_yang_sama(): void
     {
-        $this->buatUser('instruktur', 'instruktur@blc.test');
+        $user = $this->buatUser('instruktur', 'instruktur@blc.test');
+        $user->forceFill(['username' => 'instruktur.demo'])->save();
 
-        $this->postJson('/api/v1/auth/login', ['email' => 'Instruktur@BLC.test', 'password' => 'rahasia123'])
-            ->assertOk()
-            ->assertJsonPath('user.role.slug', 'instruktur');
+        $withNik = $this->postJson('/api/v1/auth/login', ['login' => self::NIK, 'password' => 'rahasia123'])->assertOk();
+        $withUsername = $this->postJson('/api/v1/auth/login', ['login' => 'instruktur.demo', 'password' => 'rahasia123'])->assertOk();
+
+        $this->assertSame($withNik->json('user.id'), $withUsername->json('user.id'));
     }
 
     public function test_peserta_hasil_register_bisa_login(): void
     {
         $this->postJson('/api/v1/auth/register', $this->dataRegister())->assertCreated();
 
-        $this->postJson('/api/v1/auth/login', ['email' => 'budi@blc.test', 'password' => 'rahasia123'])
+        $this->postJson('/api/v1/auth/login', ['login' => '3578010101900099', 'password' => 'rahasia123'])
             ->assertOk()
             ->assertJsonPath('user.role.slug', 'peserta');
     }
 
-    public function test_login_gagal_pesannya_sama_untuk_email_salah_dan_password_salah(): void
+    public function test_login_gagal_pesannya_sama_untuk_nik_salah_dan_password_salah(): void
     {
         $this->buatUser('peserta');
 
-        $a = $this->postJson('/api/v1/auth/login', ['email' => 'peserta@blc.test', 'password' => 'salah-total'])
+        $a = $this->postJson('/api/v1/auth/login', ['login' => self::NIK, 'password' => 'salah-total'])
             ->assertStatus(401);
-        $b = $this->postJson('/api/v1/auth/login', ['email' => 'tidakada@blc.test', 'password' => 'salah-total'])
+        $b = $this->postJson('/api/v1/auth/login', ['login' => '3578010101900777', 'password' => 'salah-total'])
             ->assertStatus(401);
 
         $this->assertSame($a->json('message'), $b->json('message'));
-    }
-
-    public function test_login_dibatasi_setelah_5_kali_gagal(): void
-    {
-        $this->buatUser('peserta');
-
-        for ($i = 0; $i < 5; $i++) {
-            $this->postJson('/api/v1/auth/login', ['email' => 'peserta@blc.test', 'password' => 'salah'])->assertStatus(401);
-        }
-
-        // percobaan ke-6 ditolak walaupun password benar
-        $this->postJson('/api/v1/auth/login', ['email' => 'peserta@blc.test', 'password' => 'rahasia123'])
-            ->assertStatus(429)
-            ->assertHeader('Retry-After');
+        $this->assertSame($a->json('captcha_required'), $b->json('captcha_required'));
+        $this->assertSame($a->json('attempts_left'), $b->json('attempts_left'));
     }
 
     public function test_akun_tanpa_role_tidak_bisa_login(): void
     {
-        User::factory()->create(['email' => 'tanparole@blc.test', 'password' => 'rahasia123', 'role_id' => null]);
+        User::factory()->create(['nik' => self::NIK, 'password' => 'rahasia123', 'role_id' => null]);
 
-        $this->postJson('/api/v1/auth/login', ['email' => 'tanparole@blc.test', 'password' => 'rahasia123'])
+        $this->postJson('/api/v1/auth/login', ['login' => self::NIK, 'password' => 'rahasia123'])
             ->assertStatus(403);
     }
 
     public function test_login_menolak_input_kosong(): void
     {
-        $this->postJson('/api/v1/auth/login', [])->assertStatus(422)->assertJsonValidationErrors(['email', 'password']);
+        $this->postJson('/api/v1/auth/login', [])->assertStatus(422)->assertJsonValidationErrors(['login', 'password']);
     }
 
     public function test_me_butuh_login_dan_selalu_json(): void
@@ -202,7 +201,7 @@ class AuthTest extends TestCase
     {
         $this->buatUser('instruktur');
 
-        $token = $this->postJson('/api/v1/auth/login', ['email' => 'instruktur@blc.test', 'password' => 'rahasia123'])
+        $token = $this->postJson('/api/v1/auth/login', ['login' => self::NIK, 'password' => 'rahasia123'])
             ->json('token');
 
         $this->withToken($token)->getJson('/api/v1/auth/me')
@@ -215,7 +214,7 @@ class AuthTest extends TestCase
     {
         $this->buatUser('instruktur');
 
-        $token = $this->postJson('/api/v1/auth/login', ['email' => 'instruktur@blc.test', 'password' => 'rahasia123'])
+        $token = $this->postJson('/api/v1/auth/login', ['login' => self::NIK, 'password' => 'rahasia123'])
             ->json('token');
 
         // lolos auth + role: daftar-peserta sudah jalan (200), daftar-hadir masih placeholder (501), bukan 401/403
@@ -228,7 +227,7 @@ class AuthTest extends TestCase
     {
         $this->buatUser('peserta');
 
-        $token = $this->postJson('/api/v1/auth/login', ['email' => 'peserta@blc.test', 'password' => 'rahasia123'])
+        $token = $this->postJson('/api/v1/auth/login', ['login' => self::NIK, 'password' => 'rahasia123'])
             ->json('token');
 
         $this->withToken($token)->getJson('/api/v1/auth/me')->assertOk();
