@@ -11,9 +11,15 @@ use App\Modules\Auth\Contracts\UserRepository;
  */
 final class EloquentUserRepository implements UserRepository
 {
-    public function findByNik(string $nik): ?User
+    public function findByLogin(string $login): ?User
     {
-        return User::query()->with('role')->where('nik', trim($nik))->first();
+        $login = trim($login);
+
+        return User::query()
+            ->with('role')
+            ->where('nik', $login)
+            ->orWhereRaw('lower(username) = ?', [mb_strtolower($login)])
+            ->first();
     }
 
     public function findByEmail(string $email): ?User

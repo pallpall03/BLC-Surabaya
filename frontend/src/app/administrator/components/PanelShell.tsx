@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import type { KonfigPeran } from "./tipe";
+import { logout } from "@/lib/api";
 
 export default function PanelShell({
   konfig,
@@ -292,12 +293,13 @@ export default function PanelShell({
                     )}
 
                     <div className="border-t border-slate-100 p-2">
-                      <Link
-                        href="/login"
-                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-red-500 transition hover:bg-red-50"
+                      <button
+                        type="button"
+                        onClick={() => void logout()}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-red-500 transition hover:bg-red-50"
                       >
                         <LogOut size={16} /> Keluar
-                      </Link>
+                      </button>
                     </div>
                   </div>
                 )}

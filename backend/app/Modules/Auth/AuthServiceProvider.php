@@ -33,8 +33,8 @@ final class AuthServiceProvider extends ServiceProvider
             });
         });
 
-        // Path administrator: hanya role superadmin (middleware role.path).
-        Route::middleware(['auth:api', 'role.path'])
+        // Endpoint administrator: hanya role superadmin.
+        Route::middleware(['auth:api', 'role:superadmin'])
             ->prefix('administrator')
             ->group(function (): void {
                 Route::post('/akun/{id}/buka-kunci', [Http\AuthController::class, 'bukaKunci'])->whereNumber('id');
