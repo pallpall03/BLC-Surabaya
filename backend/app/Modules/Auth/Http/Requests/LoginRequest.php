@@ -13,22 +13,24 @@ final class LoginRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $loginIdentifier = $this->input('nik') ?? $this->input('username');
-        if (is_string($loginIdentifier)) {
-            $this->merge(['login_identifier' => trim($loginIdentifier)]);
+        if (is_string($this->input('nik'))) {
+            $this->merge(['nik' => preg_replace('/\s+/', '', $this->input('nik'))]);
         }
     }
 
     /**
+     * Login semua role memakai NIK. captcha_id dan captcha hanya wajib setelah
+     * dua kali salah password (dicek di LoginUser, bukan di sini).
+     *
      * @return array<string, mixed>
      */
-    protected function rules(): array
+    public function rules(): array
     {
         return [
-            'login_identifier' => ['required', 'string', 'max:50'],
+            'nik' => ['required', 'string', 'digits:16'],
             'password' => ['required', 'string'],
-            'captcha' => ['sometimes', 'string'],
-            'captcha_key' => ['sometimes', 'string'],
+            'captcha_id' => ['nullable', 'string', 'max:64'],
+            'captcha' => ['nullable', 'string', 'max:10'],
         ];
     }
 
@@ -38,10 +40,9 @@ final class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'login_identifier.required' => 'NIK atau username wajib diisi.',
-            'login_identifier.string' => 'NIK atau username tidak valid.',
+            'nik.required' => 'NIK wajib diisi.',
+            'nik.digits' => 'NIK harus 16 digit angka.',
             'password.required' => 'Password wajib diisi.',
-            'captcha.required' => 'Captcha wajib diisi.',
         ];
     }
 }

@@ -21,7 +21,7 @@ final class UjianServiceProvider extends ServiceProvider
      */
     public static function routes(): void
     {
-        Route::middleware(['auth:api', 'role:pengguna'])
+        Route::middleware(['auth:api', 'role.path'])
             ->prefix('peserta/ujian')
             ->group(function (): void {
                 Route::get('/', [Http\UjianController::class, 'index']);

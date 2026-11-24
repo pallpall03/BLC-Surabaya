@@ -37,7 +37,9 @@ return new class extends Migration
                     (lp.slug = 'admin' AND r.slug = 'admin') OR
                     (lp.slug = 'instruktur' AND r.slug = 'instruktur') OR
                     (lp.slug = 'koordinator' AND r.slug = 'koordinator') OR
-                    (lp.slug = 'peserta' AND r.slug = 'peserta')
+                    (lp.slug = 'peserta' AND r.slug = 'peserta') OR
+                    (lp.slug = 'user' AND r.slug = 'peserta') OR
+                    (lp.slug = 'operator' AND r.slug = 'operator')
                 )
             )
         ");

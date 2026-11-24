@@ -15,6 +15,12 @@ final class LokasiBlcController extends Controller
 
     public function index(): JsonResponse
     {
+        $lokasis = $this->repository->all();
+        return response()->json(['data' => $lokasis]);
+    }
+
+    public function aktif(): JsonResponse
+    {
         $lokasis = $this->repository->getAktif();
         return response()->json(['data' => $lokasis]);
     }
@@ -22,13 +28,20 @@ final class LokasiBlcController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'nama' => 'required|string|max:255',
-            'alamat' => 'required|string',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            'keterangan' => 'nullable|string',
-            'urutan' => 'integer|default:0',
-            'is_aktif' => 'boolean',
+            'nama_blc' => 'required|string|max:255',
+            'alamat' => 'nullable|string',
+            'foto_blc' => 'nullable|string|max:255',
+            'foto2_blc' => 'nullable|string|max:255',
+            'radius' => 'nullable|string',
+            'latitude' => 'nullable|string',
+            'longitude' => 'nullable|string',
+            'foto_absen_ins' => 'nullable|string|max:255',
+            'ver_foto_absen_ins' => 'nullable|integer',
+            'area' => 'nullable|string',
+            'aktif' => 'sometimes|boolean',
+            'is_korwil' => 'sometimes|boolean',
+            'is_teknisi_ahli' => 'sometimes|boolean',
+            'is_teknisi' => 'sometimes|boolean',
         ]);
 
         $lokasi = $this->repository->create($validated);
@@ -47,13 +60,20 @@ final class LokasiBlcController extends Controller
     public function update(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([
-            'nama' => 'sometimes|required|string|max:255',
-            'alamat' => 'sometimes|required|string',
-            'latitude' => 'sometimes|nullable|numeric',
-            'longitude' => 'sometimes|nullable|numeric',
-            'keterangan' => 'sometimes|string',
-            'urutan' => 'sometimes|integer',
-            'is_aktif' => 'sometimes|boolean',
+            'nama_blc' => 'sometimes|required|string|max:255',
+            'alamat' => 'sometimes|nullable|string',
+            'foto_blc' => 'sometimes|nullable|string|max:255',
+            'foto2_blc' => 'sometimes|nullable|string|max:255',
+            'radius' => 'sometimes|nullable|string',
+            'latitude' => 'sometimes|nullable|string',
+            'longitude' => 'sometimes|nullable|string',
+            'foto_absen_ins' => 'sometimes|nullable|string|max:255',
+            'ver_foto_absen_ins' => 'sometimes|nullable|integer',
+            'area' => 'sometimes|nullable|string',
+            'aktif' => 'sometimes|boolean',
+            'is_korwil' => 'sometimes|boolean',
+            'is_teknisi_ahli' => 'sometimes|boolean',
+            'is_teknisi' => 'sometimes|boolean',
         ]);
 
         $lokasi = $this->repository->update($id, $validated);
@@ -62,7 +82,7 @@ final class LokasiBlcController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $this->repository->softDelete($id);
+        $this->repository->delete($id);
         return response()->json(['message' => 'Deleted']);
     }
 }

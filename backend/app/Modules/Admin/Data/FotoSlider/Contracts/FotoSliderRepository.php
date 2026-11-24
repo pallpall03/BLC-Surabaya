@@ -10,7 +10,5 @@ use App\Modules\Admin\Data\FotoSlider\Domain\FotoSlider;
  */
 interface FotoSliderRepository extends Repository
 {
-    public function getByTipe(string $tipe): array;
     public function getAktif(): array;
-    public function getByStatus(string $status): array;
 }

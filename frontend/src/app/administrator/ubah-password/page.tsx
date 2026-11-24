@@ -29,7 +29,6 @@ export default function HalamanUbahPassword() {
   // ambil daftar pengguna setiap kali role diganti
   useEffect(() => {
     ambilUserPerRole(role).then(setUsers);
-    setIdUser("");
   }, [role]);
 
   // close dropdown when clicking outside
@@ -91,7 +90,7 @@ export default function HalamanUbahPassword() {
         </div>
       )}
 
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <section className="card rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center gap-2 border-b border-slate-100 px-6 py-4">
           <KeyRound size={18} className="text-violet-600" />
           <h3 className="font-semibold text-slate-800">Ubah Password Pengguna</h3>
@@ -105,7 +104,12 @@ export default function HalamanUbahPassword() {
               {daftarRole.map((r) => (
                 <button
                   key={r.kode}
-                  onClick={() => setRole(r.kode)}
+                  onClick={() => {
+                    setRole(r.kode);
+                    setIdUser("");
+                    setSearchQuery("");
+                    setIsOpen(false);
+                  }}
                   className={`rounded-full px-4 py-1.5 text-sm transition ${
                     role === r.kode
                       ? "bg-violet-600 font-medium text-white shadow-sm shadow-violet-200"

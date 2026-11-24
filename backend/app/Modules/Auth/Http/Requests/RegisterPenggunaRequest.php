@@ -18,6 +18,10 @@ final class RegisterPenggunaRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        if (is_string($this->input('nik'))) {
+            $this->merge(['nik' => preg_replace('/\s+/', '', $this->input('nik'))]);
+        }
+
         if (is_string($this->input('email'))) {
             $this->merge(['email' => mb_strtolower(trim($this->input('email')))]);
         }
@@ -33,6 +37,7 @@ final class RegisterPenggunaRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'nik' => ['required', 'string', 'digits:16', 'unique:users,nik'],
             'email' => ['required', 'string', 'email:rfc', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'confirmed', 'max:'.self::PASSWORD_MAX, Password::min(self::PASSWORD_MIN)],
         ];
@@ -45,6 +50,9 @@ final class RegisterPenggunaRequest extends FormRequest
     {
         return [
             'name.required' => 'Nama lengkap wajib diisi.',
+            'nik.required' => 'NIK wajib diisi.',
+            'nik.digits' => 'NIK harus 16 digit angka.',
+            'nik.unique' => 'NIK sudah terdaftar.',
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'email.unique' => 'Email sudah terdaftar.',

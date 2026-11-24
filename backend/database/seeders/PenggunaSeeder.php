@@ -17,6 +17,7 @@ class PenggunaSeeder extends Seeder
         $users = [
             [
                 'role_id' => $superAdminRole?->id,
+                'nik' => '3578000000000001', // NIK contoh untuk dev, ganti di produksi
                 'username' => 'superadmin',
                 'name' => 'Super Administrator',
                 'email' => 'superadmin@blc.surabaya.go.id',
@@ -28,6 +29,7 @@ class PenggunaSeeder extends Seeder
             ],
             [
                 'role_id' => $adminRole?->id,
+                'nik' => '3578000000000002', // NIK contoh untuk dev, ganti di produksi
                 'username' => 'admin',
                 'name' => 'Administrator',
                 'email' => 'admin@blc.surabaya.go.id',
