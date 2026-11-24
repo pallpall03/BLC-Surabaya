@@ -1,0 +1,57 @@
+:root,
+[data-bs-theme="light"] {
+  --bs-primary: #f97316;
+  --bs-primary-active: #ea580c;
+  --bs-primary-light: #fff7ed;
+  --bs-primary-inverse: #ffffff;
+  --bs-primary-rgb: 249, 115, 22;
+  --bs-text-primary: #f97316;
+  --bs-link-color: #f97316;
+  --bs-link-hover-color: #ea580c;
+}
+/* Bagian Metronic yang warna birunya ditulis permanen */
+.form-check-input:checked,
+.form-check-input[type="checkbox"]:indeterminate {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+.form-check-input:focus { border-color: var(--bs-primary); box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25); }
+.form-range::-webkit-slider-thumb,
+.form-range::-moz-range-thumb { background-color: var(--bs-primary); }
+.btn-outline-primary {
+  --bs-btn-color: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--bs-primary);
+  --bs-btn-hover-border-color: var(--bs-primary);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--bs-primary-active);
+  --bs-btn-active-border-color: var(--bs-primary-active);
+  --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+}
+.nav-pills { --bs-nav-pills-link-active-bg: var(--bs-primary); }
+.progress, .progress-stacked { --bs-progress-bar-bg: var(--bs-primary); }
+.link-primary { color: var(--bs-primary) !important; }
+.separator.separator-content.border-primary::before,
+.separator.separator-content.border-primary::after { border-color: var(--bs-primary) !important; }
+
+/* Sidebar harus punya latar & berada di atas header/konten saat melebar (hover) */
+@media (min-width: 992px) {
+    .app-sidebar {
+      background-color: var(--bs-body-bg, #fff);
+      z-index: 110;
+    }
+  }
+
+  /* Topbar: beri tinggi & latar, dan dorong konten ke bawah header fixed */
+@media (min-width: 992px) {
+    #kt_app_header {
+      height: 70px;
+      background-color: var(--bs-body-bg, #fff);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+      z-index: 100;
+    }
+    #kt_app_wrapper {
+      margin-top: 70px;
+    }
+  }

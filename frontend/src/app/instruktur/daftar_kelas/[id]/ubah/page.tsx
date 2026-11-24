@@ -21,6 +21,11 @@ export default function UbahKelasPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+<<<<<<< HEAD
+  if (!kelas) {
+    return <div className="card"><div className="card-body text-center text-gray-600 py-15">Kelas tidak ditemukan.</div></div>;
+  }
+=======
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
@@ -42,6 +47,7 @@ export default function UbahKelasPage() {
     };
     fetchData();
   }, [kelasId]);
+>>>>>>> 76d4f7dd648545a996f558989eb874d401051596
 
   const lain = kelasList.filter((k) => k.id !== kelasId);
   const bentrok = cariBentrok(lain, nilai.sesi, nilai.hari);
@@ -86,18 +92,22 @@ export default function UbahKelasPage() {
   if (!kelas) return <main className="p-10 text-center text-slate-600">Kelas tidak ditemukan.</main>;
 
   return (
-    <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
-      <div className="mx-auto max-w-5xl">
-        <HeaderHalaman icon={PencilLine} judul="Ubah kelas" kembali="/instruktur/daftar_kelas" deskripsi={`Mengubah profil kelas ${kelas.nama}`} />
+    <>
+      <HeaderHalaman icon={PencilLine} judul="Ubah kelas" kembali="/instruktur/daftar_kelas" deskripsi={`Mengubah profil kelas ${kelas.nama}`} />
 
-        <section className="mb-6 rounded-2xl border border-orange-200 bg-white p-5 shadow-xl shadow-orange-300/40">
-          <h2 className="mb-4 flex items-center gap-2 font-semibold text-slate-900"><Clock size={20} className="text-orange-500" /> Jadwal kelas lain</h2>
+      <div className="card mb-6">
+        <div className="card-header">
+          <div className="card-title d-flex align-items-center gap-2 fs-4 fw-bold">
+            <Clock size={20} className="text-primary" /> Jadwal kelas lain
+          </div>
+        </div>
+        <div className="card-body">
           <JadwalKelas kelas={lain} dipilih={nilai} onKlikKosong={klikKosong} />
-        </section>
-
-        <FormKelas nilai={nilai} onChange={(n) => { setError(""); setNilai(n); }} onSubmit={simpan}
-          bentrok={bentrok} error={error} kembali="/instruktur/daftar_kelas" />
+        </div>
       </div>
-    </main>
+
+      <FormKelas nilai={nilai} onChange={(n) => { setError(""); setNilai(n); }} onSubmit={simpan}
+        bentrok={bentrok} error={error} kembali="/instruktur/daftar_kelas" />
+    </>
   );
 }
