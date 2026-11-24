@@ -7,7 +7,6 @@ import { ArrowLeft, CalendarClock, Clock, Download, FileQuestion, RotateCcw, Sea
 import HeaderHalaman from "../../components/headerhalaman";
 import Paginasi from "../../components/paginasi";
 import PopupSukses from "../../components/popupsukses";
-import TokenUjian from "../../components/tokenujian";
 
 type Peserta = { id: number; nik: string; username: string; nama: string; jk: "L" | "P"; kategori: string; area: string; noDaftar: string; tglDaftar: string };
 type Terdaftar = { p: Peserta; benar: number | null; nilai: number | null; mulai: string; selesai: string; waktu: string };

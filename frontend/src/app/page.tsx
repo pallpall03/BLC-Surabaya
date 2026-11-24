@@ -1,19 +1,26 @@
-import Navbar from "@/components/home/Navbar"; // sesuaikan path punyamu
-import HeroSection from "@/components/home/HeroSection";
-import TentangBLC from "@/components/home/TentangBLC";
-import Artikel from "@/components/home/Artikel";
-import Lokasi from "@/components/home/Lokasi";
-import Footer from "@/components/home/Footer"; // sesuaikan path punyamu
+import Navbar from "./_home/Navbar";
+import Beranda from "./_home/Beranda";
+import Informasi from "./_home/Informasi";
+import Faq from "./_home/Faq";
+import Lokasi from "./_home/Lokasi";
+import BukuTamu from "./_home/BukuTamu";
+import Kontak from "./_home/Kontak";
 
-export default function Home() {
+export default function HalamanHome() {
   return (
-    <>
+    <div className="min-h-screen bg-white text-slate-700">
       <Navbar />
-      <HeroSection />
-      <TentangBLC />
-      <Artikel />
-      <Lokasi />
-      <Footer />
-    </>
+      <main>
+        <Beranda />
+        <Informasi />
+        <Faq />
+        <Lokasi />
+        <BukuTamu />
+        <Kontak />
+      </main>
+      <footer className="border-t border-slate-100 py-6 text-center text-sm text-slate-400">
+        © {new Date().getFullYear()} Broadband Learning Center Surabaya
+      </footer>
+    </div>
   );
 }

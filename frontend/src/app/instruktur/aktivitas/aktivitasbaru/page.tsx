@@ -12,8 +12,11 @@ export default function EntryAktivitasPage() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Tanggal otomatis diisi hari ini (diisi di browser agar tidak beda dengan server)
-  useEffect(() => { setNilai((n) => (n.tanggal ? n : { ...n, tanggal: hariIni() })); }, []);
+  // Isi tanggal setelah hydration agar tanggal server dan browser tidak berbeda.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setNilai((n) => (n.tanggal ? n : { ...n, tanggal: hariIni() }));
+  }, []);
 
   const simpan = async (e: React.FormEvent) => {
     e.preventDefault();

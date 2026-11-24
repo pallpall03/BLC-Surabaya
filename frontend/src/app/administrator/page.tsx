@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Building2, CheckCircle2, ChevronDown, Plus, Search } from "lucide-react";
-import { ambilBlcBaru, tambahkanBlc, type BlcBaru } from "@/lib/blc-baru";
-
+import { ambilBlcBaru, tambahkanBlc, type BlcBaru } from "./data";
 const JUMLAH_AWAL = 8;
 
 export default function HalamanBeranda() {
@@ -40,23 +39,22 @@ export default function HalamanBeranda() {
   return (
     <div className="space-y-6">
       {/* BANNER SAMBUTAN */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 to-orange-400 p-6 text-white shadow-lg shadow-orange-200 sm:p-8">
-        <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10" />
-        <div className="absolute -bottom-16 right-24 h-40 w-40 rounded-full bg-white/10" />
-        <Building2 size={72} className="absolute right-8 top-1/2 hidden -translate-y-1/2 text-white/20 sm:block" />
-
-        <div className="relative max-w-xl">
-          <h2 className="text-2xl font-bold sm:text-3xl">Selamat datang</h2>
-          <p className="mt-2 text-sm text-orange-50 sm:text-base">
-            Kelola konten Website Profil BLC Surabaya dari satu tempat.
-          </p>
-
-          {!memuat && (
-            <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-sm font-medium backdrop-blur">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
-              {daftar.length} BLC baru menunggu ditambahkan
+      <section className="card admin-welcome-card">
+        <div className="card-body relative flex items-center justify-between gap-6 p-6 sm:p-8">
+          <div className="max-w-2xl">
+            <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">Selamat datang</h2>
+            <p className="mt-2 text-sm text-gray-600 sm:text-base">
+              Kelola konten Website Profil BLC Surabaya dari satu tempat.
             </p>
-          )}
+
+            {!memuat && (
+              <p className="badge badge-light-warning mt-5 inline-flex items-center gap-2 px-3 py-2 text-sm font-medium">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-orange-500" />
+                {daftar.length} BLC baru menunggu ditambahkan
+              </p>
+            )}
+          </div>
+          <Building2 size={64} className="hidden shrink-0 text-primary opacity-25 sm:block" />
         </div>
       </section>
 
@@ -68,7 +66,7 @@ export default function HalamanBeranda() {
       )}
 
       {/* DAFTAR BLC BARU */}
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <section className="card rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-5">
           <div>
             <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800">

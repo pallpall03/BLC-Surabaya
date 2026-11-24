@@ -50,7 +50,7 @@ export default function LoginPage() {
       } else {
         setMessage({ type: 'error', text: data.message || 'Login gagal' });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'Koneksi ke server gagal' });
     } finally {
       setLoading(false);
