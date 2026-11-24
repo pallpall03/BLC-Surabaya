@@ -21,7 +21,7 @@ type Pesan = { jenis: 'sukses' | 'galat' | 'terkunci'; teks: string };
 export default function LoginPage() {
   const router = useRouter();
 
-  const [nik, setNik] = useState('');
+  const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [lihatPassword, setLihatPassword] = useState(false);
   const [captchaWajib, setCaptchaWajib] = useState(false);
@@ -66,8 +66,8 @@ export default function LoginPage() {
     e.preventDefault();
     if (terkunci) return;
 
-    if (!/^\d{16}$/.test(nik)) {
-      setPesan({ jenis: 'galat', teks: 'NIK harus 16 digit angka.' });
+    if (!login.trim()) {
+      setPesan({ jenis: 'galat', teks: 'NIK atau username wajib diisi.' });
       return;
     }
     if (captchaWajib && !jawabanCaptcha.trim()) {
@@ -83,7 +83,7 @@ export default function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
-          nik,
+          login: login.trim(),
           password,
           ...(captchaWajib && captcha ? { captcha_id: captcha.id, captcha: jawabanCaptcha.trim() } : {}),
         }),
@@ -171,17 +171,17 @@ export default function LoginPage() {
                   )}
 
                   <div className="fv-row mb-8">
-                    <label htmlFor="nik" className="form-label fs-6 fw-bold text-dark">NIK</label>
+                    <label htmlFor="login" className="form-label fs-6 fw-bold text-dark">NIK atau Username</label>
                     <input
-                      id="nik"
+                      id="login"
                       type="text"
-                      name="nik"
-                      inputMode="numeric"
+                      name="login"
+                      inputMode="text"
                       autoComplete="username"
-                      placeholder="16 digit NIK"
-                      maxLength={16}
-                      value={nik}
-                      onChange={(e) => setNik(e.target.value.replace(/\D/g, '').slice(0, 16))}
+                      placeholder="Masukkan NIK atau username"
+                      maxLength={255}
+                      value={login}
+                      onChange={(e) => setLogin(e.target.value)}
                       disabled={terkunci}
                       className="form-control bg-transparent"
                     />

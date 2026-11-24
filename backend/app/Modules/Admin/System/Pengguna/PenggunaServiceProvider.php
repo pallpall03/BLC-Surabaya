@@ -16,13 +16,15 @@ final class PenggunaServiceProvider extends ServiceProvider
 
     public static function routes(): void
     {
-        Route::prefix('users')->group(function (): void {
-            Route::get('/', [Http\PenggunaController::class, 'index']);
-            Route::post('/', [Http\PenggunaController::class, 'store']);
-            Route::get('/{id}', [Http\PenggunaController::class, 'show']);
-            Route::put('/{id}', [Http\PenggunaController::class, 'update']);
-            Route::patch('/{id}', [Http\PenggunaController::class, 'update']);
-            Route::delete('/{id}', [Http\PenggunaController::class, 'destroy']);
-        });
+        Route::middleware(['auth:api', 'role:superadmin'])
+            ->prefix('users')
+            ->group(function (): void {
+                Route::get('/', [Http\PenggunaController::class, 'index']);
+                Route::post('/', [Http\PenggunaController::class, 'store']);
+                Route::get('/{id}', [Http\PenggunaController::class, 'show']);
+                Route::put('/{id}', [Http\PenggunaController::class, 'update']);
+                Route::patch('/{id}', [Http\PenggunaController::class, 'update']);
+                Route::delete('/{id}', [Http\PenggunaController::class, 'destroy']);
+            });
     }
 }

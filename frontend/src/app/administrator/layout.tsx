@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import "./metronic-admin.css";
+import AuthGuard from "@/components/auth/AuthGuard";
 import PanelShell from "./components/PanelShell";
 import type { KonfigPeran } from "./components/tipe";
 import { konfigAdministrator, susunMenu } from "./menu-peran";
@@ -54,13 +55,17 @@ export default function LayoutAdministrator({ children }: { children: ReactNode 
   }, []);
 
   return (
+<<<<<<< HEAD
     <>
       {/* urutan penting: plugins.bundle.css dulu, baru style.bundle.css */}
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/metronic/assets/plugins/global/plugins.bundle.css" precedence="default" />
+=======
+    <AuthGuard role="superadmin">
+>>>>>>> 4aaeb7acec5e62134daaf417c4c9904710597cdd
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/metronic/assets/css/style.bundle.css" precedence="default" />
       <PanelShell konfig={konfig}>{children}</PanelShell>
-    </>
+    </AuthGuard>
   );
 }

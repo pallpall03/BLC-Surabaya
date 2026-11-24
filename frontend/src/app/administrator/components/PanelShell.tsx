@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import type { KonfigPeran } from "./tipe";
+import { logout } from "@/lib/api";
 import { ambilBukuTamu } from "../buku_tamu/data";
 import { ambilTestimoni } from "../testimoni/data";
 
@@ -577,13 +578,12 @@ export default function PanelShell({
                       </>
                     )}
 
-                    <div className="border-t border-gray-100 p-2">
+                    <div className="border-t border-slate-100 p-2">
                       <Link
                         href="/login"
-                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-danger transition hover:bg-light-danger"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-red-500 transition hover:bg-red-50"
                       >
-                        <LogOut size={16} />
-                        Keluar
+                        <LogOut size={16} /> Keluar
                       </Link>
                     </div>
                   </div>

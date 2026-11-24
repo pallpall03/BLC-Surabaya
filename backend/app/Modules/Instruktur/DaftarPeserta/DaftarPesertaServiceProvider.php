@@ -20,7 +20,7 @@ final class DaftarPesertaServiceProvider extends ServiceProvider
      */
     public static function routes(): void
     {
-        Route::middleware(['auth:api', 'role.path'])
+        Route::middleware(['auth:api', 'role:instruktur'])
             ->prefix('instruktur/daftar-peserta')
             ->group(function (): void {
                 Route::get('/', [Http\DaftarPesertaController::class, 'index']);

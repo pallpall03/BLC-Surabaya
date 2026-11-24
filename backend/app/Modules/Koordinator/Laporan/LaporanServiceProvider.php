@@ -20,7 +20,7 @@ final class LaporanServiceProvider extends ServiceProvider
      */
     public static function routes(): void
     {
-        Route::middleware(['auth:api', 'role.path'])
+        Route::middleware(['auth:api', 'role:koordinator'])
             ->prefix('koordinator/laporan')
             ->group(function (): void {
                 Route::get('/', [Http\LaporanController::class, 'index']);
