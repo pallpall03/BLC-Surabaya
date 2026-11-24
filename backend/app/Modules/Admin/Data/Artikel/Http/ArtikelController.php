@@ -65,10 +65,10 @@ final class ArtikelController extends Controller
     }
 
     public function destroy(int $id): JsonResponse
-    {
-        $this->repository->softDelete($id);
-        return response()->json(['message' => 'Deleted']);
-    }
+        {
+            $this->repository->delete($id);
+            return response()->json(['message' => 'Deleted']);
+        }
 
     public function latest(): JsonResponse
     {

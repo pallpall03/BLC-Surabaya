@@ -26,8 +26,8 @@ final class TestimoniController extends Controller
             'pekerjaan' => 'nullable|string|max:255',
             'testimoni' => 'required|string',
             'foto' => 'nullable|string|max:255',
-            'urutan' => 'integer|default:0',
-            'is_aktif' => 'boolean',
+            'urutan' => 'sometimes|integer|min:0',
+            'is_aktif' => 'sometimes|boolean',
         ]);
 
         $testimoniModel = $this->repository->create($validated);
@@ -50,7 +50,7 @@ final class TestimoniController extends Controller
             'pekerjaan' => 'sometimes|nullable|string|max:255',
             'testimoni' => 'sometimes|required|string',
             'foto' => 'sometimes|string|max:255',
-            'urutan' => 'sometimes|integer',
+            'urutan' => 'sometimes|integer|min:0',
             'is_aktif' => 'sometimes|boolean',
         ]);
 
@@ -60,7 +60,7 @@ final class TestimoniController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $this->repository->softDelete($id);
+        $this->repository->delete($id);
         return response()->json(['message' => 'Deleted']);
     }
 }

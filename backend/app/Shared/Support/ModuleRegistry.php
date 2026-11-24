@@ -14,6 +14,7 @@ final class ModuleRegistry
             // Admin - Data (konten landing page)
             \App\Modules\Admin\Data\Artikel\ArtikelServiceProvider::class,
             \App\Modules\Admin\Data\Faq\FaqServiceProvider::class,
+            \App\Modules\Admin\Data\BukuTamu\BukuTamuServiceProvider::class,
             \App\Modules\Admin\Data\FotoSlider\FotoSliderServiceProvider::class,
             \App\Modules\Admin\Data\KategoriArtikel\KategoriArtikelServiceProvider::class,
             \App\Modules\Admin\Data\LokasiBlc\LokasiBlcServiceProvider::class,

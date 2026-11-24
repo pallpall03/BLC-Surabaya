@@ -40,36 +40,25 @@ final class EloquentFotoSliderRepository implements FotoSliderRepository
         FotoSliderModel::findOrFail($id)->delete();
     }
 
-    public function getByTipe(string $tipe): array
-    {
-        return FotoSliderModel::tipe($tipe)->ordered()->get()->map(fn ($m) => $this->toDomain($m))->all();
-    }
-
     public function getAktif(): array
-    {
-        return FotoSliderModel::aktif()->ordered()->get()->map(fn ($m) => $this->toDomain($m))->all();
-    }
+        {
+            return FotoSliderModel::aktif()->ordered()->get()->map(fn ($m) => $this->toDomain($m))->all();
+        }
 
-    public function getByStatus(string $status): array
-    {
-        return FotoSliderModel::where('status', $status)->ordered()->get()->map(fn ($m) => $this->toDomain($m))->all();
+        /**
+         * Convert Eloquent Model ke Domain Entity
+         */
+        private function toDomain(FotoSliderModel $model): FotoSlider
+        {
+            return new FotoSlider(
+                id: $model->id,
+                judul: $model->judul,
+                deskripsi: $model->deskripsi,
+                gambar: $model->gambar,
+                urutan: $model->urutan,
+                aktif: $model->aktif,
+                createdAt: $model->created_at?->toIso8601String(),
+                updatedAt: $model->updated_at?->toIso8601String(),
+            );
+        }
     }
-
-    /**
-     * Convert Eloquent Model ke Domain Entity
-     */
-    private function toDomain(FotoSliderModel $model): FotoSlider
-    {
-        return new FotoSlider(
-            id: $model->id,
-            fileBrosur: $model->file_brosur,
-            ketBrosur: $model->ket_brosur,
-            tgl: $model->tgl?->toIso8601String(),
-            tipe: $model->tipe,
-            status: $model->status,
-            urutan: $model->urutan,
-            createdAt: $model->created_at?->toIso8601String(),
-            updatedAt: $model->updated_at?->toIso8601String(),
-        );
-    }
-}
