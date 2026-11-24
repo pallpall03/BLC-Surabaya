@@ -1,6 +1,7 @@
 import Navbar from "./_home/Navbar";
 import Beranda from "./_home/Beranda";
 import Informasi from "./_home/Informasi";
+import ArtikelTerbaru from "./_home/ArtikelTerbaru";
 import Faq from "./_home/Faq";
 import Lokasi from "./_home/Lokasi";
 import BukuTamu from "./_home/BukuTamu";
@@ -13,6 +14,7 @@ export default function HalamanHome() {
       <main>
         <Beranda />
         <Informasi />
+        <ArtikelTerbaru />
         <Faq />
         <Lokasi />
         <BukuTamu />

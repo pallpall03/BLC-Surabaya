@@ -1,146 +1,616 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Building2, CheckCircle2, ChevronDown, Plus, Search } from "lucide-react";
-import { ambilBlcBaru, tambahkanBlc, type BlcBaru } from "./data";
-const JUMLAH_AWAL = 8;
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import {
+  ArrowRight,
+  BookOpen,
+  Building2,
+  HelpCircle,
+  MapPin,
+  Newspaper,
+  Users,
+  UserCog,
+  MessageSquareQuote,
+  Settings,
+} from "lucide-react";
+import { ambilArtikel, type Artikel } from "./artikel/data";
+import { ambilLokasi } from "./lokasi/data";
+import { ambilFaq } from "./faq/data";
+import { ambilUser } from "./user_manager/data";
+import { ambilTestimoni } from "./testimoni/data";
+import { ambilBukuTamu } from "./buku_tamu/data";
+
+type Ringkasan = {
+  artikel: number;
+  lokasi: number;
+  pengguna: number;
+  faq: number;
+};
+
+type AktivitasBulanan = {
+  kunci: string;
+  label: string;
+  artikel: number;
+  pesan: number;
+};
+
+const JUMLAH_BULAN_GRAFIK = 12;
+
+function kunciBulan(tanggal: string | null | undefined) {
+  if (!tanggal) return null;
+  const parsed = new Date(tanggal);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function ringkasPerubahan(bulanIni: number, bulanLalu: number) {
+  if (bulanLalu === 0) {
+    return bulanIni === 0 ? "Sama dengan bulan lalu" : "Ada aktivitas baru";
+  }
+
+  const perubahan = Math.round(((bulanIni - bulanLalu) / bulanLalu) * 100);
+  return `${perubahan > 0 ? "+" : ""}${perubahan}% dari bulan lalu`;
+}
 
 export default function HalamanBeranda() {
-  const [daftar, setDaftar] = useState<BlcBaru[]>([]);
-  const [memuat, setMemuat] = useState<boolean>(true);
-  const [cari, setCari] = useState("");
-  const [jumlah, setJumlah] = useState<number>(JUMLAH_AWAL);
-  const [proses, setProses] = useState<number | null>(null); // id yang sedang diproses
-  const [pesan, setPesan] = useState("");
+  const [ringkasan, setRingkasan] = useState<Ringkasan>({
+    artikel: 0,
+    lokasi: 0,
+    pengguna: 0,
+    faq: 0,
+  });
+  const [artikelTerbaru, setArtikelTerbaru] = useState<Artikel[]>([]);
+  const [aktivitasBulanan, setAktivitasBulanan] = useState<AktivitasBulanan[]>([]);
+  const [testimoniMenunggu, setTestimoniMenunggu] = useState(0);
+  const [memuat, setMemuat] = useState(true);
 
   useEffect(() => {
-    ambilBlcBaru()
-      .then(setDaftar)
-      .finally(() => setMemuat(false));
+    let batal = false;
+
+    async function muatDashboard() {
+      try {
+        const [artikel, lokasi, faq, pengguna, bukuTamu] = await Promise.all([
+          ambilArtikel(),
+          ambilLokasi(),
+          ambilFaq(),
+          ambilUser().catch(() => []),
+          ambilBukuTamu(),
+        ]);
+
+        if (batal) return;
+
+        const testimoni = ambilTestimoni();
+        const daftarArtikel = Array.isArray(artikel) ? artikel : [];
+        const daftarLokasi = Array.isArray(lokasi) ? lokasi : [];
+        const daftarFaq = Array.isArray(faq) ? faq : [];
+        const daftarPengguna = Array.isArray(pengguna) ? pengguna : [];
+        const daftarBukuTamu = Array.isArray(bukuTamu) ? bukuTamu : [];
+
+        setRingkasan({
+          artikel: daftarArtikel.filter((item) => item.status === "aktif").length,
+          lokasi: daftarLokasi.filter((item) => item.status === "aktif").length,
+          pengguna: daftarPengguna.length,
+          faq: daftarFaq.filter((item) => item.aktif).length,
+        });
+        setArtikelTerbaru(
+          [...daftarArtikel]
+            .sort((a, b) => b.diubah.localeCompare(a.diubah))
+            .slice(0, 5)
+        );
+        const hariIni = new Date();
+        const bulanGrafik: AktivitasBulanan[] = Array.from(
+          { length: JUMLAH_BULAN_GRAFIK },
+          (_, index) => {
+            const bulan = new Date(
+              hariIni.getFullYear(),
+              hariIni.getMonth() - (JUMLAH_BULAN_GRAFIK - 1) + index,
+              1
+            );
+            return {
+              kunci: kunciBulan(bulan.toISOString()) ?? "",
+              label: new Intl.DateTimeFormat("id-ID", {
+                month: "short",
+              }).format(bulan),
+              artikel: 0,
+              pesan: 0,
+            };
+          }
+        );
+        const indeksBulan = new Map(
+          bulanGrafik.map((bulan, index) => [bulan.kunci, index])
+        );
+
+        for (const artikel of daftarArtikel) {
+          if (artikel.status !== "aktif" || !artikel.dipublikasi) continue;
+          const index = indeksBulan.get(kunciBulan(artikel.dipublikasi) ?? "");
+          if (index !== undefined) bulanGrafik[index].artikel += 1;
+        }
+
+        for (const pesan of daftarBukuTamu) {
+          const index = indeksBulan.get(kunciBulan(pesan.tanggal) ?? "");
+          if (index !== undefined) bulanGrafik[index].pesan += 1;
+        }
+
+        setAktivitasBulanan(bulanGrafik);
+        setTestimoniMenunggu(
+          testimoni.filter((item) => item.status === "nonaktif").length
+        );
+      } finally {
+        if (!batal) setMemuat(false);
+      }
+    }
+
+    muatDashboard();
+    return () => {
+      batal = true;
+    };
   }, []);
 
-  // saring berdasarkan kolom pencarian
-  const hasil = useMemo(
-    () => daftar.filter((b) => b.nama.toLowerCase().includes(cari.toLowerCase())),
-    [daftar, cari]
+  const kartuRingkasan = [
+    {
+      label: "Artikel Aktif",
+      nilai: ringkasan.artikel,
+      ikon: Newspaper,
+      warna: "text-primary bg-light-primary",
+      href: "/administrator/artikel",
+    },
+    {
+      label: "Lokasi Aktif",
+      nilai: ringkasan.lokasi,
+      ikon: MapPin,
+      warna: "text-success bg-light-success",
+      href: "/administrator/lokasi",
+    },
+    {
+      label: "Pengguna",
+      nilai: ringkasan.pengguna,
+      ikon: Users,
+      warna: "text-info bg-light-info",
+      href: "/administrator/user_manager",
+    },
+    {
+      label: "FAQ Aktif",
+      nilai: ringkasan.faq,
+      ikon: HelpCircle,
+      warna: "text-warning bg-light-warning",
+      href: "/administrator/faq",
+    },
+  ];
+
+  const totalArtikel12Bulan = aktivitasBulanan.reduce(
+    (total, bulan) => total + bulan.artikel,
+    0
   );
-  const tampil = hasil.slice(0, jumlah);
+  const totalPesan12Bulan = aktivitasBulanan.reduce(
+    (total, bulan) => total + bulan.pesan,
+    0
+  );
+  const bulanIni = aktivitasBulanan[aktivitasBulanan.length - 1];
+  const bulanLalu = aktivitasBulanan[aktivitasBulanan.length - 2];
+  const nilaiMaksimumGrafik = Math.max(
+    4,
+    Math.ceil(
+      Math.max(
+        0,
+        ...aktivitasBulanan.flatMap((bulan) => [bulan.artikel, bulan.pesan])
+      ) / 4
+    ) * 4
+  );
+  const areaGrafik = { kiri: 56, atas: 24, lebar: 680, tinggi: 176 };
+  const posisiX = (index: number) =>
+    areaGrafik.kiri +
+    (aktivitasBulanan.length > 1
+      ? (areaGrafik.lebar / (aktivitasBulanan.length - 1)) * index
+      : areaGrafik.lebar / 2);
+  const posisiY = (nilai: number) =>
+    areaGrafik.atas + areaGrafik.tinggi * (1 - nilai / nilaiMaksimumGrafik);
+  const titikArtikel = aktivitasBulanan
+    .map((bulan, index) => `${posisiX(index)},${posisiY(bulan.artikel)}`)
+    .join(" ");
+  const titikPesan = aktivitasBulanan
+    .map((bulan, index) => `${posisiX(index)},${posisiY(bulan.pesan)}`)
+    .join(" ");
 
-  async function handleTambahkan(blc: BlcBaru) {
-    setProses(blc.id);
-    await tambahkanBlc(blc.id);
-    setDaftar((lama) => lama.filter((b) => b.id !== blc.id));
-    setProses(null);
-
-    setPesan(`${blc.nama} berhasil ditambahkan.`);
-    setTimeout(() => setPesan(""), 3000);
-  }
+  const pintasan = [
+    {
+      label: "Kelola Artikel",
+      keterangan: "Tambah, ubah, dan publikasikan artikel",
+      href: "/administrator/artikel",
+      ikon: Newspaper,
+    },
+    {
+      label: "Kelola Lokasi",
+      keterangan: "Perbarui cabang dan layanan BLC",
+      href: "/administrator/lokasi",
+      ikon: Building2,
+    },
+    {
+      label: "Manajemen User",
+      keterangan: "Kelola akun dan hak akses",
+      href: "/administrator/user_manager",
+      ikon: UserCog,
+    },
+    {
+      label: "Konten Website",
+      keterangan: "Atur banner, statistik, dan konten",
+      href: "/administrator/konten",
+      ikon: Settings,
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      {/* BANNER SAMBUTAN */}
-      <section className="card admin-welcome-card">
+      <section className="card admin-welcome-card overflow-hidden">
         <div className="card-body relative flex items-center justify-between gap-6 p-6 sm:p-8">
-          <div className="max-w-2xl">
-            <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">Selamat datang</h2>
+          <div className="relative z-10 max-w-2xl">
+            <span className="badge badge-light-primary mb-3 px-3 py-2">
+              Dashboard Administrator
+            </span>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Selamat datang, Admin
+            </h2>
             <p className="mt-2 text-sm text-gray-600 sm:text-base">
-              Kelola konten Website Profil BLC Surabaya dari satu tempat.
+              Pantau aktivitas dan kelola konten Website BLC Surabaya dari satu tempat.
             </p>
-
-            {!memuat && (
-              <p className="badge badge-light-warning mt-5 inline-flex items-center gap-2 px-3 py-2 text-sm font-medium">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-orange-500" />
-                {daftar.length} BLC baru menunggu ditambahkan
-              </p>
-            )}
           </div>
-          <Building2 size={64} className="hidden shrink-0 text-primary opacity-25 sm:block" />
+          <Building2
+            size={72}
+            className="hidden shrink-0 text-primary opacity-20 sm:block"
+          />
         </div>
       </section>
 
-      {/* PESAN SUKSES */}
-      {pesan && (
-        <div className="flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-          <CheckCircle2 size={18} /> {pesan}
-        </div>
-      )}
+      <section
+        className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4"
+        aria-label="Ringkasan dashboard"
+      >
+        {kartuRingkasan.map((kartu) => {
+          const Ikon = kartu.ikon;
+          return (
+            <Link
+              key={kartu.label}
+              href={kartu.href}
+              className="card group transition hover:-translate-y-0.5"
+            >
+              <div className="card-body flex items-center justify-between p-5">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    {kartu.label}
+                  </p>
+                  <p className="mt-2 text-2xl font-bold text-gray-900">
+                    {memuat ? "-" : kartu.nilai}
+                  </p>
+                </div>
+                <span
+                  className={`flex h-12 w-12 items-center justify-center rounded-lg ${kartu.warna}`}
+                >
+                  <Ikon size={23} />
+                </span>
+              </div>
+            </Link>
+          );
+        })}
+      </section>
 
-      {/* DAFTAR BLC BARU */}
-      <section className="card rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-5">
+      <section className="card" aria-labelledby="dashboard-chart-title">
+        <div className="card-header flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800">
-              BLC Baru
-              <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-semibold text-orange-600">
-                {daftar.length}
-              </span>
+            <h3 id="dashboard-chart-title" className="font-semibold text-gray-900">
+              Aktivitas 12 Bulan Terakhir
             </h3>
-            <p className="text-sm text-slate-400">Daftar BLC yang belum ada di website</p>
-          </div>
-
-          <div className="relative w-full sm:w-64">
-            <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
-            <input
-              value={cari}
-              onChange={(e) => {
-                setCari(e.target.value);
-                setJumlah(JUMLAH_AWAL);
-              }}
-              placeholder="Cari nama BLC..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100"
-            />
-          </div>
-        </div>
-
-        {memuat ? (
-          <p className="py-12 text-center text-sm text-slate-400">Memuat data...</p>
-        ) : tampil.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 py-12 text-slate-400">
-            <CheckCircle2 size={36} />
-            <p className="text-sm">
-              {cari ? "BLC tidak ditemukan." : "Semua BLC sudah ditambahkan."}
+            <p className="mt-1 text-sm text-gray-500">
+              Artikel dipublikasikan dan pesan buku tamu yang masuk per bulan
             </p>
           </div>
-        ) : (
-          <ul className="divide-y divide-slate-100">
-            {tampil.map((b, i) => (
-              <li
-                key={b.id}
-                className="flex items-center gap-4 px-6 py-3.5 transition hover:bg-slate-50"
-              >
-                <span className="w-6 text-sm text-slate-400">{i + 1}</span>
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-orange-600">
-                  {b.nama.replace("BLC ", "").charAt(0)}
-                </span>
-                <p className="flex-1 truncate font-medium text-slate-700">{b.nama}</p>
-                <button
-                  onClick={() => handleTambahkan(b)}
-                  disabled={proses === b.id}
-                  className="flex items-center gap-1.5 rounded-lg bg-orange-500 px-3.5 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-orange-600 disabled:opacity-60"
-                >
-                  <Plus size={15} />
-                  {proses === b.id ? "Memproses..." : "Tambahkan"}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {/* TAMPILKAN LEBIH BANYAK */}
-        {hasil.length > jumlah && (
-          <div className="border-t border-slate-100 p-4 text-center">
-            <button
-              onClick={() => setJumlah((j) => j + JUMLAH_AWAL)}
-              className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-orange-600 transition hover:bg-orange-50"
-            >
-              Tampilkan lebih banyak ({hasil.length - jumlah})
-              <ChevronDown size={16} />
-            </button>
+          <div className="flex items-center gap-4 text-xs font-medium text-gray-600">
+            <span className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-violet-600" />
+              Artikel terbit
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-orange-500" />
+              Pesan masuk
+            </span>
           </div>
-        )}
+        </div>
+        <div className="card-body px-4 pb-5 pt-3 sm:px-6">
+          <svg
+            className="h-auto w-full"
+            viewBox="0 0 760 242"
+            role="img"
+            aria-label="Grafik aktivitas artikel terbit dan pesan buku tamu dalam dua belas bulan terakhir"
+          >
+            <title>Aktivitas administrator selama dua belas bulan</title>
+            <desc>
+              Grafik garis membandingkan jumlah artikel yang dipublikasikan
+              dengan pesan buku tamu yang diterima setiap bulan selama dua belas
+              bulan terakhir.
+            </desc>
+            <defs>
+              <linearGradient id="dashboard-chart-gradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#7c3aed" />
+                <stop offset="100%" stopColor="#a855f7" />
+              </linearGradient>
+            </defs>
+
+            {[0, 1, 2, 3, 4].map((langkah) => {
+              const nilai = (nilaiMaksimumGrafik * langkah) / 4;
+              const y = posisiY(nilai);
+
+              return (
+                <g key={langkah}>
+                  <line
+                    x1={areaGrafik.kiri}
+                    y1={y}
+                    x2={areaGrafik.kiri + areaGrafik.lebar}
+                    y2={y}
+                    stroke="#ede3fa"
+                    strokeDasharray={langkah === 0 ? undefined : "4 6"}
+                  />
+                  <text
+                    x={areaGrafik.kiri - 14}
+                    y={y + 4}
+                    textAnchor="end"
+                    fill="#806b94"
+                    fontSize="12"
+                  >
+                    {nilai}
+                  </text>
+                </g>
+              );
+            })}
+
+            <polyline
+              points={titikArtikel}
+              fill="none"
+              stroke="url(#dashboard-chart-gradient)"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <polyline
+              points={titikPesan}
+              fill="none"
+              stroke="#f97316"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+
+            {aktivitasBulanan.map((bulan, index) => (
+              <g key={bulan.kunci}>
+                <circle
+                  cx={posisiX(index)}
+                  cy={posisiY(bulan.artikel)}
+                  r="5"
+                  fill="#fff"
+                  stroke="#7c3aed"
+                  strokeWidth="3"
+                >
+                  <title>{`${bulan.label}: ${bulan.artikel} artikel terbit`}</title>
+                </circle>
+                <circle
+                  cx={posisiX(index)}
+                  cy={posisiY(bulan.pesan)}
+                  r="5"
+                  fill="#fff"
+                  stroke="#f97316"
+                  strokeWidth="3"
+                >
+                  <title>{`${bulan.label}: ${bulan.pesan} pesan masuk`}</title>
+                </circle>
+                <text
+                  x={posisiX(index)}
+                  y={areaGrafik.atas + areaGrafik.tinggi + 28}
+                  textAnchor="middle"
+                  fill="#735e86"
+                  fontSize="13"
+                >
+                  {bulan.label}
+                </text>
+              </g>
+            ))}
+          </svg>
+
+          <div className="mt-4 grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <div className="rounded-xl border border-violet-100 bg-gradient-to-br from-white via-violet-50 to-orange-50 p-3">
+              <p className="text-xs font-medium text-gray-500">
+                Artikel terbit · 12 bulan
+              </p>
+              <p className="mt-1 text-xl font-bold text-gray-900">
+                {memuat ? "-" : totalArtikel12Bulan}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                {memuat || !bulanIni || !bulanLalu
+                  ? "Perbandingan bulanan"
+                  : `${bulanIni.artikel} bulan ini · ${ringkasPerubahan(
+                      bulanIni.artikel,
+                      bulanLalu.artikel
+                    )}`}
+              </p>
+            </div>
+            <div className="rounded-xl border border-violet-100 bg-gradient-to-br from-white via-violet-50 to-orange-50 p-3">
+              <p className="text-xs font-medium text-gray-500">
+                Rata-rata artikel / bulan
+              </p>
+              <p className="mt-1 text-xl font-bold text-gray-900">
+                {memuat
+                  ? "-"
+                  : new Intl.NumberFormat("id-ID", {
+                      maximumFractionDigits: 1,
+                    }).format(totalArtikel12Bulan / JUMLAH_BULAN_GRAFIK)}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">Berdasarkan 12 bulan</p>
+            </div>
+            <div className="rounded-xl border border-violet-100 bg-gradient-to-br from-white via-violet-50 to-orange-50 p-3">
+              <p className="text-xs font-medium text-gray-500">
+                Pesan masuk · 12 bulan
+              </p>
+              <p className="mt-1 text-xl font-bold text-gray-900">
+                {memuat ? "-" : totalPesan12Bulan}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                {memuat || !bulanIni || !bulanLalu
+                  ? "Perbandingan bulanan"
+                  : `${bulanIni.pesan} bulan ini · ${ringkasPerubahan(
+                      bulanIni.pesan,
+                      bulanLalu.pesan
+                    )}`}
+              </p>
+            </div>
+            <div className="rounded-xl border border-violet-100 bg-gradient-to-br from-white via-violet-50 to-orange-50 p-3">
+              <p className="text-xs font-medium text-gray-500">
+                Rata-rata pesan / bulan
+              </p>
+              <p className="mt-1 text-xl font-bold text-gray-900">
+                {memuat
+                  ? "-"
+                  : new Intl.NumberFormat("id-ID", {
+                      maximumFractionDigits: 1,
+                    }).format(totalPesan12Bulan / JUMLAH_BULAN_GRAFIK)}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">Berdasarkan 12 bulan</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.45fr)]">
+        <section className="card">
+          <div className="card-header flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-gray-900">Akses Cepat</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Menu pengelolaan yang sering digunakan
+              </p>
+            </div>
+          </div>
+          <div className="card-body grid gap-4 p-5 sm:grid-cols-2">
+            {pintasan.map((item) => {
+              const Ikon = item.ikon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="group flex items-start gap-4 rounded-lg border border-gray-200 p-4 transition hover:border-primary hover:bg-light-primary"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-light-primary text-primary">
+                    <Ikon size={20} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold text-gray-800">
+                      {item.label}
+                    </span>
+                    <span className="mt-1 block text-sm text-gray-500">
+                      {item.keterangan}
+                    </span>
+                  </span>
+                  <ArrowRight
+                    size={18}
+                    className="mt-1 shrink-0 text-gray-400 transition group-hover:translate-x-1 group-hover:text-primary"
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="card">
+          <div className="card-header">
+            <h3 className="font-semibold text-gray-900">Perlu Perhatian</h3>
+          </div>
+          <div className="card-body space-y-3 p-5">
+            <Link
+              href="/administrator/testimoni"
+              className="flex items-center gap-3 rounded-lg border border-gray-200 p-4 transition hover:border-primary hover:bg-light-primary"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-light-warning text-warning">
+                <MessageSquareQuote size={20} />
+              </span>
+              <div className="flex-1">
+                <p className="font-semibold text-gray-800">Testimoni belum aktif</p>
+                <p className="mt-1 text-sm text-gray-500">
+                  {memuat ? "Memuat..." : `${testimoniMenunggu} testimoni menunggu`}
+                </p>
+              </div>
+            </Link>
+
+            <Link
+              href="/administrator/artikel"
+              className="flex items-center gap-3 rounded-lg border border-gray-200 p-4 transition hover:border-primary hover:bg-light-primary"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-light-info text-info">
+                <BookOpen size={20} />
+              </span>
+              <div className="flex-1">
+                <p className="font-semibold text-gray-800">Kelola artikel</p>
+                <p className="mt-1 text-sm text-gray-500">
+                  Buat dan perbarui konten website
+                </p>
+              </div>
+            </Link>
+          </div>
+        </section>
+      </div>
+
+      <section className="card">
+        <div className="card-header flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-gray-900">Artikel Terbaru</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Konten yang terakhir diperbarui
+            </p>
+          </div>
+          <Link
+            href="/administrator/artikel"
+            className="btn btn-sm btn-light-primary"
+          >
+            Lihat semua
+          </Link>
+        </div>
+        <div className="card-body p-0">
+          {memuat ? (
+            <p className="px-5 py-10 text-center text-sm text-gray-500">
+              Memuat artikel...
+            </p>
+          ) : artikelTerbaru.length === 0 ? (
+            <p className="px-5 py-10 text-center text-sm text-gray-500">
+              Belum ada artikel.
+            </p>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {artikelTerbaru.map((artikel) => (
+                <Link
+                  key={artikel.id}
+                  href="/administrator/artikel"
+                  className="flex items-center gap-4 px-5 py-4 transition hover:bg-gray-50"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-light-primary text-primary">
+                    <Newspaper size={19} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-gray-800">
+                      {artikel.judul}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {artikel.status === "aktif" ? "Dipublikasikan" : "Draft"}
+                    </p>
+                  </div>
+                  <span
+                    className={`badge ${
+                      artikel.status === "aktif"
+                        ? "badge-light-success"
+                        : "badge-light-warning"
+                    }`}
+                  >
+                    {artikel.status === "aktif" ? "Aktif" : "Nonaktif"}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );

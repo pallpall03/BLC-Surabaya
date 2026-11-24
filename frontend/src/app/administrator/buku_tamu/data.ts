@@ -33,6 +33,7 @@ function baca(): BukuTamu[] {
 function tulis(data: BukuTamu[]) {
   try {
     window.localStorage.setItem(KUNCI, JSON.stringify(data));
+    window.dispatchEvent(new Event("buku-tamu-berubah"));
   } catch {
     // abaikan kalau penyimpanan penuh atau diblokir
   }

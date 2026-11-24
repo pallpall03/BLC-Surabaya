@@ -31,13 +31,14 @@ export const daftarInformasi: ItemInformasi[] = [
 export const menuNavbar: MenuNavbar[] = [
   { label: "Beranda", id: "beranda" },
   { label: "Informasi", id: "informasi", anak: true },
+  { label: "Artikel", id: "artikel" },
   { label: "FAQ", id: "faq" },
   { label: "Lokasi", id: "lokasi" },
   { label: "Buku Tamu", id: "buku-tamu" },
   { label: "Kontak", id: "kontak" },
 ];
 
-export const idSection = ["beranda", "informasi", "faq", "lokasi", "buku-tamu", "kontak"];
+export const idSection = ["beranda", "informasi", "artikel", "faq", "lokasi", "buku-tamu", "kontak"];
 
 export const statistik = [
   { angka: "12+", label: "Lokasi BLC" },
