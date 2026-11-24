@@ -6,8 +6,8 @@ use App\Models\User;
 
 interface UserRepository
 {
-    /** Login memakai NIK (16 digit). */
-    public function findByNik(string $nik): ?User;
+    /** Login memakai NIK atau username. */
+    public function findByLogin(string $login): ?User;
 
     /** Pencarian email tidak peka huruf besar/kecil. */
     public function findByEmail(string $email): ?User;

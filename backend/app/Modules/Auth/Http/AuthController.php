@@ -49,12 +49,12 @@ final class AuthController extends Controller
         ])->header('Cache-Control', 'no-store');
     }
 
-    /** POST /api/v1/auth/login — semua role, memakai NIK. */
+    /** POST /api/v1/auth/login — semua role, memakai NIK atau username. */
     public function login(LoginRequest $request, LoginUser $useCase): JsonResponse
     {
         try {
             $hasil = $useCase->handle(
-                $request->validated('nik'),
+                $request->validated('login'),
                 $request->validated('password'),
                 $request->validated('captcha_id'),
                 $request->validated('captcha'),
@@ -76,7 +76,7 @@ final class AuthController extends Controller
         ]);
     }
 
-    /** POST /api/v1/administrator/akun/{id}/buka-kunci — hanya path administrator (role superadmin). */
+    /** POST /api/v1/administrator/akun/{id}/buka-kunci — hanya role superadmin. */
     public function bukaKunci(int $id, BukaKunciAkun $useCase): JsonResponse
     {
         $user = $useCase->handle($id);

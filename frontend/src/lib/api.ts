@@ -4,11 +4,30 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 // Key ini harus sama dengan yang disimpan halaman login.
 const TOKEN_KEY = 'auth_token';
 
-function authHeaders(): Record<string, string> {
+export function authHeaders(): Record<string, string> {
   const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
   return token
     ? { Accept: 'application/json', Authorization: `Bearer ${token}` }
     : { Accept: 'application/json' };
+}
+
+export function clearAuth(): void {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem('auth_user');
+}
+
+export async function logout(): Promise<void> {
+  try {
+    if (localStorage.getItem(TOKEN_KEY)) {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        headers: authHeaders(),
+      });
+    }
+  } finally {
+    clearAuth();
+    window.location.replace('/login');
+  }
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -21,11 +40,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     },
   });
 
-  // Token kedaluwarsa / tidak valid: bersihkan dan kembali ke login.
   if (res.status === 401 && typeof window !== 'undefined') {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem('auth_user');
-    window.location.href = '/login';
+    clearAuth();
+    window.location.replace('/login');
   }
 
   const body = await res.json().catch(() => null);

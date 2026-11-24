@@ -48,9 +48,9 @@ class LoginNikTest extends TestCase
         ]);
     }
 
-    private function login(string $password, array $tambahan = [], string $nik = self::NIK)
+    private function login(string $password, array $tambahan = [], string $login = self::NIK)
     {
-        return $this->postJson('/api/v1/auth/login', ['nik' => $nik, 'password' => $password] + $tambahan);
+        return $this->postJson('/api/v1/auth/login', ['login' => $login, 'password' => $password] + $tambahan);
     }
 
     public function test_endpoint_captcha_memberi_gambar_dan_interval_refresh_60_detik(): void

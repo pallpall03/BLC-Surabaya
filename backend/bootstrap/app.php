@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\EnsureRoleMatchesPath;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,7 +15,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
-            'role.path' => EnsureRoleMatchesPath::class,
         ]);
 
         // API tidak punya halaman login: tamu yang belum login dibalas 401 JSON,

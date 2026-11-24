@@ -21,7 +21,7 @@ final class PiagamServiceProvider extends ServiceProvider
      */
     public static function routes(): void
     {
-        Route::middleware(['auth:api', 'role.path'])
+        Route::middleware(['auth:api', 'role:peserta'])
             ->prefix('peserta/piagam')
             ->group(function (): void {
                 Route::get('/', [Http\PiagamController::class, 'index']);
