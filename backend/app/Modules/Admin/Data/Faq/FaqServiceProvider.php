@@ -17,6 +17,7 @@ final class FaqServiceProvider extends ServiceProvider
     public static function routes(): void
     {
         Route::prefix('faq')->group(function (): void {
+            Route::get('/aktif', [Http\FaqController::class, 'aktif']);
             Route::get('/', [Http\FaqController::class, 'index']);
             Route::get('/kategori/{kategori}', [Http\FaqController::class, 'byKategori']);
             Route::post('/', [Http\FaqController::class, 'store']);

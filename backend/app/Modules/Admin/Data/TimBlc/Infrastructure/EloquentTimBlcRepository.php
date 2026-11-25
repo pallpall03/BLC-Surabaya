@@ -13,26 +13,26 @@ final class EloquentTimBlcRepository implements TimBlcRepository
 {
     public function all(): array
     {
-        return TimBlcModel::all()->map(fn ($m) => $this->toDomain($m))->all();
+        return TimBlcModel::with('lokasi')->orderBy('id', 'desc')->get()->map(fn ($m) => $this->toDomain($m))->all();
     }
 
     public function find(int $id): mixed
     {
-        $model = TimBlcModel::find($id);
+        $model = TimBlcModel::with('lokasi')->find($id);
         return $model ? $this->toDomain($model) : null;
     }
 
     public function create(array $data): mixed
     {
         $model = TimBlcModel::create($data);
-        return $this->toDomain($model->fresh());
+        return $this->toDomain($model->fresh('lokasi'));
     }
 
     public function update(int $id, array $data): mixed
     {
         $model = TimBlcModel::findOrFail($id);
         $model->update($data);
-        return $this->toDomain($model->fresh());
+        return $this->toDomain($model->fresh('lokasi'));
     }
 
     public function delete(int $id): void
@@ -42,22 +42,22 @@ final class EloquentTimBlcRepository implements TimBlcRepository
 
     public function getByRole(string $role): array
     {
-        return TimBlcModel::where('role', $role)->get()->map(fn ($m) => $this->toDomain($m))->all();
+        return TimBlcModel::with('lokasi')->where('role', $role)->get()->map(fn ($m) => $this->toDomain($m))->all();
     }
 
     public function getInstruktur(): array
     {
-        return TimBlcModel::instruktur()->get()->map(fn ($m) => $this->toDomain($m))->all();
+        return TimBlcModel::with('lokasi')->instruktur()->get()->map(fn ($m) => $this->toDomain($m))->all();
     }
 
     public function getKoordinator(): array
     {
-        return TimBlcModel::koordinator()->get()->map(fn ($m) => $this->toDomain($m))->all();
+        return TimBlcModel::with('lokasi')->koordinator()->get()->map(fn ($m) => $this->toDomain($m))->all();
     }
 
     public function getAktif(): array
     {
-        return TimBlcModel::aktif()->get()->map(fn ($m) => $this->toDomain($m))->all();
+        return TimBlcModel::with('lokasi')->aktif()->orderBy('id', 'desc')->get()->map(fn ($m) => $this->toDomain($m))->all();
     }
 
     /**
@@ -71,19 +71,13 @@ final class EloquentTimBlcRepository implements TimBlcRepository
             namaLengkap: $model->nama_lengkap,
             gender: $model->gender,
             email: $model->email,
-            alamat: $model->alamat,
-            role: $model->role,
+            role: $model->role ?? 'instruktur',
             avatar: $model->avatar,
             phone: $model->phone,
-            kategoriId: $model->kategori_id,
             lokasiBlcId: $model->lokasi_blc_id,
-            nik: $model->nik,
-            tanggalLahir: $model->tanggal_lahir?->toIso8601String(),
-            kecamatan: $model->kecamatan,
-            kelurahan: $model->kelurahan,
+            namaLokasi: $model->lokasi?->nama_blc ?? $model->lokasi?->nama_lokasi ?? $model->lokasi?->nama ?? null,
             username: $model->username,
-            isDelete: $model->is_delete,
-            isSurabaya: $model->is_surabaya,
+            isDelete: (bool) $model->is_delete,
             createdAt: $model->created_at?->toIso8601String(),
             updatedAt: $model->updated_at?->toIso8601String(),
         );

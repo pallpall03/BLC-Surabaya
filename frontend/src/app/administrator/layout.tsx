@@ -57,6 +57,7 @@ export default function LayoutAdministrator({ children }: { children: ReactNode 
   return (
     <AuthGuard role="superadmin">
       {/* eslint-disable-next-line @next/next/no-css-tags */}
+      <link rel="stylesheet" href="/metronic/assets/plugins/global/plugins.bundle.css" precedence="default" />
       <link rel="stylesheet" href="/metronic/assets/css/style.bundle.css" precedence="default" />
       <PanelShell konfig={konfig}>{children}</PanelShell>
     </AuthGuard>
