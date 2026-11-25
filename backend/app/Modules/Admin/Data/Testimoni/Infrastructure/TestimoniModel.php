@@ -14,23 +14,19 @@ final class TestimoniModel extends Model
 
     protected $fillable = [
         'nama',
-        'alamat',
         'phone',
-        'gender',
         'email',
         'kategori_id',
-        'keperluan',
         'lokasi_blc_id',
-        'materi_id',
-        'is_surabaya',
-        'tanggal_lahir',
-        'kecamatan',
-        'kelurahan',
+        'isi_testimoni',
+        'rating',
+        'status',
     ];
 
     protected $casts = [
-        'is_surabaya' => 'boolean',
-        'tanggal_lahir' => 'date',
+        'rating' => 'integer',
+        'kategori_id' => 'integer',
+        'lokasi_blc_id' => 'integer',
     ];
 
     public function kategori(): BelongsTo
@@ -45,7 +41,7 @@ final class TestimoniModel extends Model
 
     public function scopeAktif($query)
     {
-        return $query->where('is_surabaya', true);
+        return $query->where('status', 'aktif');  // ✅ Ganti filter is_surabaya jadi status
     }
 
     public function scopeLatest($query)

@@ -15,6 +15,12 @@ final class FaqController extends Controller
 
     public function index(): JsonResponse
     {
+        $faqs = $this->repository->all();
+        return response()->json(['data' => $faqs]);
+    }
+
+    public function aktif(): JsonResponse
+    {
         $faqs = $this->repository->getAktif();
         return response()->json(['data' => $faqs]);
     }

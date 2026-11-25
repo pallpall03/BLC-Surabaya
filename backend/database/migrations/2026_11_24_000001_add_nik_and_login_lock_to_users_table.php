@@ -5,30 +5,39 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
+/** NIK 16 digit = identitas login semua role. Nullable agar akun lama tidak error,
+ *  tetapi akun tanpa NIK tidak bisa login sampai NIK-nya terisi.
+ * - failed_login_attempts: hitungan salah password berturut-turut (reset saat login berhasil).
+ * - locked_at: terisi = akun terkunci, hanya admin yang bisa membuka.
+ * - is_aktif, status, last_login_at: kolom otentikasi standar.
+ * - unlocked_by, unlocked_at: untuk mekanisme terkunci.
+ */
 return new class extends Migration
 {
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // NIK 16 digit = identitas login semua role. Nullable agar akun lama tidak error,
-            // tetapi akun tanpa NIK tidak bisa login sampai NIK-nya terisi.
-            $table->string('nik', 16)->nullable()->unique();
-            $table->unsignedSmallInteger('failed_login_attempts')->default(0);
-            $table->timestamp('locked_at')->nullable();
-            $table->foreignId('unlocked_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('unlocked_at')->nullable();
+            // NIK 16 digit - hanya ditambahkan jika belum ada (migrasi sebelumnya mungkin sudah menambahkannya)
+            if (!Schema::hasColumn('users', 'nik')) {
+                $table->string('nik', 16)->nullable()->unique();
+            }
+            if (!Schema::hasColumn('users', 'failed_login_attempts')) {
+                $table->unsignedSmallInteger('failed_login_attempts')->default(0);
+            }
+            if (!Schema::hasColumn('users', 'locked_at')) {
+                $table->timestamp('locked_at')->nullable();
+            }
         });
 
-        // Kolom ini biasanya sudah dibuat migrasi migrate_pengguna_to_users. Ditambahkan di sini hanya
-        // bila belum ada (mis. database yang belum menjalankan migrasi itu), karena kode login memakainya.
+        // Kolom otentikasi standar - hanya jika belum ada
         Schema::table('users', function (Blueprint $table) {
-            if (! Schema::hasColumn('users', 'is_aktif')) {
+            if (!Schema::hasColumn('users', 'is_aktif')) {
                 $table->boolean('is_aktif')->default(true);
             }
-            if (! Schema::hasColumn('users', 'status')) {
+            if (!Schema::hasColumn('users', 'status')) {
                 $table->string('status', 20)->default('aktif');
             }
-            if (! Schema::hasColumn('users', 'last_login_at')) {
+            if (!Schema::hasColumn('users', 'last_login_at')) {
                 $table->timestamp('last_login_at')->nullable();
             }
         });
@@ -36,7 +45,7 @@ return new class extends Migration
         // NIK instruktur/koordinator sudah ada di tim_blc (tim_blc.user_id = users.id). Salin ke users.nik
         // hanya bila 16 digit angka dan unik, supaya akun yang sudah ada langsung bisa login.
         if (DB::getDriverName() === 'pgsql' && Schema::hasTable('tim_blc')) {
-            DB::statement(<<<'SQL'
+            DB::statement("
                 UPDATE users u
                 SET nik = t.nik
                 FROM tim_blc t
@@ -45,7 +54,7 @@ return new class extends Migration
                   AND u.nik IS NULL
                   AND t.nik IN (SELECT nik FROM tim_blc GROUP BY nik HAVING count(*) = 1)
                   AND NOT EXISTS (SELECT 1 FROM users x WHERE x.nik = t.nik)
-            SQL);
+            ");
         }
     }
 
@@ -53,7 +62,28 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropConstrainedForeignId('unlocked_by');
-            $table->dropColumn(['nik', 'failed_login_attempts', 'locked_at', 'unlocked_at']);
+            // Hanya drop kolom yang kita tambahkan dan belum pernah ada sebelumnya
+            if (Schema::hasColumn('users', 'nik')) {
+                $table->dropUnique(['nik']);
+                $table->dropColumn('nik');
+            }
+            if (Schema::hasColumn('users', 'failed_login_attempts')) {
+                $table->dropColumn('failed_login_attempts');
+            }
+            if (Schema::hasColumn('users', 'locked_at')) {
+                $table->dropColumn('locked_at');
+            }
+        });
+        Schema::table('users', function (Blueprint $table) {
+            if (Schema::hasColumn('users', 'is_aktif')) {
+                $table->dropColumn('is_aktif');
+            }
+            if (Schema::hasColumn('users', 'status')) {
+                $table->dropColumn('status');
+            }
+            if (Schema::hasColumn('users', 'last_login_at')) {
+                $table->dropColumn('last_login_at');
+            }
         });
     }
 };

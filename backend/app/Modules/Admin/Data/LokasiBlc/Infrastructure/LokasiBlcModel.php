@@ -17,25 +17,19 @@ final class LokasiBlcModel extends Model
         'foto_blc',
         'foto2_blc',
         'is_delete',
-        'radius',
         'latitude',
         'longitude',
-        'foto_absen_ins',
-        'ver_foto_absen_ins',
         'area',
         'aktif',
-        'is_korwil',
-        'is_teknisi_ahli',
-        'is_teknisi',
+        'jumlah_slot_computer',
+        'jadwal_blc',
+        'wilayah_surabaya',
     ];
 
     protected $casts = [
         'is_delete' => 'boolean',
         'aktif' => 'boolean',
-        'is_korwil' => 'boolean',
-        'is_teknisi_ahli' => 'boolean',
-        'is_teknisi' => 'boolean',
-        'ver_foto_absen_ins' => 'integer',
+        'jumlah_slot_computer' => 'integer',
     ];
 
     public function scopeAktif($query)

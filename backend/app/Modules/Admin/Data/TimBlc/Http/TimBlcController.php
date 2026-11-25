@@ -13,22 +13,35 @@ final class TimBlcController extends Controller
         private readonly TimBlcRepository $repository
     ) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $tim = $this->repository->getAktif();
-        return response()->json(['data' => $tim]);
+        if ($request->query('status') === 'aktif') {
+            return response()->json(['data' => $this->repository->getAktif()]);
+        }
+        return response()->json(['data' => $this->repository->all()]);
+    }
+
+    public function aktif(): JsonResponse
+    {
+        return response()->json(['data' => $this->repository->getAktif()]);
     }
 
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'nama_lengkap' => 'required|string|max:255',
-                        'jabatan' => 'nullable|string|max:255',
-                        'deskripsi' => 'nullable|string',
-                        'foto' => 'nullable|string|max:255',
-                        'urutan' => 'sometimes|integer|min:0',
-                        'is_aktif' => 'sometimes|boolean',
+            'role' => 'sometimes|string|max:100',
+            'lokasi_blc_id' => 'nullable|integer',
+            'avatar' => 'nullable|string',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'gender' => 'nullable|string|in:L,P',
+            'is_delete' => 'sometimes|boolean',
         ]);
+
+        if (!isset($validated['role']) || empty($validated['role'])) {
+            $validated['role'] = 'instruktur';
+        }
 
         $tim = $this->repository->create($validated);
         return response()->json(['data' => $tim], 201);
@@ -47,11 +60,13 @@ final class TimBlcController extends Controller
     {
         $validated = $request->validate([
             'nama_lengkap' => 'sometimes|required|string|max:255',
-            'jabatan' => 'sometimes|nullable|string|max:255',
-            'deskripsi' => 'sometimes|string',
-            'foto' => 'sometimes|string|max:255',
-            'urutan' => 'sometimes|integer|min:0',
-            'is_aktif' => 'sometimes|boolean',
+            'role' => 'sometimes|string|max:100',
+            'lokasi_blc_id' => 'nullable|integer',
+            'avatar' => 'nullable|string',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'gender' => 'nullable|string|in:L,P',
+            'is_delete' => 'sometimes|boolean',
         ]);
 
         $tim = $this->repository->update($id, $validated);

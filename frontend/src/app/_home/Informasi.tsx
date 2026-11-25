@@ -9,9 +9,15 @@ export default function Informasi() {
   const [daftar, setDaftar] = useState<ItemInformasi[]>([]);
 
   useEffect(() => {
-    ambilInformasi().then((data) =>
-      setDaftar(data.filter((i) => i.aktif).sort((a, b) => a.urutan - b.urutan))
-    );
+    ambilInformasi()
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setDaftar(data.filter((i) => i.aktif).sort((a, b) => a.urutan - b.urutan));
+        } else {
+          setDaftar([]);
+        }
+      })
+      .catch(() => setDaftar([]));
   }, []);
 
   return (

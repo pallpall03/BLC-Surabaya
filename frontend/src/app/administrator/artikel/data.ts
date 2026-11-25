@@ -138,37 +138,125 @@ function bacaArtikel(): Artikel[] {
   });
 }
 
-export async function ambilArtikel(): Promise<Artikel[]> { return bacaArtikel(); }
+export async function ambilArtikel(): Promise<Artikel[]> {
+  // Coba ambil dari API, jika gagal fallback ke localStorage
+  try {
+    return await fetchArtikelDariAPI();
+  } catch (e) {
+    console.warn("Gagal fetch artikel API, gunakan lokal:", e);
+    return bacaArtikel();
+  }
+}
 
 export async function ambilArtikelLanding(): Promise<Artikel[]> {
   return bacaArtikel().filter((a) => a.status === "aktif").sort((a, b) => Number(b.unggulan) - Number(a.unggulan) || a.urutan - b.urutan);
 }
 
 export async function simpanArtikel(form: FormArtikel, id?: number): Promise<Artikel> {
-  const data = bacaData();
-  const lama = bacaArtikel();
-  const sebelumnya = id ? lama.find((a) => a.id === id) : undefined;
-  const kategoriIds = form.kategoriIds ?? (form.kategoriId ? [form.kategoriId] : []);
-  const dipublikasi = sebelumnya?.dipublikasi ?? (form.status === "aktif" ? sekarang() : null);
-  const baru: Artikel = {
-    id: id ?? Date.now(),
-    penulis: sebelumnya?.penulis ?? "Super Admin",
-    diubah: sekarang(),
-    ...form,
-    kategoriIds,
-    kategoriId: kategoriIds[0] ?? 0,
-    dipublikasi,
-  };
-  tulis({ ...data, artikel: id ? lama.map((a) => (a.id === id ? baru : a)) : [baru, ...lama] });
-  return baru;
+  // Coba simpan ke API dulu
+  try {
+    return await simpanArtikelKeAPI(form, id);
+  } catch (e) {
+    // Fallback ke localStorage jika API gagal
+    console.warn("Gagal simpan ke API, gunakan lokal:", e);
+    const data = bacaData();
+    const lama = bacaArtikel();
+    const sebelumnya = id ? lama.find((a) => a.id === id) : undefined;
+    const kategoriIds = form.kategoriIds ?? (form.kategoriId ? [form.kategoriId] : []);
+    const dipublikasi = sebelumnya?.dipublikasi ?? (form.status === "aktif" ? sekarang() : null);
+    const baru: Artikel = {
+      id: id ?? Date.now(),
+      penulis: sebelumnya?.penulis ?? "Super Admin",
+      diubah: sekarang(),
+      ...form,
+      kategoriIds,
+      kategoriId: kategoriIds[0] ?? 0,
+      dipublikasi,
+    };
+    tulis({ ...data, artikel: id ? lama.map((a) => (a.id === id ? baru : a)) : [baru, ...lama] });
+    return baru;
+  }
 }
 
 export async function hapusArtikel(id: number): Promise<void> {
-  const data = bacaData();
-  tulis({ ...data, artikel: bacaArtikel().filter((a) => a.id !== id) });
+  try {
+    await hapusArtikelDariAPI(id);
+    // Refresh data dari API setelah hapus berhasil
+    // (atau fallback ke localStorage jika API gagal)
+    const data = bacaData();
+    tulis({ ...data, artikel: bacaArtikel().filter((a) => a.id !== id) });
+  } catch (e) {
+    console.warn("Gagal hapus dari API, fallback ke lokal:", e);
+    // Fallback ke localStorage
+    const data = bacaData();
+    tulis({ ...data, artikel: bacaArtikel().filter((a) => a.id !== id) });
+  }
 }
 
-export async function ambilKategori(): Promise<Kategori[]> { return bacaData().kategori; }
+// Helper functions for API communication
+const API_BASE = "/api/v1";
+
+async function fetchArtikelDariAPI(): Promise<Artikel[]> {
+  const res = await fetch(`${API_BASE}/artikel`);
+  if (!res.ok) throw new Error("Gagal mengambil artikel dari API");
+  const json = await res.json();
+  const raw = Array.isArray(json) ? json : json?.data ?? [];
+  return raw.map((a: any) => ({
+    id: a.id,
+    judul: a.judul,
+    kategoriId: a.kategori_artikel_id ?? 0,
+    kategoriIds: a.kategori_artikel_id ? [a.kategori_artikel_id] : [],
+    ringkasan: a.ringkasan ?? "",
+    isi: a.konten ?? "",
+    foto: a.gambar_utama ?? null,
+    penulis: a.penulis ?? "Super Admin",
+    status: a.is_aktif ? "aktif" : "nonaktif",
+    unggulan: false,
+    urutan: a.urutan ?? 1,
+    dipublikasi: a.tanggal_publikasi ?? null,
+    diubah: a.updatedAt ?? sekarang(),
+  }));
+}
+
+async function fetchKategoriDariAPI(): Promise<Kategori[]> {
+  const res = await fetch(`${API_BASE}/kategori-artikel`);
+  if (!res.ok) throw new Error("Gagal mengambil kategori dari API");
+  const json = await res.json();
+  const raw = Array.isArray(json) ? json : json?.data ?? [];
+  return raw.map((k: any) => ({
+    id: k.id,
+    nama: k.nama ?? `Kategori ${k.id}`,
+  }));
+}
+
+async function simpanArtikelKeAPI(form: FormArtikel, id?: number): Promise<Artikel> {
+  const metoda = id ? "PUT" : "POST";
+  const url = id ? `${API_BASE}/artikel/${id}` : `${API_BASE}/artikel`;
+  const res = await fetch(url, {
+    method: metoda,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(form),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message ?? "Gagal menyimpan artikel ke API");
+  }
+  return res.json();
+}
+
+async function hapusArtikelDariAPI(id: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/artikel/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Gagal menghapus artikel dari API");
+}
+
+export async function ambilKategori(): Promise<Kategori[]> {
+  try {
+    return await fetchKategoriDariAPI();
+  } catch (e) {
+    console.warn("Gagal fetch kategori API, gunakan lokal:", e);
+    return bacaData().kategori;
+  }
+}
 
 export async function simpanKategori(nama: string, id?: number): Promise<Kategori> {
   const data = bacaData();

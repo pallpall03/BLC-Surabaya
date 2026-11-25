@@ -6,8 +6,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
-/**
- * Menyiapkan akun uji login memakai akun @blc.test yang sudah ada di database (dibuat kalau belum ada).
+/** Menyiapkan akun uji login memakai akun @blc.test yang sudah ada di database (dibuat kalau belum ada).
  * NIK akun yang sudah punya NIK (mis. hasil salinan dari tim_blc) TIDAK diubah.
  * JANGAN dijalankan di produksi: password akun-akun ini di-set menjadi Password123.
  */
@@ -25,8 +24,7 @@ class LoginDemoSeeder extends Seeder
 
         foreach ($akun as $a) {
             $role = Role::firstOrCreate(['slug' => $a['role']], ['name' => Role::daftar()[$a['role']]]);
-
-            $user = User::query()->where('email', $a['email'])->first() ?? new User(['email' => $a['email'], 'name' => $a['name']]);
+            $user = User::query()->where('nik', $a['nik'])->first() ?? new User(['email' => $a['email'], 'name' => $a['name']]);
             $user->role_id = $role->id;
             $user->password = 'Password123';
             $user->nik = $user->nik ?: $a['nik'];

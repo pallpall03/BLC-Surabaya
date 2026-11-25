@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\User;
 use App\Models\Role;
 use App\Modules\Admin\System\Pengguna\Infrastructure\PenggunaModel;
 use Illuminate\Support\Facades\Hash;
@@ -42,7 +43,17 @@ class PenggunaSeeder extends Seeder
         ];
 
         foreach ($users as $user) {
-            PenggunaModel::updateOrInsert(['email' => $user['email']], $user);
+            // Cek apakah user dengan email sudah ada
+            $existing = User::where('email', $user['email'])->first();
+            if ($existing) {
+                // User sudah ada, hanya update NIK jika belum terisi dan berbeda
+                if ($existing->nik !== $user['nik'] && empty($existing->nik)) {
+                    $existing->update(['nik' => $user['nik']]);
+                }
+            } else {
+                // Buat user baru
+                User::create($user);
+            }
         }
     }
 }
