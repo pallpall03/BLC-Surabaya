@@ -15,6 +15,12 @@ final class TestimoniController extends Controller
 
     public function index(): JsonResponse
     {
+        $testimoni = $this->repository->all();
+        return response()->json(['data' => $testimoni]);
+    }
+
+    public function aktif(): JsonResponse
+    {
         $testimoni = $this->repository->getAktif();
         return response()->json(['data' => $testimoni]);
     }
@@ -23,14 +29,18 @@ final class TestimoniController extends Controller
     {
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
-            'pekerjaan' => 'nullable|string|max:255',
-            'testimoni' => 'required|string',
-            'foto' => 'nullable|string|max:255',
-            'urutan' => 'sometimes|integer|min:0',
-            'status' => 'sometimes|string',  // ✅ Diterima dari frontend (aktif/nonaktif)
+            'phone' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'kategori_id' => 'nullable|integer',
+            'lokasi_blc_id' => 'nullable|integer|exists:lokasi_blc,id',
+            'isi_testimoni' => 'required|string',
+            'rating' => 'nullable|integer|min:1|max:5',
+            'status' => 'nullable|string|in:pending,aktif,nonaktif',
         ]);
 
-        $validated['status'] = $request->filled('status') ? $request->status : 'nonaktif';  // ✅ Default ke nonaktif kalau tidak kirim
+        if (empty($validated['status'])) {
+            $validated['status'] = 'aktif';
+        }
 
         $testimoniModel = $this->repository->create($validated);
         return response()->json(['data' => $testimoniModel], 201);
@@ -49,19 +59,14 @@ final class TestimoniController extends Controller
     {
         $validated = $request->validate([
             'nama' => 'sometimes|required|string|max:255',
-            'pekerjaan' => 'sometimes|nullable|string|max:255',
-            'testimoni' => 'sometimes|required|string',
-            'foto' => 'sometimes|string|max:255',
-            'urutan' => 'sometimes|integer|min:0',
-            'status' => 'sometimes|string',  // ✅ Diterima dari frontend (aktif/nonaktif)
+            'phone' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'kategori_id' => 'nullable|integer',
+            'lokasi_blc_id' => 'nullable|integer|exists:lokasi_blc,id',
+            'isi_testimoni' => 'sometimes|required|string',
+            'rating' => 'nullable|integer|min:1|max:5',
+            'status' => 'sometimes|required|string|in:pending,aktif,nonaktif',
         ]);
-
-        // ✅ Pastikan status selalu ada di data yang dikirim ke repository
-        if ($request->filled('status')) {
-            $validated['status'] = $request->status;
-        } elseif (!array_key_exists('status', $validated)) {
-            $validated['status'] = 'nonaktif';  // ✅ Default kalau tidak dikirim
-        }
 
         $testimoni = $this->repository->update($id, $validated);
         return response()->json(['data' => $testimoni]);

@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\User;
 use App\Models\Role;
 use App\Modules\Admin\System\Pengguna\Infrastructure\PenggunaModel;
 use Illuminate\Support\Facades\Hash;

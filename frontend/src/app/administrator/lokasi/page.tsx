@@ -10,7 +10,6 @@ import {
   Trash2,
   X,
   MapPinned,
-  Phone,
   ExternalLink,
   Building2,
 } from "lucide-react";
@@ -19,17 +18,25 @@ import {
   ambilLokasi,
   simpanLokasi,
   hapusLokasi,
+  buatLinkGoogleMaps,
+  ekstrakKoordinatMaps,
   type Lokasi,
   type FormLokasi,
 } from "./data";
 
-const formAwal: FormLokasi = {
-  nama: "",
+const formAwal: FormLokasi & { mapsUrl?: string } = {
+  nama_blc: "",
   alamat: "",
-  kecamatan: "",
-  telepon: "",
-  maps: "",
-  status: "aktif",
+  foto_blc: "",
+  foto2_blc: "",
+  latitude: "",
+  longitude: "",
+  area: "dalam",
+  aktif: true,
+  jumlah_slot_computer: null,
+  jadwal_blc: "",
+  wilayah_surabaya: "",
+  mapsUrl: "",
 };
 
 export default function HalamanLokasi() {
@@ -37,32 +44,47 @@ export default function HalamanLokasi() {
   const [cari, setCari] = useState("");
   const [modal, setModal] = useState(false);
   const [editId, setEditId] = useState<number | undefined>();
-  const [form, setForm] = useState<FormLokasi>(formAwal);
+  const [form, setForm] = useState<typeof formAwal>(formAwal);
   const [galat, setGalat] = useState("");
   const [memuat, setMemuat] = useState(true);
 
-  useEffect(() => {
-    ambilLokasi().then((data) => {
-      setDaftar(data);
+  async function muatData() {
+    setMemuat(true);
+    try {
+      const data = await ambilLokasi();
+      setDaftar(Array.isArray(data) ? data : []);
+    } catch {
+      setDaftar([]);
+    } finally {
       setMemuat(false);
-    });
+    }
+  }
+
+  useEffect(() => {
+    muatData();
   }, []);
 
-  const totalAktif = daftar.filter(
-    (lokasi) => lokasi.status === "aktif"
-  ).length;
+  const totalAktif = useMemo(() => {
+    return (Array.isArray(daftar) ? daftar : []).filter((lokasi) => lokasi.aktif).length;
+  }, [daftar]);
 
   const hasilPencarian = useMemo(() => {
-    return daftar.filter((lokasi) =>
+    const list = Array.isArray(daftar) ? daftar : [];
+    if (!cari.trim()) return list;
+
+    const lower = cari.toLowerCase();
+    return list.filter((lokasi) =>
       [
-        lokasi.nama,
+        lokasi.nama_blc,
         lokasi.alamat,
-        lokasi.kecamatan,
-        lokasi.telepon,
+        lokasi.wilayah_surabaya,
+        lokasi.area,
+        lokasi.jadwal_blc,
       ]
+        .filter(Boolean)
         .join(" ")
         .toLowerCase()
-        .includes(cari.toLowerCase())
+        .includes(lower)
     );
   }, [daftar, cari]);
 
@@ -74,13 +96,20 @@ export default function HalamanLokasi() {
   }
 
   function bukaEdit(lokasi: Lokasi) {
+    const mapsLink = buatLinkGoogleMaps(lokasi.latitude, lokasi.longitude) || "";
     setForm({
-      nama: lokasi.nama,
-      alamat: lokasi.alamat,
-      kecamatan: lokasi.kecamatan,
-      telepon: lokasi.telepon,
-      maps: lokasi.maps,
-      status: lokasi.status,
+      nama_blc: lokasi.nama_blc || "",
+      alamat: lokasi.alamat || "",
+      foto_blc: lokasi.foto_blc || "",
+      foto2_blc: lokasi.foto2_blc || "",
+      latitude: lokasi.latitude || "",
+      longitude: lokasi.longitude || "",
+      area: lokasi.area || "dalam",
+      aktif: lokasi.aktif,
+      jumlah_slot_computer: lokasi.jumlah_slot_computer ?? null,
+      jadwal_blc: lokasi.jadwal_blc || "",
+      wilayah_surabaya: lokasi.wilayah_surabaya || "",
+      mapsUrl: mapsLink,
     });
 
     setEditId(lokasi.id);
@@ -88,59 +117,64 @@ export default function HalamanLokasi() {
     setModal(true);
   }
 
-  function ubahForm(
-    field: keyof FormLokasi,
-    value: string
+  function ubahForm<K extends keyof typeof formAwal>(
+    field: K,
+    value: (typeof formAwal)[K]
   ) {
-    setForm((sebelumnya) => ({
-      ...sebelumnya,
-      [field]: value,
-    }));
+    setForm((sebelumnya) => {
+      const updated = {
+        ...sebelumnya,
+        [field]: value,
+      };
+
+      // Jika user paste URL Maps, otomatis extract lat & long
+      if (field === "mapsUrl" && typeof value === "string") {
+        const coords = ekstrakKoordinatMaps(value);
+        if (coords) {
+          updated.latitude = coords.latitude;
+          updated.longitude = coords.longitude;
+        }
+      }
+
+      return updated;
+    });
   }
 
   async function handleSimpan() {
-      if (
-        !form.nama?.trim() ||
-        !form.alamat?.trim() ||
-        !form.kecamatan?.trim()
-      ) {
-      setGalat("Nama, alamat, dan kecamatan wajib diisi.");
+    if (!form.nama_blc?.trim()) {
+      setGalat("Nama cabang BLC wajib diisi.");
       return;
     }
 
-    if (form.maps.trim()) {
-      try {
-        const url = new URL(form.maps);
-        if (!["http:", "https:"].includes(url.protocol)) {
-          throw new Error("URL tidak valid");
-        }
-      } catch {
-        setGalat("Link Google Maps harus berupa URL yang valid.");
-        return;
-      }
-    }
-
     try {
-      const tersimpan = await simpanLokasi(
+      const res = await simpanLokasi(
         {
-          ...form,
-          nama: form.nama.trim(),
-          alamat: form.alamat.trim(),
-          kecamatan: form.kecamatan.trim(),
-          telepon: form.telepon.trim(),
-          maps: form.maps.trim(),
+          nama_blc: form.nama_blc.trim(),
+          alamat: form.alamat?.trim() || "",
+          foto_blc: form.foto_blc?.trim() || "",
+          foto2_blc: form.foto2_blc?.trim() || "",
+          latitude: form.latitude?.trim() || "",
+          longitude: form.longitude?.trim() || "",
+          area: form.area?.trim() || "dalam",
+          aktif: form.aktif,
+          jumlah_slot_computer:
+            form.jumlah_slot_computer !== null && form.jumlah_slot_computer !== undefined && (form.jumlah_slot_computer as unknown as string) !== ""
+              ? Number(form.jumlah_slot_computer)
+              : null,
+          jadwal_blc: form.jadwal_blc?.trim() || "",
+          wilayah_surabaya: form.wilayah_surabaya?.trim() || "",
         },
         editId
       );
 
-      setDaftar((sebelumnya) => {
-        if (editId) {
-          return sebelumnya.map((lokasi) =>
-            lokasi.id === editId ? tersimpan : lokasi
-          );
-        }
+      const tersimpan = res.data;
 
-        return [...sebelumnya, tersimpan];
+      setDaftar((sebelumnya) => {
+        const list = Array.isArray(sebelumnya) ? sebelumnya : [];
+        if (editId) {
+          return list.map((lokasi) => (lokasi.id === editId ? tersimpan : lokasi));
+        }
+        return [...list, tersimpan];
       });
 
       setModal(false);
@@ -152,7 +186,7 @@ export default function HalamanLokasi() {
 
   async function handleHapus(lokasi: Lokasi) {
     const yakin = window.confirm(
-      `Apakah kamu yakin ingin menghapus ${lokasi.nama}?`
+      `Apakah kamu yakin ingin menghapus ${lokasi.nama_blc}?`
     );
 
     if (!yakin) return;
@@ -160,30 +194,32 @@ export default function HalamanLokasi() {
     await hapusLokasi(lokasi.id);
 
     setDaftar((sebelumnya) =>
-      sebelumnya.filter((item) => item.id !== lokasi.id)
+      (Array.isArray(sebelumnya) ? sebelumnya : []).filter((item) => item.id !== lokasi.id)
     );
   }
 
   async function handleStatus(lokasi: Lokasi) {
-    const statusBaru =
-      lokasi.status === "aktif" ? "nonaktif" : "aktif";
+    const statusBaru = !lokasi.aktif;
 
-    const dataBaru = {
-      nama: lokasi.nama,
-      alamat: lokasi.alamat,
-      kecamatan: lokasi.kecamatan,
-      telepon: lokasi.telepon,
-      maps: lokasi.maps,
-      status: statusBaru as "aktif" | "nonaktif",
+    const dataBaru: FormLokasi = {
+      nama_blc: lokasi.nama_blc,
+      alamat: lokasi.alamat || "",
+      foto_blc: lokasi.foto_blc || "",
+      foto2_blc: lokasi.foto2_blc || "",
+      latitude: lokasi.latitude || "",
+      longitude: lokasi.longitude || "",
+      area: lokasi.area || "",
+      aktif: statusBaru,
+      jumlah_slot_computer: lokasi.jumlah_slot_computer ?? null,
+      jadwal_blc: lokasi.jadwal_blc || "",
+      wilayah_surabaya: lokasi.wilayah_surabaya || "",
     };
 
     await simpanLokasi(dataBaru, lokasi.id);
 
     setDaftar((sebelumnya) =>
-      sebelumnya.map((item) =>
-        item.id === lokasi.id
-          ? { ...item, status: statusBaru }
-          : item
+      (Array.isArray(sebelumnya) ? sebelumnya : []).map((item) =>
+        item.id === lokasi.id ? { ...item, aktif: statusBaru } : item
       )
     );
   }
@@ -263,7 +299,7 @@ export default function HalamanLokasi() {
             <input
               value={cari}
               onChange={(e) => setCari(e.target.value)}
-              placeholder="Cari nama, alamat, atau kecamatan..."
+              placeholder="Cari nama BLC, alamat, wilayah, atau jadwal..."
               className={`${inputClass} pl-9`}
             />
           </div>
@@ -275,10 +311,11 @@ export default function HalamanLokasi() {
             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
                 <th className="px-6 py-4">No.</th>
-                <th className="px-6 py-4">Nama Cabang</th>
-                <th className="px-6 py-4">Alamat</th>
-                <th className="px-6 py-4">Kecamatan</th>
-                <th className="px-6 py-4">Telepon</th>
+                <th className="px-6 py-4">Nama BLC</th>
+                <th className="px-6 py-4">Alamat & Wilayah</th>
+                <th className="px-6 py-4">Area</th>
+                <th className="px-6 py-4">Slot PC</th>
+                <th className="px-6 py-4">Jadwal</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-center">Aksi</th>
               </tr>
@@ -288,7 +325,7 @@ export default function HalamanLokasi() {
               {memuat ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="py-10 text-center text-slate-400"
                   >
                     Memuat data...
@@ -297,7 +334,7 @@ export default function HalamanLokasi() {
               ) : hasilPencarian.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="py-10 text-center text-slate-400"
                   >
                     {cari
@@ -306,79 +343,92 @@ export default function HalamanLokasi() {
                   </td>
                 </tr>
               ) : (
-                hasilPencarian.map((lokasi, index) => (
-                  <tr
-                    key={lokasi.id}
-                    className="transition hover:bg-slate-50"
-                  >
-                    <td className="px-6 py-4 text-slate-500">
-                      {index + 1}
-                    </td>
+                hasilPencarian.map((lokasi, index) => {
+                  const linkMaps = buatLinkGoogleMaps(lokasi.latitude, lokasi.longitude);
 
-                    <td className="px-6 py-4 font-medium text-slate-800">
-                      {lokasi.nama}
-                    </td>
+                  return (
+                    <tr
+                      key={lokasi.id}
+                      className="transition hover:bg-slate-50"
+                    >
+                      <td className="px-6 py-4 text-slate-500">
+                        {index + 1}
+                      </td>
 
-                    <td className="max-w-xs px-6 py-4 text-slate-500">
-                      {lokasi.alamat}
-                    </td>
+                      <td className="px-6 py-4 font-medium text-slate-800">
+                        {lokasi.nama_blc}
+                      </td>
 
-                    <td className="px-6 py-4 text-slate-600">
-                      {lokasi.kecamatan}
-                    </td>
-
-                    <td className="px-6 py-4 text-slate-500">
-                      {lokasi.telepon || "-"}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleStatus(lokasi)}
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          lokasi.status === "aktif"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-slate-100 text-slate-500"
-                        }`}
-                      >
-                        {lokasi.status === "aktif"
-                          ? "Aktif"
-                          : "Nonaktif"}
-                      </button>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        {lokasi.maps && (
-                          <a
-                            href={lokasi.maps}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Lihat Google Maps"
-                            className="rounded-lg p-2 text-blue-600 hover:bg-blue-50"
-                          >
-                            <ExternalLink size={16} />
-                          </a>
+                      <td className="max-w-xs px-6 py-4">
+                        <div className="text-slate-700">{lokasi.alamat || "-"}</div>
+                        {lokasi.wilayah_surabaya && (
+                          <div className="text-xs text-violet-600 font-medium">
+                            {lokasi.wilayah_surabaya}
+                          </div>
                         )}
+                      </td>
 
-                        <button
-                          onClick={() => bukaEdit(lokasi)}
-                          title="Ubah"
-                          className="rounded-lg p-2 text-amber-600 hover:bg-amber-50"
-                        >
-                          <Pencil size={16} />
-                        </button>
+                      <td className="px-6 py-4">
+                        <span className="capitalize text-slate-600">
+                          {lokasi.area || "-"}
+                        </span>
+                      </td>
 
+                      <td className="px-6 py-4 text-slate-600">
+                        {lokasi.jumlah_slot_computer ? `${lokasi.jumlah_slot_computer} Unit` : "-"}
+                      </td>
+
+                      <td className="px-6 py-4 text-slate-500 text-xs">
+                        {lokasi.jadwal_blc || "-"}
+                      </td>
+
+                      <td className="px-6 py-4">
                         <button
-                          onClick={() => handleHapus(lokasi)}
-                          title="Hapus"
-                          className="rounded-lg p-2 text-red-600 hover:bg-red-50"
+                          onClick={() => handleStatus(lokasi)}
+                          className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                            lokasi.aktif
+                              ? "bg-green-100 text-green-700 hover:bg-green-200"
+                              : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                          }`}
                         >
-                          <Trash2 size={16} />
+                          {lokasi.aktif ? "Aktif" : "Nonaktif"}
                         </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          {linkMaps && (
+                            <a
+                              href={linkMaps}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Buka Google Maps"
+                              className="rounded-lg p-2 text-blue-600 hover:bg-blue-50"
+                            >
+                              <ExternalLink size={16} />
+                            </a>
+                          )}
+
+                          <button
+                            onClick={() => bukaEdit(lokasi)}
+                            title="Ubah"
+                            className="rounded-lg p-2 text-amber-600 hover:bg-amber-50"
+                          >
+                            <Pencil size={16} />
+                          </button>
+
+                          <button
+                            onClick={() => handleHapus(lokasi)}
+                            title="Hapus"
+                            className="rounded-lg p-2 text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -414,55 +464,92 @@ export default function HalamanLokasi() {
             <div className="max-h-[65vh] space-y-4 overflow-y-auto p-6">
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Nama Cabang *
+                  Nama Cabang BLC *
                 </label>
                 <input
-                  value={form.nama}
-                  onChange={(e) => ubahForm("nama", e.target.value)}
-                  placeholder="Contoh: BLC Surabaya"
+                  value={form.nama_blc}
+                  onChange={(e) => ubahForm("nama_blc", e.target.value)}
+                  placeholder="Contoh: BLC Siola / BLC Kebon Bibit"
                   className={inputClass}
                 />
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Wilayah Surabaya
+                  </label>
+                  <select
+                    value={form.wilayah_surabaya || ""}
+                    onChange={(e) => ubahForm("wilayah_surabaya", e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">-- Pilih Wilayah --</option>
+                    <option value="Surabaya Pusat">Surabaya Pusat</option>
+                    <option value="Surabaya Timur">Surabaya Timur</option>
+                    <option value="Surabaya Barat">Surabaya Barat</option>
+                    <option value="Surabaya Utara">Surabaya Utara</option>
+                    <option value="Surabaya Selatan">Surabaya Selatan</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Area
+                  </label>
+                  <select
+                    value={form.area || "dalam"}
+                    onChange={(e) => ubahForm("area", e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="dalam">Dalam Kota</option>
+                    <option value="luar">Luar Kota</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Alamat Lengkap *
+                  Alamat Lengkap
                 </label>
                 <textarea
-                  value={form.alamat}
+                  value={form.alamat || ""}
                   onChange={(e) => ubahForm("alamat", e.target.value)}
                   placeholder="Masukkan alamat lengkap cabang"
-                  rows={3}
+                  rows={2}
                   className={inputClass}
                 />
               </div>
 
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Kecamatan *
-                </label>
-                <input
-                  value={form.kecamatan}
-                  onChange={(e) => ubahForm("kecamatan", e.target.value)}
-                  placeholder="Masukkan kecamatan"
-                  className={inputClass}
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Nomor Telepon
-                </label>
-                <div className="relative">
-                  <Phone
-                    size={16}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Jumlah Slot Komputer
+                  </label>
                   <input
-                    value={form.telepon}
-                    onChange={(e) => ubahForm("telepon", e.target.value)}
-                    placeholder="Contoh: 08xxxxxxxxxx"
-                    className={`${inputClass} pl-9`}
+                    type="number"
+                    min={0}
+                    value={form.jumlah_slot_computer ?? ""}
+                    onChange={(e) =>
+                      ubahForm(
+                        "jumlah_slot_computer",
+                        e.target.value === "" ? null : Number(e.target.value)
+                      )
+                    }
+                    placeholder="Contoh: 30"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Jadwal Operasional
+                  </label>
+                  <input
+                    value={form.jadwal_blc || ""}
+                    onChange={(e) => ubahForm("jadwal_blc", e.target.value)}
+                    placeholder="Senin - Jumat, 08:00 - 16:00"
+                    className={inputClass}
                   />
                 </div>
               </div>
@@ -472,14 +559,39 @@ export default function HalamanLokasi() {
                   Link Google Maps
                 </label>
                 <input
-                  value={form.maps}
-                  onChange={(e) => ubahForm("maps", e.target.value)}
-                  placeholder="https://maps.google.com/..."
+                  value={form.mapsUrl || ""}
+                  onChange={(e) => ubahForm("mapsUrl", e.target.value)}
+                  placeholder="https://maps.google.com/?q=-7.2575,112.7521"
                   className={inputClass}
                 />
                 <p className="mt-1 text-xs text-slate-400">
-                  Tempel link lokasi dari Google Maps.
+                  Tempel URL Google Maps. Koordinat akan otomatis diekstrak jika format URL sesuai.
                 </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-500">
+                    Latitude
+                  </label>
+                  <input
+                    value={form.latitude || ""}
+                    onChange={(e) => ubahForm("latitude", e.target.value)}
+                    placeholder="-7.2575..."
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-500">
+                    Longitude
+                  </label>
+                  <input
+                    value={form.longitude || ""}
+                    onChange={(e) => ubahForm("longitude", e.target.value)}
+                    placeholder="112.7521..."
+                    className={inputClass}
+                  />
+                </div>
               </div>
 
               <div>
@@ -487,9 +599,9 @@ export default function HalamanLokasi() {
                   Status
                 </label>
                 <select
-                  value={form.status}
+                  value={form.aktif ? "aktif" : "nonaktif"}
                   onChange={(e) =>
-                    ubahForm("status", e.target.value as "aktif" | "nonaktif")
+                    ubahForm("aktif", e.target.value === "aktif")
                   }
                   className={inputClass}
                 >

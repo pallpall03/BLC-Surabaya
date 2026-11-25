@@ -15,7 +15,9 @@ export default function BukuTamu() {
   const [sukses, setSukses] = useState<boolean>(false);
 
   useEffect(() => {
-    ambilBukuTamu().then(setDaftar);
+    ambilBukuTamu()
+      .then((data) => setDaftar(Array.isArray(data) ? data : []))
+      .catch(() => setDaftar([]));
   }, []);
 
   function ubah(kolom: keyof typeof kosong, nilai: string) {
@@ -98,7 +100,7 @@ export default function BukuTamu() {
         </div>
 
         <div className="max-h-[480px] space-y-3 overflow-y-auto pr-1">
-          {daftar.length === 0 ? (
+          {(!Array.isArray(daftar) || daftar.length === 0) ? (
             <p className="py-8 text-center text-sm text-slate-400">Belum ada pesan.</p>
           ) : (
             daftar.map((p) => (

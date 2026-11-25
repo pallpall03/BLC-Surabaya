@@ -11,26 +11,26 @@ final class EloquentTestimoniRepository implements TestimoniRepository
 {
     public function all(): array
     {
-        return TestimoniModel::aktif()->latest()->get()->map(fn ($m) => $this->toDomain($m))->all();
+        return TestimoniModel::with('lokasi')->latest()->get()->map(fn ($m) => $this->toDomain($m))->all();
     }
 
     public function find(int $id): mixed
     {
-        $model = TestimoniModel::aktif()->find($id);
+        $model = TestimoniModel::with('lokasi')->find($id);
         return $model ? $this->toDomain($model) : null;
     }
 
     public function create(array $data): mixed
     {
         $model = TestimoniModel::create($data);
-        return $this->toDomain($model->fresh());
+        return $this->toDomain($model->load('lokasi'));
     }
 
     public function update(int $id, array $data): mixed
     {
         $model = TestimoniModel::findOrFail($id);
         $model->update($data);
-        return $this->toDomain($model->fresh());
+        return $this->toDomain($model->fresh('lokasi'));
     }
 
     public function delete(int $id): void
@@ -40,7 +40,7 @@ final class EloquentTestimoniRepository implements TestimoniRepository
 
     public function getByLokasi(int $lokasiBlcId): array
     {
-        return TestimoniModel::aktif()->where('lokasi_blc_id', $lokasiBlcId)
+        return TestimoniModel::aktif()->with('lokasi')->where('lokasi_blc_id', $lokasiBlcId)
             ->latest()
             ->get()
             ->map(fn ($m) => $this->toDomain($m))
@@ -49,17 +49,17 @@ final class EloquentTestimoniRepository implements TestimoniRepository
 
     public function getSurabaya(): array
     {
-        return TestimoniModel::aktif()->surabaya()->latest()->get()->map(fn ($m) => $this->toDomain($m))->all();
+        return TestimoniModel::aktif()->with('lokasi')->latest()->get()->map(fn ($m) => $this->toDomain($m))->all();
     }
 
     public function getLatest(int $limit = 10): array
     {
-        return TestimoniModel::aktif()->latest()->limit($limit)->get()->map(fn ($m) => $this->toDomain($m))->all();
+        return TestimoniModel::aktif()->with('lokasi')->latest()->limit($limit)->get()->map(fn ($m) => $this->toDomain($m))->all();
     }
 
     public function getAktif(): array
     {
-        return TestimoniModel::aktif()->latest()->get()->map(fn ($m) => $this->toDomain($m))->all();
+        return TestimoniModel::aktif()->with('lokasi')->latest()->get()->map(fn ($m) => $this->toDomain($m))->all();
     }
 
     /** Convert Eloquent Model ke Domain Entity */
@@ -68,21 +68,16 @@ final class EloquentTestimoniRepository implements TestimoniRepository
         return new Testimoni(
             id: $model->id,
             nama: $model->nama,
-            alamat: $model->alamat,
             phone: $model->phone,
-            gender: $model->gender,
             email: $model->email,
             kategoriId: $model->kategori_id,
-            keperluan: $model->keperluan,
             lokasiBlcId: $model->lokasi_blc_id,
-            materiId: $model->materi_id,
-            isSurabaya: $model->is_surabaya,
-            tanggalLahir: $model->tanggal_lahir?->toIso8601String(),
-            kecamatan: $model->kecamatan,
-            kelurahan: $model->kelurahan,
+            namaLokasi: $model->lokasi?->nama_blc,
+            isiTestimoni: $model->isi_testimoni,
+            rating: $model->rating ? (int) $model->rating : null,
+            status: $model->status ?? 'pending',
             createdAt: $model->created_at?->toIso8601String(),
-            updatedAt: $model->updated_at?->toIso8601String(),
-            status: $model->status  // ✅ Mapping status dari model ke domain
+            updatedAt: $model->updated_at?->toIso8601String()
         );
     }
 }

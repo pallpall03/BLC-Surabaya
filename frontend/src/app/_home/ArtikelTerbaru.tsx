@@ -15,15 +15,17 @@ export default function ArtikelTerbaru() {
   useEffect(() => {
     let aktif = true;
     function muatArtikel() {
-      void Promise.all([ambilArtikelLanding(), ambilKategori()]).then(([daftarArtikel, daftarKategori]) => {
-        if (!aktif) return;
-        setGalat("");
-        setArtikel(daftarArtikel.slice(0, 6));
-        setKategori(daftarKategori);
-      }).catch((e: unknown) => {
-        if (!aktif) return;
-        setGalat(e instanceof Error ? e.message : "Artikel belum dapat dimuat.");
-      });
+      void Promise.all([ambilArtikelLanding(), ambilKategori()])
+        .then(([daftarArtikel, daftarKategori]) => {
+          if (!aktif) return;
+          setGalat("");
+          setArtikel(Array.isArray(daftarArtikel) ? daftarArtikel.slice(0, 6) : []);
+          setKategori(Array.isArray(daftarKategori) ? daftarKategori : []);
+        })
+        .catch((e: unknown) => {
+          if (!aktif) return;
+          setGalat(e instanceof Error ? e.message : "Artikel belum dapat dimuat.");
+        });
     }
     function perbaruiArtikel(e: StorageEvent) {
       if (e.key === KUNCI_DATA_ARTIKEL || e.key === null) muatArtikel();
@@ -44,7 +46,7 @@ export default function ArtikelTerbaru() {
     >
       {galat ? (
         <p role="alert" className="text-center text-sm text-red-600">{galat}</p>
-      ) : artikel.length === 0 ? (
+      ) : (!Array.isArray(artikel) || artikel.length === 0) ? (
         <p className="text-center text-sm text-slate-400">Belum ada artikel yang dipublikasikan.</p>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

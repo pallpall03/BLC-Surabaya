@@ -50,14 +50,16 @@ export default function PanelShell({
   const notifikasiRef = useRef<HTMLDivElement>(null);
 
   const muatNotifikasi = useCallback(async () => {
-    const bukuTamu = await ambilBukuTamu();
-    const testimoni = ambilTestimoni();
+    const [bukuTamu, testimoni] = await Promise.all([
+      ambilBukuTamu().catch(() => []),
+      ambilTestimoni().catch(() => []),
+    ]);
 
     setJumlahPesanBelumDibaca(
-      bukuTamu.filter((pesan) => !pesan.dibaca).length
+      Array.isArray(bukuTamu) ? bukuTamu.filter((pesan) => !pesan.dibaca).length : 0
     );
     setJumlahTestimoniNonaktif(
-      testimoni.filter((item) => item.status === "nonaktif").length
+      Array.isArray(testimoni) ? testimoni.filter((item) => item.status === "nonaktif").length : 0
     );
   }, []);
 

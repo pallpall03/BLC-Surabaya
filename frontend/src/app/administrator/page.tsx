@@ -80,7 +80,7 @@ export default function HalamanBeranda() {
 
         if (batal) return;
 
-        const testimoni = ambilTestimoni();
+        const testimoni = await ambilTestimoni();
         const daftarArtikel = Array.isArray(artikel) ? artikel : [];
         const daftarLokasi = Array.isArray(lokasi) ? lokasi : [];
         const daftarFaq = Array.isArray(faq) ? faq : [];
@@ -134,7 +134,7 @@ export default function HalamanBeranda() {
 
         setAktivitasBulanan(bulanGrafik);
         setTestimoniMenunggu(
-          testimoni.filter((item) => item.status === "nonaktif").length
+          Array.isArray(testimoni) ? testimoni.filter((item) => item.status === "nonaktif").length : 0
         );
       } finally {
         if (!batal) setMemuat(false);
