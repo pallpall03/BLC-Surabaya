@@ -124,7 +124,7 @@ export default function DaftarHadirPage() {
     <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-6xl">
         {/* Banner */}
-        <div className="mb-6 flex items-center gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50">
+        <div className="instruktur-page-header mb-6 flex items-center gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50">
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/25"><ClipboardCheck size={28} /></span>
           <div>
             <h1 className="text-2xl font-semibold">Daftar hadir pelatihan</h1>
@@ -270,7 +270,7 @@ export default function DaftarHadirPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-slate-600"><span className="inline-flex items-center gap-1.5"><Phone size={14} className="text-orange-400" />{p.phone}</span></td>
+                          <td className="px-4 py-3 text-slate-600"><span className="inline-flex items-center gap-1.5 whitespace-nowrap"><Phone size={14} className="shrink-0 text-orange-400" />{p.phone}</span></td>
                           <td className="px-4 py-3 text-slate-600">{p.alamat}</td>
                           <td className="px-4 py-3"><span className="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700">{p.kategori}</span></td>
                           <td className="px-4 py-3">

@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Card, Field, inp, PopupSukses } from "../../components/elemenform";
 import FormPassword from "../../components/formpassword";
-import { getPeserta, updatePeserta, validasiPeserta, getPesertaOpsi, type PesertaDetail, type PesertaOpsi } from "@/lib/api";
+import { getPeserta, updatePeserta, type PesertaDetail } from "@/lib/api";
 
 type Nilai = {
   nik: string; nama: string; tanggalLahir: string; jenisKelamin: "L" | "P";
@@ -46,44 +46,45 @@ export default function UbahPesertaPage() {
   const [seret, setSeret] = useState(false);
   const [sukses, setSukses] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [opsi, setOpsi] = useState<PesertaOpsi | null>(null);
+  const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
+  const [initialForm, setInitialForm] = useState<Nilai | null>(null);
 
   const preview = useMemo(() => (fotoBaru ? URL.createObjectURL(fotoBaru) : null), [fotoBaru]);
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
-  // Fetch data peserta dan opsi
   useEffect(() => {
     const fetchData = async () => {
       if (!id) return;
+      setLoading(true);
+      setLoadError("");
       try {
-        const [pesertaRes, opsiRes] = await Promise.all([
-          getPeserta(Number(id)),
-          getPesertaOpsi(),
-        ]);
+        const pesertaRes = await getPeserta(Number(id));
         const p: PesertaDetail = pesertaRes.data;
-                setForm({
-                  nik: p.nik || "",
-                  nama: p.nama || "",
-                  tanggalLahir: p.tanggal_lahir || "",
-                  jenisKelamin: p.jk || "L",
-                  alamat: p.alamat || "",
-                  kecamatan: p.kecamatan || "",
-                  kelurahan: p.kelurahan || "",
-                  email: p.email || "",
-                  telepon: p.phone || "",
-                  kategori: p.kategori || "",
-                  materi: "", // Will be loaded from kelas/sesi
-                });
-        setFotoLama(!!p.tanggal_lahir); // using this as proxy for "has photo"
-        setOpsi(opsiRes.data);
-      } catch (e) {
-        console.error("Gagal memuat data peserta:", e);
+        const nextForm: Nilai = {
+          nik: p.nik || "",
+          nama: p.nama || "",
+          tanggalLahir: p.tanggal_lahir || "",
+          jenisKelamin: p.jk || "L",
+          alamat: p.alamat || "",
+          kecamatan: p.kecamatan || "",
+          kelurahan: p.kelurahan || "",
+          email: p.email || "",
+          telepon: p.phone || "",
+          kategori: p.kategori || "",
+          materi: "",
+        };
+        setForm(nextForm);
+        setInitialForm(nextForm);
+        setFotoLama(!!p.tanggal_lahir);
+      } catch {
+        setLoadError("Data peserta belum berhasil dimuat. Coba lagi beberapa saat.");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, [id]);
+    void fetchData();
+  }, [id, reloadKey]);
 
   // Setelah popup sukses muncul, otomatis kembali ke daftar peserta
   useEffect(() => {
@@ -92,24 +93,7 @@ export default function UbahPesertaPage() {
     return () => clearTimeout(t);
   }, [sukses, router]);
 
-  // Pelacak perubahan: apa saja yang berbeda dari data awal
-  const awal = useMemo(() => ({
-    nik: form.nik || "", nama: form.nama || "", tanggalLahir: form.tanggalLahir || "",
-    jenisKelamin: form.jenisKelamin || "L", alamat: form.alamat || "",
-    kecamatan: form.kecamatan || "", kelurahan: form.kelurahan || "",
-    email: form.email || "", telepon: form.telepon || "",
-    kategori: form.kategori || "", materi: form.materi || "",
-  }), [form]);
-
-  // Use initial data as reference - we'll track from when data loaded
-  const [initialForm, setInitialForm] = useState<Nilai | null>(null);
-  useEffect(() => {
-    if (!initialForm && form.nama) {
-      setInitialForm({ ...form });
-    }
-  }, [form, initialForm]);
-
-  const ref = initialForm || awal;
+  const ref = initialForm ?? form;
   const berubah = (Object.keys(ref) as (keyof Nilai)[]).filter((k) => form[k] !== ref[k]);
   const fotoBerubah = fotoBaru !== null || fotoLama !== true;
   const jumlah = berubah.length + (fotoBerubah ? 1 : 0);
@@ -180,9 +164,9 @@ export default function UbahPesertaPage() {
       await updatePeserta(Number(id!), payload);
       setSukses(form.nama);
       if (initialForm) setInitialForm({ ...form });
-    } catch (e) {
-          setErrors({ general: "Gagal menyimpan perubahan. Coba lagi." });
-        } finally {
+    } catch {
+      setErrors({ general: "Gagal menyimpan perubahan. Coba lagi." });
+    } finally {
           setSaving(false);
         }
   };
@@ -195,8 +179,32 @@ export default function UbahPesertaPage() {
         <div className="mx-auto max-w-3xl">
           <div className="flex items-center justify-center py-16">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 animate-spin rounded-full border-3 border-orange-500 border-t-transparent" />
+              <span className="instruktur-spinner" aria-hidden="true" />
               <span className="text-slate-600">Memuat data peserta...</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <main className="instruktur-main">
+        <div className="mx-auto max-w-3xl">
+          <Link href={KEMBALI} className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-orange-700">
+            <ArrowLeft size={16} /> Kembali ke daftar peserta
+          </Link>
+          <div className="card">
+            <div className="card-body d-flex flex-column align-items-center gap-3 text-center py-10" role="alert">
+              <span className="symbol symbol-60px symbol-circle">
+                <span className="symbol-label bg-light-danger text-danger"><AlertCircle size={28} /></span>
+              </span>
+              <h1 className="fs-4 fw-bold text-gray-900 mb-0">Data peserta tidak dapat dimuat</h1>
+              <p className="fs-7 text-gray-500 mb-0">{loadError}</p>
+              <button type="button" className="btn btn-primary mt-2" onClick={() => setReloadKey((value) => value + 1)}>
+                Coba lagi
+              </button>
             </div>
           </div>
         </div>
@@ -213,7 +221,7 @@ export default function UbahPesertaPage() {
         </Link>
 
         {/* Banner */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50">
+        <div className="instruktur-page-header mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50">
           <div className="flex items-center gap-4">
             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/25"><PencilLine size={28} /></span>
             <div>

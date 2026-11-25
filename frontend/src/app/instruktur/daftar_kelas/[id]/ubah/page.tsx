@@ -21,12 +21,6 @@ export default function UbahKelasPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-<<<<<<< HEAD
-  if (!kelas) {
-    return <div className="card"><div className="card-body text-center text-gray-600 py-15">Kelas tidak ditemukan.</div></div>;
-  }
-=======
-  // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -36,7 +30,7 @@ export default function UbahKelasPage() {
           getKelas(),
         ]);
         setKelas(kelasRes.data);
-        setKelasList(listRes.data);
+        setKelasList(listRes.data ?? []);
         setNilai({ sesi: kelasRes.data.sesi, hari: kelasRes.data.hari, materi: kelasRes.data.materi });
       } catch (e) {
         console.error(e);
@@ -45,9 +39,8 @@ export default function UbahKelasPage() {
         setLoading(false);
       }
     };
-    fetchData();
+    void fetchData();
   }, [kelasId]);
->>>>>>> 76d4f7dd648545a996f558989eb874d401051596
 
   const lain = kelasList.filter((k) => k.id !== kelasId);
   const bentrok = cariBentrok(lain, nilai.sesi, nilai.hari);
@@ -79,17 +72,20 @@ export default function UbahKelasPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
-        <div className="mx-auto max-w-5xl">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent" />
-          </div>
-        </div>
-      </main>
+      <div className="instruktur-loading" role="status">
+        <span className="instruktur-spinner" aria-hidden="true" />
+        <span className="fw-semibold text-gray-800">Memuat data kelas…</span>
+      </div>
     );
   }
 
-  if (!kelas) return <main className="p-10 text-center text-slate-600">Kelas tidak ditemukan.</main>;
+  if (!kelas) {
+    return (
+      <div className="card"><div className="card-body text-center text-gray-600 py-15">
+        {error || "Kelas tidak ditemukan."}
+      </div></div>
+    );
+  }
 
   return (
     <>
@@ -107,7 +103,7 @@ export default function UbahKelasPage() {
       </div>
 
       <FormKelas nilai={nilai} onChange={(n) => { setError(""); setNilai(n); }} onSubmit={simpan}
-        bentrok={bentrok} error={error} kembali="/instruktur/daftar_kelas" />
+        saving={saving} bentrok={bentrok} error={error} kembali="/instruktur/daftar_kelas" />
     </>
   );
 }

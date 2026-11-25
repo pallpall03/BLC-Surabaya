@@ -57,8 +57,8 @@ export default function MasterUjianPage() {
   };
 
   return (
-    <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
-      <div className="mx-auto max-w-6xl">
+    <main className="instruktur-main print:bg-white">
+      <div className="mx-auto w-full max-w-6xl">
         <HeaderHalaman icon={FileQuestion} judul="Master ujian" deskripsi="Buat ujian, atur jadwal, lalu daftarkan pesertanya."
           aksi={
             <Link href="/instruktur/master_ujian/ujianbaru"
@@ -67,7 +67,7 @@ export default function MasterUjianPage() {
             </Link>
           } />
 
-        <section className="rounded-2xl border border-orange-200 bg-white shadow-xl shadow-orange-300/40">
+        <section className="instruktur-card rounded-2xl border border-orange-200 bg-white shadow-xl shadow-orange-300/40">
           <div className="flex flex-wrap items-center gap-3 border-b border-orange-100 p-4">
             <div className="relative min-w-[220px] flex-1">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-orange-400" size={18} />

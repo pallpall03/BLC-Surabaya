@@ -155,7 +155,7 @@ export default function SosialisasiPage() {
     <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-6xl">
         {/* Banner */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50 print:hidden">
+        <div className="instruktur-page-header mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50 print:hidden">
           <div className="flex items-center gap-4">
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/25"><Megaphone size={28} /></span>
             <div>
@@ -256,7 +256,7 @@ export default function SosialisasiPage() {
         <div onClick={tutupPanel} className={`absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity ${panel ? "opacity-100" : "opacity-0"}`} />
         <aside className={`relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl shadow-orange-300/50 transition duration-200 ${panel ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
           role="dialog" aria-modal="true" aria-label={mode === "ubah" ? "Ubah sosialisasi" : "Tambah sosialisasi"}>
-          <div className="flex items-center gap-3 bg-gradient-to-br from-orange-500 to-amber-400 p-5 text-white">
+          <div className="instruktur-modal-header flex items-center gap-3 bg-gradient-to-br from-orange-500 to-amber-400 p-5 text-white">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/25">{mode === "ubah" ? <Pencil size={22} /> : <Plus size={22} />}</span>
             <div className="mr-auto">
               <h2 className="font-semibold">{mode === "ubah" ? "Ubah sosialisasi" : "Tambah sosialisasi"}</h2>

@@ -8,6 +8,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import HeaderHalaman from "../daftar_kelas/components/headerhalaman";
+
 type Peserta = { id: number; nik: string; nama: string; blc: string; jk: "L" | "P"; tervalidasi: boolean };
 type StatusFilter = "semua" | "valid" | "non";
 
@@ -137,6 +139,8 @@ export default function DaftarPesertaPage() {
 
   return (
     <>
+      <HeaderHalaman icon={Users} judul="Daftar peserta" deskripsi="Kelola data peserta dan pantau status validasinya." />
+
       {/* Kartu statistik (bisa diklik untuk memfilter) */}
       <div className="row g-5 g-xl-6 mb-6">
         {statistik.map(({ kunci, label, nilai, icon: Icon, warna, aktif }) => (

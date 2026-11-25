@@ -129,7 +129,7 @@ export default function PengunjungPage() {
     <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-6xl">
         {/* Banner */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50 print:hidden">
+        <div className="instruktur-page-header mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50 print:hidden">
           <div className="flex items-center gap-4">
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/25"><Users size={28} /></span>
             <div>

@@ -166,7 +166,7 @@ export default function TambahPesertaPage() {
         </Link>
 
         {/* Banner + progres */}
-        <div className="mb-6 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50">
+        <div className="instruktur-page-header mb-6 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50">
           <div className="flex items-center gap-4">
             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/25">
               <UserPlus size={28} />

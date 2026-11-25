@@ -78,16 +78,17 @@ export default function AktivitasPage() {
   };
 
   return (
-    <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
-      <div className="mx-auto max-w-6xl">
-        <HeaderHalaman icon={ClipboardList} judul="Aktivitas instruktur" deskripsi="Catat kegiatan harianmu dan lihat laporan aktivitas.">
-          <Link href="/instruktur/aktivitas/aktivitasbaru"
-            className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-green-900/20 transition hover:-translate-y-0.5 hover:bg-green-700">
-            <Plus size={18} /> Tambah aktivitas
-          </Link>
-        </HeaderHalaman>
+    <main className="instruktur-main">
+      <div className="mx-auto w-full max-w-6xl">
+        <HeaderHalaman icon={ClipboardList} judul="Aktivitas instruktur" deskripsi="Catat kegiatan harianmu dan lihat laporan aktivitas."
+          aksi={
+            <Link href="/instruktur/aktivitas/aktivitasbaru"
+              className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-green-900/20 transition hover:-translate-y-0.5 hover:bg-green-700">
+              <Plus size={18} /> Tambah aktivitas
+            </Link>
+          } />
 
-        <section className={kartu}>
+        <section className={`instruktur-card ${kartu}`}>
           {/* Filter */}
           <div className="flex flex-wrap items-end gap-3 border-b border-orange-100 p-4">
             <label className="text-xs font-medium text-slate-600">Dari tanggal
@@ -153,10 +154,10 @@ export default function AktivitasPage() {
                           ) : (
                             <button type="button" onClick={() => setLihat({ id: a.id, i: 0 })} aria-label="Lihat foto" className="flex items-center transition hover:scale-105">
                               {a.foto.slice(0, 3).map((f, i) => (
-                                <FotoKotak key={f.id} url={f.url} indeks={a.id + i} className={`h-12 w-14 rounded-lg border-2 border-white shadow ${i ? "-ml-4" : ""}`} />
+                                <FotoKotak key={f.id} url={f.url} indeks={a.id + i} className={`h-16 w-20 shrink-0 rounded-xl border-2 border-white object-cover shadow-md ${i ? "-ml-5" : ""}`} />
                               ))}
                               {a.foto.length > 3 && (
-                                <span className="-ml-4 flex h-12 w-14 items-center justify-center rounded-lg border-2 border-white bg-slate-800 text-xs font-semibold text-white shadow">+{a.foto.length - 3}</span>
+                                <span className="-ml-5 flex h-16 w-20 shrink-0 items-center justify-center rounded-xl border-2 border-white bg-slate-800 text-sm font-semibold text-white shadow-md">+{a.foto.length - 3}</span>
                               )}
                             </button>
                           )}
