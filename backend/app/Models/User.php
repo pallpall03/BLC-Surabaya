@@ -30,6 +30,10 @@ class User extends Authenticatable implements JWTSubject
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'locked_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'unlocked_at' => 'datetime',
+            'is_aktif' => 'boolean',
+            'failed_login_attempts' => 'integer',
         ];
     }
 
@@ -38,16 +42,27 @@ class User extends Authenticatable implements JWTSubject
         return $this->getKey();
     }
 
-    /** Klaim tambahan sengaja kosong: role dibaca dari database, bukan dari isi token. */
+    /**
+     * Klaim role hanya informasi untuk klien; otorisasi tetap dibaca dari database
+     * sehingga perubahan role langsung berlaku tanpa menunggu token kedaluwarsa.
+     */
     public function getJWTCustomClaims(): array
     {
-        return [];
+        $slug = $this->role?->slug;
+
+        return $slug === null ? [] : ['role' => $slug];
     }
 
     /** Akun terkunci setelah terlalu banyak salah password; hanya admin yang bisa membuka. */
     public function terkunci(): bool
     {
         return $this->locked_at !== null;
+    }
+
+    /** Akun nonaktif tidak boleh login dan token lamanya langsung ditolak. */
+    public function aktif(): bool
+    {
+        return $this->is_aktif !== false;
     }
 
     public function role(): BelongsTo

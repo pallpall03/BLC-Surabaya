@@ -8,7 +8,7 @@ class PenggunaRoutesServiceProvider
 {
     public static function register(): void
     {
-        Route::prefix('pengguna')->group(function () {
+        Route::middleware(['auth:api', 'role:koordinator'])->prefix('pengguna')->group(function () {
             Route::get('/', [\App\Modules\Koordinator\Pengguna\Http\PenggunaController::class, 'index']);
             Route::get('/{id}', [\App\Modules\Koordinator\Pengguna\Http\PenggunaController::class, 'show']);
             Route::post('/', [\App\Modules\Koordinator\Pengguna\Http\PenggunaController::class, 'store']);

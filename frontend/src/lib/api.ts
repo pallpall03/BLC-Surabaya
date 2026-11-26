@@ -1,58 +1,114 @@
-// Base URL: default ke proxy Next.js (/api/v1 -> http://localhost:8000/api/v1, lihat next.config.ts).
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
-
-// Key ini harus sama dengan yang disimpan halaman login.
-const TOKEN_KEY = 'auth_token';
+// Base URL: default ke proxy Next.js (/api/v1 -> http://127.0.0.1:8000/api/v1, lihat next.config.ts).
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 
 export function authHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
-  return token
-    ? { Accept: 'application/json', Authorization: `Bearer ${token}` }
-    : { Accept: 'application/json' };
+  return { Accept: 'application/json' };
+}
+
+/**
+ * Satu pintu fetch ke backend. Sesi memakai cookie httpOnly dari backend, jadi
+ * frontend tidak menyimpan atau membaca token; cukup kirim cookie (credentials).
+ */
+export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(init.headers);
+  if (!headers.has('Accept')) headers.set('Accept', 'application/json');
+  if (init.body && !(init.body instanceof FormData) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  return fetch(`${API_URL}${path}`, {
+    cache: 'no-store',
+    credentials: 'include',
+    ...init,
+    headers,
+  });
 }
 
 export function clearAuth(): void {
-  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem('auth_token');
   localStorage.removeItem('auth_user');
+}
+
+let refreshBerjalan: Promise<boolean> | null = null;
+
+/** Tukar token lewat backend (POST /auth/refresh); dipakai otomatis saat API membalas 401. */
+export function refreshSession(): Promise<boolean> {
+  if (refreshBerjalan) return refreshBerjalan;
+
+  refreshBerjalan = (async () => {
+    try {
+      const res = await apiFetch('/auth/refresh', { method: 'POST' });
+      return res.ok;
+    } catch {
+      return false;
+    } finally {
+      refreshBerjalan = null;
+    }
+  })();
+
+  return refreshBerjalan;
 }
 
 export async function logout(): Promise<void> {
   try {
-    if (localStorage.getItem(TOKEN_KEY)) {
-      await fetch(`${API_URL}/auth/logout`, {
-        method: 'POST',
-        headers: authHeaders(),
-      });
-    }
+    await apiFetch('/auth/logout', { method: 'POST' });
   } finally {
     clearAuth();
     window.location.replace('/login');
   }
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    cache: 'no-store',
-    ...init,
-    headers: {
-      ...authHeaders(),
-      ...(init.body ? { 'Content-Type': 'application/json' } : {}),
-    },
-  });
+function pesanDari(body: { message?: unknown; errors?: unknown } | null, status: number): string {
+  const galat = body?.errors as Record<string, string[]> | undefined;
+  const pesanField = galat ? Object.values(galat).flat()[0] : undefined;
+  return String(pesanField ?? body?.message ?? `API error ${status}`);
+}
 
-  if (res.status === 401 && typeof window !== 'undefined') {
-    clearAuth();
-    window.location.replace('/login');
+function ikutiPenolakanAkses(status: number, body: { redirect_to?: unknown } | null): void {
+  if (typeof window === 'undefined') return;
+  const tujuan = (status === 401 || status === 403)
+    && typeof body?.redirect_to === 'string'
+    && body.redirect_to.startsWith('/')
+    && !body.redirect_to.startsWith('//')
+    ? body.redirect_to
+    : null;
+  if (!tujuan) return;
+  clearAuth();
+  window.location.replace(tujuan);
+}
+
+async function request<T>(path: string, init: RequestInit = {}, izinkanRefresh = true): Promise<T> {
+  const res = await apiFetch(path, init);
+
+  // Sesi kedaluwarsa: minta token baru sekali lewat backend, lalu ulangi permintaan ini.
+  if (res.status === 401 && izinkanRefresh && !path.startsWith('/auth/')) {
+    if (await refreshSession()) {
+      return request<T>(path, init, false);
+    }
   }
 
   const body = await res.json().catch(() => null);
+  ikutiPenolakanAkses(res.status, body);
 
   if (!res.ok) {
-    const pesan =
-      body?.message ??
-      (body?.errors ? (Object.values(body.errors) as string[][]).flat().join(' ') : null) ??
-      `API error ${res.status}`;
-    throw new Error(String(pesan));
+    throw new Error(pesanDari(body, res.status));
+  }
+
+  return body as T;
+}
+
+async function kirimForm<T>(path: string, method: string, form: FormData, izinkanRefresh = true): Promise<T> {
+  const res = await apiFetch(path, { method, body: form });
+
+  if (res.status === 401 && izinkanRefresh && (await refreshSession())) {
+    return kirimForm<T>(path, method, form, false);
+  }
+
+  const body = await res.json().catch(() => null);
+  ikutiPenolakanAkses(res.status, body);
+
+  if (!res.ok) {
+    throw new Error(pesanDari(body, res.status));
   }
 
   return body as T;
@@ -81,19 +137,23 @@ export type Peserta = {
   phone?: string | null;
   alamat?: string | null;
   kategori?: string;
-  // Belum dikirim backend; dibiarkan opsional supaya halaman lama tidak error saat compile.
   kecamatan?: string;
   kelurahan?: string;
+  email?: string | null;
+  tanggal_lahir?: string | null;
+  kategori_peserta_id?: number | null;
+  lokasi_blc_id?: number | null;
 };
 
 export type PesertaDetail = Peserta & {
   email?: string;
   tanggal_lahir?: string | null;
   kategori_peserta_id?: number | null;
-  /** Alias lama untuk `kategori_peserta_id`. */
   kategori_id?: number | null;
   lokasi_blc_id?: number;
   is_surabaya?: boolean;
+  kecamatan_lain?: string | null;
+  kelurahan_lain?: string | null;
 };
 
 export type PesertaOpsi = {
@@ -109,8 +169,13 @@ export type Kelas = {
   nama: string;
   tanggal: string;
   sesi: number;
+  sesi_id: number;
+  waktuSesi?: string;
   hari: string[];
   materi: string;
+  materi_id: string;
+  lokasi_blc_id: number;
+  lokasi?: string;
   status: 'Aktif' | 'Selesai';
   totalPeserta: number;
 };
@@ -120,10 +185,15 @@ interface BackendKelas {
   id: number;
   nama_kelas: string;
   materi: string;
+  materi_id: string;
   instruktur: string;
   lokasi: string;
+  lokasi_blc_id: number;
   hari: string[];
   jam: number;
+  sesi_id: number;
+  nomor_sesi: number;
+  waktu_sesi?: string;
   jumlah_peserta: number;
   status: 'Aktif' | 'Selesai' | number;
 }
@@ -132,15 +202,20 @@ function mapBackendToKelas(b: BackendKelas): Kelas {
   const sesiMap: Record<number, number> = {
     1: 1, 2: 2, 3: 3, 4: 4, 5: 5,
   };
-  const sesi = sesiMap[b.jam] ?? b.jam ?? 1;
+  const sesi = b.nomor_sesi ?? sesiMap[b.sesi_id ?? b.jam] ?? b.sesi_id ?? b.jam ?? 1;
 
   return {
     id: b.id,
     nama: b.nama_kelas,
-    tanggal: '-',
+    tanggal: 'Jadwal mingguan',
     sesi,
+    sesi_id: b.sesi_id ?? b.jam,
+    waktuSesi: b.waktu_sesi,
     hari: b.hari ?? [],
     materi: b.materi,
+    materi_id: b.materi_id,
+    lokasi_blc_id: b.lokasi_blc_id,
+    lokasi: b.lokasi,
     status: b.status === 1 || b.status === 'Aktif' ? 'Aktif' : 'Selesai',
     totalPeserta: b.jumlah_peserta ?? 0,
   };
@@ -148,6 +223,7 @@ function mapBackendToKelas(b: BackendKelas): Kelas {
 
 export type Sesi = {
   id: number;
+  sesi: number;
   jam: string;
 };
 
@@ -201,6 +277,7 @@ export async function getDaftarPeserta(params?: {
   status?: 'semua' | 'valid' | 'non';
   /** Alias lama untuk `status`. */
   status_validasi?: string;
+  lokasi_blc_id?: number;
   page?: number;
   per_page?: number;
 }): Promise<{ data: Peserta[]; meta?: PesertaMeta; statistik?: PesertaStatistik }> {
@@ -209,6 +286,7 @@ export async function getDaftarPeserta(params?: {
   const status = mapStatus(params?.status ?? params?.status_validasi);
   if (q) sp.set('q', q);
   if (status) sp.set('status', status);
+  if (params?.lokasi_blc_id) sp.set('lokasi_blc_id', String(params.lokasi_blc_id));
   if (params?.page) sp.set('page', String(params.page));
   if (params?.per_page) sp.set('per_page', String(params.per_page));
   const query = sp.toString();
@@ -233,6 +311,12 @@ function toBackendPeserta(data: Partial<PesertaDetail>) {
     tanggal_lahir: data.tanggal_lahir || null,
     telepon: data.telepon ?? data.phone ?? null,
     alamat: data.alamat ?? null,
+    email: data.email ?? null,
+    kecamatan: data.kecamatan ?? null,
+    kelurahan: data.kelurahan ?? null,
+    kecamatan_lain: data.kecamatan_lain ?? null,
+    kelurahan_lain: data.kelurahan_lain ?? null,
+    is_surabaya: data.is_surabaya,
     lokasi_blc_id: data.lokasi_blc_id,
     kategori_peserta_id: data.kategori_peserta_id ?? data.kategori_id ?? null,
   };
@@ -242,7 +326,7 @@ function toBackendPeserta(data: Partial<PesertaDetail>) {
 }
 
 export async function createPeserta(
-  data: Partial<PesertaDetail> & { kelas_id?: number }
+  data: Partial<PesertaDetail>
 ): Promise<{ data: Peserta }> {
   return apiPost('/instruktur/daftar-peserta', toBackendPeserta(data));
 }
@@ -267,21 +351,19 @@ export async function getPesertaOpsi(): Promise<{ data: PesertaOpsi }> {
   const res = await apiGet<{
     data: {
       lokasi_blc: { id: number; nama: string }[];
-      kategori_peserta: { id: number; nama: string }[];
+      kategori_peserta: { id: number; nama: string; nama_kelompok?: string }[];
     };
   }>('/instruktur/daftar-peserta/opsi');
 
   return {
     data: {
-      kategori: (res.data?.kategori_peserta ?? []).map((k) => ({ id: k.id, nama_kelompok: k.nama })),
+      kategori: (res.data?.kategori_peserta ?? []).map((k) => ({ id: k.id, nama_kelompok: k.nama_kelompok ?? k.nama })),
       blc: (res.data?.lokasi_blc ?? []).map((l) => ({ id: l.id, nama_blc: l.nama })),
     },
   };
 }
 
 // ===== Daftar Hadir / Kelas =====
-// CATATAN: backend belum punya route kelas/absensi (daftar-hadir baru GET / dan POST /
-// yang membalas 501). Fungsi di bawah akan gagal sampai backend-nya dibuat.
 
 export async function getKelas(params?: { search?: string }): Promise<{ data: Kelas[] }> {
   const searchParams = new URLSearchParams();
@@ -363,16 +445,252 @@ export async function getRekapAbsensi(kelasId: number): Promise<{ data: AbsensiR
   return apiGet(`/instruktur/daftar-hadir/kelas/${kelasId}/rekap`);
 }
 
-// Laporan
-export async function getLaporan(params?: {
-  tanggal_mulai?: string;
-  tanggal_selesai?: string;
-  kelas_id?: number;
-}): Promise<{ data: unknown }> {
-  const searchParams = new URLSearchParams();
-  if (params?.tanggal_mulai) searchParams.set('tanggal_mulai', params.tanggal_mulai);
-  if (params?.tanggal_selesai) searchParams.set('tanggal_selesai', params.tanggal_selesai);
-  if (params?.kelas_id) searchParams.set('kelas_id', String(params.kelas_id));
-  const query = searchParams.toString();
-  return apiGet(`/instruktur/laporan${query ? `?${query}` : ''}`);
+// ===== Laporan Instruktur =====
+
+export type LaporanKelasOpsi = {
+  id: number;
+  nama_kelas: string;
+  materi: string | null;
+  materi_id: string | null;
+  jumlah_peserta: number;
+};
+
+export type LaporanHarian = {
+  id: number;
+  tanggal: string;
+  kelas_id: number | null;
+  kelas: string | null;
+  materi: string | null;
+  hadir: number;
+  total: number;
+  aktivitas: string;
+  foto: string[];
+  foto_deskripsi: string[];
+  foto_url: string[];
+};
+
+export async function getLaporanOpsi(): Promise<{ data: { kelas: LaporanKelasOpsi[] } }> {
+  return apiGet('/instruktur/laporan/opsi');
+}
+
+export async function getLaporan(mulai: string, sampai: string): Promise<{ data: LaporanHarian[] }> {
+  return apiGet(`/instruktur/laporan?mulai=${encodeURIComponent(mulai)}&sampai=${encodeURIComponent(sampai)}`);
+}
+
+export async function saveLaporan(id: number | null, form: FormData): Promise<{ data: LaporanHarian }> {
+  const path = id === null ? '/instruktur/laporan' : `/instruktur/laporan/${id}`;
+  return kirimForm<{ data: LaporanHarian }>(path, id === null ? 'POST' : 'PUT', form);
+}
+
+export async function deleteLaporan(id: number): Promise<{ message: string }> {
+  return apiDelete(`/instruktur/laporan/${id}`);
+}
+
+// ===== Master Ujian =====
+
+export type SoalUjian = {
+  id?: number;
+  pertanyaan: string;
+  pilihan: string[];
+  jawaban_benar: number;
+  nomor: number;
+  bobot: number;
+  penjelasan: string;
+};
+
+export type JadwalUjian = {
+  id: number;
+  kelas_id: number;
+  kelas: string;
+  mulai: string;
+  selesai: string;
+  token: string;
+};
+
+export type Ujian = {
+  id: number;
+  judul: string;
+  materi_id: string | null;
+  materi: string | null;
+  tipe: 'pretest' | 'posttest';
+  durasi_menit: number;
+  nilai_minimum: number;
+  acak_soal: boolean;
+  is_aktif: boolean;
+  jumlah_soal: number;
+  soal: SoalUjian[];
+  jadwal: JadwalUjian[];
+};
+
+export type UjianInput = {
+  judul: string;
+  materi_id: string | null;
+  tipe: 'pretest' | 'posttest';
+  durasi_menit: number;
+  nilai_minimum: number;
+  acak_soal: boolean;
+  is_aktif: boolean;
+  soal: SoalUjian[];
+};
+
+export type KelasUjianOpsi = {
+  id: number;
+  nama_kelas: string;
+  materi_id: string | null;
+  materi: string | null;
+  lokasi_blc_id: number | null;
+  blc: string | null;
+  jumlah_peserta: number;
+};
+
+export type UjianOpsi = {
+  materi: { id: string; nama: string }[];
+  kelas: KelasUjianOpsi[];
+};
+
+export type JadwalUjianInput = {
+  master_ujian_id: number;
+  kelas_id: number;
+  mulai: string;
+  selesai: string;
+  token?: string;
+};
+
+export async function getUjian(): Promise<{ data: Ujian[] }> {
+  return apiGet('/instruktur/ujian');
+}
+
+export async function getUjianDetail(id: number): Promise<{ data: Ujian }> {
+  return apiGet(`/instruktur/ujian/${id}`);
+}
+
+export async function getUjianOpsi(): Promise<{ data: UjianOpsi }> {
+  return apiGet('/instruktur/ujian/opsi');
+}
+
+export async function saveUjian(id: number | null, data: UjianInput): Promise<{ data: Ujian }> {
+  return id === null ? apiPost('/instruktur/ujian', data) : apiPut(`/instruktur/ujian/${id}`, data);
+}
+
+export async function deleteUjian(id: number): Promise<{ message: string }> {
+  return apiDelete(`/instruktur/ujian/${id}`);
+}
+
+export async function saveJadwalUjian(id: number | null, data: JadwalUjianInput): Promise<{ data: JadwalUjian }> {
+  return id === null ? apiPost('/instruktur/ujian/jadwal', data) : apiPut(`/instruktur/ujian/jadwal/${id}`, data);
+}
+
+export async function deleteJadwalUjian(id: number): Promise<{ message: string }> {
+  return apiDelete(`/instruktur/ujian/jadwal/${id}`);
+}
+
+// ===== Pengunjung / Buku Tamu =====
+
+export type Pengunjung = {
+  id: number;
+  tanggal: string;
+  sesi: number | null;
+  sesi_id: number | null;
+  lokasi_blc_id: number | null;
+  blc: string | null;
+  nama: string;
+  email: string | null;
+  telepon: string | null;
+  instansi: string | null;
+  pesan: string;
+  rating: number | null;
+  jenis_kelamin: 'L' | 'P' | null;
+  tanggal_lahir: string | null;
+  alamat: string | null;
+  kategori: string | null;
+};
+
+export type PengunjungInput = {
+  nama: string;
+  lokasi_blc_id: number;
+  sesi_id: number;
+  instansi?: string | null;
+  email?: string | null;
+  telepon?: string | null;
+  pesan?: string | null;
+  rating?: number | null;
+  jenis_kelamin?: 'L' | 'P' | null;
+  tanggal_lahir?: string | null;
+  alamat?: string | null;
+  kategori?: string | null;
+};
+
+export type PengunjungOpsi = {
+  blc: { id: number; nama: string }[];
+  sesi: Sesi[];
+  kategori: string[];
+};
+
+export async function getPengunjungOpsi(): Promise<{ data: PengunjungOpsi }> {
+  return apiGet('/instruktur/pengunjung/opsi');
+}
+
+export async function getPengunjung(params: {
+  mulai: string;
+  sampai: string;
+  lokasi_blc_id?: number;
+  sesi_id?: number;
+}): Promise<{ data: Pengunjung[] }> {
+  const sp = new URLSearchParams({ mulai: params.mulai, sampai: params.sampai });
+  if (params.lokasi_blc_id) sp.set('lokasi_blc_id', String(params.lokasi_blc_id));
+  if (params.sesi_id) sp.set('sesi_id', String(params.sesi_id));
+  return apiGet(`/instruktur/pengunjung?${sp}`);
+}
+
+export async function createPengunjung(data: PengunjungInput): Promise<{ data: Pengunjung }> {
+  return apiPost('/instruktur/pengunjung', data);
+}
+
+export async function updatePengunjung(id: number, data: Partial<PengunjungInput>): Promise<{ data: Pengunjung }> {
+  return apiPatch(`/instruktur/pengunjung/${id}`, data);
+}
+
+export async function deletePengunjung(id: number): Promise<{ message: string }> {
+  return apiDelete(`/instruktur/pengunjung/${id}`);
+}
+
+// ===== Foto Kegiatan Pengunjung =====
+
+export type FotoKegiatan = {
+  id: number;
+  tanggal: string;
+  sesi: number | null;
+  sesi_id: number | null;
+  lokasi_blc_id: number | null;
+  blc: string | null;
+  keterangan: string;
+  foto: string[];
+  foto_deskripsi: string[];
+  foto_url: string[];
+  created_by: number | null;
+};
+
+export async function getFotoKegiatanOpsi(): Promise<{ data: Pick<PengunjungOpsi, 'blc' | 'sesi'> }> {
+  return apiGet('/instruktur/foto-kegiatan/opsi');
+}
+
+export async function getFotoKegiatan(params: {
+  mulai: string;
+  sampai: string;
+  lokasi_blc_id?: number;
+  sesi_id?: number;
+}): Promise<{ data: FotoKegiatan[] }> {
+  const sp = new URLSearchParams({ mulai: params.mulai, sampai: params.sampai });
+  if (params.lokasi_blc_id) sp.set('lokasi_blc_id', String(params.lokasi_blc_id));
+  if (params.sesi_id) sp.set('sesi_id', String(params.sesi_id));
+  return apiGet(`/instruktur/foto-kegiatan?${sp}`);
+}
+
+export async function saveFotoKegiatan(id: number | null, form: FormData): Promise<{ data: FotoKegiatan }> {
+  const path = id ? `/instruktur/foto-kegiatan/${id}` : '/instruktur/foto-kegiatan';
+  return kirimForm<{ data: FotoKegiatan }>(path, id ? 'PUT' : 'POST', form);
+}
+
+export async function deleteFotoKegiatan(id: number): Promise<{ message: string }> {
+  return apiDelete(`/instruktur/foto-kegiatan/${id}`);
 }

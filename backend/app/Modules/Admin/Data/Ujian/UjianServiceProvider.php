@@ -18,11 +18,14 @@ final class UjianServiceProvider extends ServiceProvider
     {
         Route::prefix('ujian')->group(function (): void {
             Route::get('/', [Http\UjianController::class, 'index']);
-            Route::post('/', [Http\UjianController::class, 'store']);
             Route::get('/{id}', [Http\UjianController::class, 'show']);
-            Route::put('/{id}', [Http\UjianController::class, 'update']);
-            Route::patch('/{id}', [Http\UjianController::class, 'update']);
-            Route::delete('/{id}', [Http\UjianController::class, 'destroy']);
+
+            Route::middleware(['auth:api', 'role:superadmin'])->group(function (): void {
+                Route::post('/', [Http\UjianController::class, 'store']);
+                Route::put('/{id}', [Http\UjianController::class, 'update']);
+                Route::patch('/{id}', [Http\UjianController::class, 'update']);
+                Route::delete('/{id}', [Http\UjianController::class, 'destroy']);
+            });
         });
     }
 }

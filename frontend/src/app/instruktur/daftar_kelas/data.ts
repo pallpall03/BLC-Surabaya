@@ -9,16 +9,8 @@ export const SESI = [
 export const HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
 export const MATERI = ["APLIKASI PERKANTORAN", "DESAIN GRAFIS"];
 
-export type Kelas = {
-  id: number;
-  tanggal: string;
-  nama: string;
-  sesi: number;
-  hari: string[];
-  materi: string;
-  status: "Aktif" | "Selesai";
-  totalPeserta: number;
-};
+import type { Kelas } from "@/lib/api";
+export type { Kelas } from "@/lib/api";
 
 export type CalonPeserta = {
   id: number; nik: string; noDaftar: string; nama: string; jk: "L" | "P"; kategori: string; blc: string;
@@ -28,7 +20,7 @@ export const jamSesi = (no: number) => SESI.find((s) => s.no === no)?.jam ?? "";
 
 /** Hari yang bentrok: sudah dipakai kelas aktif lain pada sesi yang sama. */
 export function cariBentrok(lain: Kelas[], sesi: number, hari: string[]) {
-  return hari.filter((h) => lain.some((k) => k.status === "Aktif" && k.sesi === sesi && k.hari.includes(h)));
+  return hari.filter((h) => lain.some((k) => k.status === "Aktif" && k.sesi_id === sesi && k.hari.includes(h)));
 }
 
 export function validasiKelas(hari: string[], materi: string, bentrok: string[]) {

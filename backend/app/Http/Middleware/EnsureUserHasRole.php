@@ -17,11 +17,18 @@ final class EnsureUserHasRole
         $user = $request->user();
 
         if ($user === null) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return response()->json([
+                'message' => 'Unauthenticated.',
+                'redirect_to' => '/login',
+            ], 401);
         }
 
         if (! $user->hasRole(...$roles)) {
-            return response()->json(['message' => 'Anda tidak memiliki akses ke sumber daya ini.'], 403);
+            // Tanpa redirect_to: salah role tidak memindahkan halaman; frontend
+            // cukup menampilkan pesan galat.
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses ke sumber daya ini.',
+            ], 403);
         }
 
         return $next($request);

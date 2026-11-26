@@ -2,6 +2,8 @@
 
 namespace App\Modules\Instruktur\DaftarHadir\Infrastructure;
 
+use App\Modules\Admin\Data\LokasiBlc\Infrastructure\LokasiBlcModel;
+use App\Modules\Admin\Data\TimBlc\Infrastructure\TimBlcModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,18 +11,31 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class KelasModel extends Model
 {
     protected $table = 'kelas';
-    protected $guarded = ['id'];
-    protected $casts = [
-        'tanggal_mulai' => 'date',
-        'tanggal_selesai' => 'date',
-        'jam_mulai' => 'datetime:H:i',
-        'jam_selesai' => 'datetime:H:i',
-        'kapasitas' => 'integer',
+
+    protected $fillable = [
+        'nama_kelas',
+        'materi_id',
+        'instruktur_id',
+        'sesi_id',
+        'lokasi_blc_id',
+        'hari',
+        'status',
+        'is_delete',
     ];
+
+    protected $casts = [
+        'status' => 'integer',
+        'is_delete' => 'boolean',
+    ];
+
+    public function scopeAktif($query)
+    {
+        return $query->where('is_delete', false);
+    }
 
     public function instruktur(): BelongsTo
     {
-        return $this->belongsTo(\App\Modules\Instruktur\InstrukturProfile\Infrastructure\InstrukturProfileModel::class, 'instruktur_id');
+        return $this->belongsTo(TimBlcModel::class, 'instruktur_id');
     }
 
     public function materi(): BelongsTo
@@ -28,25 +43,18 @@ class KelasModel extends Model
         return $this->belongsTo(MateriModel::class, 'materi_id');
     }
 
+    public function sesi(): BelongsTo
+    {
+        return $this->belongsTo(SesiModel::class, 'sesi_id');
+    }
+
     public function lokasiBlc(): BelongsTo
     {
-        return $this->belongsTo(\App\Modules\Admin\Data\LokasiBlc\Infrastructure\LokasiBlcModel::class, 'lokasi_blc_id');
+        return $this->belongsTo(LokasiBlcModel::class, 'lokasi_blc_id');
     }
 
-    public function absensi(): HasMany
+    public function kelasPeserta(): HasMany
     {
-        return $this->hasMany(AbsensiModel::class, 'kelas_id');
-    }
-
-    public function peserta(): HasMany
-    {
-        return $this->hasManyThrough(
-            PesertaModel::class,
-            AbsensiModel::class,
-            'kelas_id',
-            'id',
-            'id',
-            'peserta_id'
-        );
+        return $this->hasMany(KelasPesertaModel::class, 'kelas_id');
     }
 }

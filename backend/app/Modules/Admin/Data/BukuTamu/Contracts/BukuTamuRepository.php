@@ -19,5 +19,8 @@ interface BukuTamuRepository extends Repository
 
     public function getAktif(): array;
 
+    /** @return list<array<string, mixed>> */
+    public function getPublicAktif(): array;
+
     public function getByUrutan(): array;
 }

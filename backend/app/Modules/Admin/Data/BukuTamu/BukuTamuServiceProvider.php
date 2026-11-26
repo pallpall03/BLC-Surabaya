@@ -17,12 +17,18 @@ final class BukuTamuServiceProvider extends ServiceProvider
     public static function routes(): void
     {
         Route::prefix('buku-tamu')->group(function (): void {
-            Route::get('/', [Http\BukuTamuController::class, 'index']);
+            // Endpoint publik harus didaftarkan sebelum /{id}.
+            Route::get('/aktif', [Http\BukuTamuController::class, 'aktif']);
+            Route::get('/opsi', [Http\BukuTamuController::class, 'opsi']);
             Route::post('/', [Http\BukuTamuController::class, 'store']);
-            Route::get('/{id}', [Http\BukuTamuController::class, 'show']);
-            Route::put('/{id}', [Http\BukuTamuController::class, 'update']);
-            Route::patch('/{id}', [Http\BukuTamuController::class, 'update']);
-            Route::delete('/{id}', [Http\BukuTamuController::class, 'destroy']);
+
+            Route::middleware(['auth:api', 'role:superadmin,koordinator,instruktur'])->group(function (): void {
+                Route::get('/', [Http\BukuTamuController::class, 'index']);
+                Route::get('/{id}', [Http\BukuTamuController::class, 'show']);
+                Route::put('/{id}', [Http\BukuTamuController::class, 'update']);
+                Route::patch('/{id}', [Http\BukuTamuController::class, 'update']);
+                Route::delete('/{id}', [Http\BukuTamuController::class, 'destroy']);
+            });
         });
     }
 }

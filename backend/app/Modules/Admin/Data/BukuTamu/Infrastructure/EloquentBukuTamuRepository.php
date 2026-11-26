@@ -7,42 +7,81 @@ use App\Modules\Admin\Data\BukuTamu\Domain\BukuTamu;
 
 final class EloquentBukuTamuRepository implements BukuTamuRepository
 {
+    private function query(): \Illuminate\Database\Eloquent\Builder
+    {
+        return BukuTamuModel::query()
+            ->notDeleted()
+            ->with(['blc', 'sesi']);
+    }
+
     public function all(): array
     {
-        return BukuTamuModel::ordered()->get()->map(fn ($m) => $m->toDomain())->all();
+        return $this->query()
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (BukuTamuModel $model) => $model->toDomain())
+            ->all();
     }
 
     public function find(int $id): ?BukuTamu
     {
-        $model = BukuTamuModel::find($id);
-        return $model ? $model->toDomain() : null;
+        $model = $this->query()->find($id);
+
+        return $model?->toDomain();
     }
 
     public function create(array $data): BukuTamu
     {
         $model = BukuTamuModel::create($data);
+        $model->load(['blc', 'sesi']);
+
         return $model->toDomain();
     }
 
     public function update(int $id, array $data): BukuTamu
     {
-        $model = BukuTamuModel::findOrFail($id);
-        $model->update($data);
+        $model = $this->query()->findOrFail($id);
+        $model->updateOrFail($data);
+        $model->load(['blc', 'sesi']);
+
         return $model->toDomain();
     }
 
     public function delete(int $id): void
     {
-        BukuTamuModel::findOrFail($id)->delete();
+        $this->query()->findOrFail($id)->updateOrFail(['is_delete' => true]);
     }
 
     public function getAktif(): array
     {
-        return BukuTamuModel::aktif()->ordered()->get()->map(fn ($m) => $m->toDomain())->all();
+        return $this->query()
+            ->aktif()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get()
+            ->map(fn (BukuTamuModel $model) => $model->toDomain())
+            ->all();
+    }
+
+    public function getPublicAktif(): array
+    {
+        return $this->query()
+            ->aktif()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get()
+            ->map(fn (BukuTamuModel $model) => $model->toPublicArray())
+            ->all();
     }
 
     public function getByUrutan(): array
     {
-        return BukuTamuModel::ordered()->get()->map(fn ($m) => $m->toDomain())->all();
+        return $this->query()
+            ->ordered()
+            ->get()
+            ->map(fn (BukuTamuModel $model) => $model->toDomain())
+            ->all();
     }
 }

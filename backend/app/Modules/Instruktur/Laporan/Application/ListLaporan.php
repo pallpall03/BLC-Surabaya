@@ -5,8 +5,7 @@ namespace App\Modules\Instruktur\Laporan\Application;
 use App\Modules\Instruktur\Laporan\Contracts\LaporanRepository;
 
 /**
- * Kasus pemakaian: ambil daftar Laporan Kegiatan.
- * Belum ada aturan bisnis. Dipanggil controller nanti.
+ * Kasus pemakaian: daftar Laporan Kegiatan milik instruktur pada rentang tanggal.
  */
 final class ListLaporan
 {
@@ -14,8 +13,9 @@ final class ListLaporan
     {
     }
 
-    public function handle(): array
+    /** @return list<\App\Modules\Instruktur\Laporan\Domain\Laporan> */
+    public function handle(int $instrukturId, string $mulai, string $sampai): array
     {
-        return $this->repository->all();
+        return $this->repository->listForInstruktur($instrukturId, $mulai, $sampai);
     }
 }

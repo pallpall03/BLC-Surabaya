@@ -3,29 +3,57 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, Send } from "lucide-react";
 import SectionWrap from "./SectionWrap";
-import { ambilBukuTamu, kirimBukuTamu, type BukuTamu as Pesan } from "../administrator/buku_tamu/data";
+import {
+  ambilBukuTamu, ambilOpsiBukuTamu, kirimBukuTamu,
+  type BukuTamu as Pesan, type FormTamu,
+} from "../administrator/buku_tamu/data";
+import type { PengunjungOpsi } from "@/lib/api";
 
-const kosong = { nama: "", instansi: "", email: "", telepon: "", pesan: "" };
+const kosong: FormTamu = {
+  nama: "", instansi: "", email: "", telepon: "", pesan: "",
+  lokasi_blc_id: undefined, sesi_id: undefined, jenis_kelamin: "",
+  tanggal_lahir: "", alamat: "", kategori: "",
+};
 
 export default function BukuTamu() {
   const [daftar, setDaftar] = useState<Pesan[]>([]);
-  const [form, setForm] = useState(kosong);
+  const [form, setForm] = useState<FormTamu>(kosong);
+  const [opsi, setOpsi] = useState<PengunjungOpsi>({ blc: [], sesi: [], kategori: [] });
   const [galat, setGalat] = useState("");
   const [proses, setProses] = useState<boolean>(false);
   const [sukses, setSukses] = useState<boolean>(false);
 
   useEffect(() => {
+<<<<<<< HEAD
+    void Promise.allSettled([ambilBukuTamu(), ambilOpsiBukuTamu()]).then(([pesan, pilihan]) => {
+      if (pesan.status === "fulfilled") setDaftar(pesan.value);
+      if (pilihan.status === "fulfilled") {
+        const data = pilihan.value;
+        setOpsi(data);
+        setForm((f) => ({
+          ...f,
+          lokasi_blc_id: f.lokasi_blc_id ?? data.blc[0]?.id,
+          sesi_id: f.sesi_id ?? data.sesi[0]?.id,
+        }));
+      }
+    });
+=======
     ambilBukuTamu()
       .then((data) => setDaftar(Array.isArray(data) ? data : []))
       .catch(() => setDaftar([]));
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   }, []);
 
-  function ubah(kolom: keyof typeof kosong, nilai: string) {
-    setForm((f) => ({ ...f, [kolom]: nilai }));
+  function ubah(kolom: keyof FormTamu, nilai: string) {
+    setForm((f) => ({
+      ...f,
+      [kolom]: kolom === "lokasi_blc_id" || kolom === "sesi_id" ? Number(nilai) || undefined : nilai,
+    }));
   }
 
   async function handleKirim() {
     if (!form.nama.trim() || !form.pesan.trim()) return setGalat("Nama dan pesan wajib diisi.");
+    if (!form.lokasi_blc_id || !form.sesi_id) return setGalat("Pilih BLC dan sesi kunjungan.");
     setGalat("");
     setProses(true);
     try {
@@ -35,9 +63,15 @@ export default function BukuTamu() {
         email: form.email.trim(),
         telepon: form.telepon.trim(),
         pesan: form.pesan.trim(),
+        lokasi_blc_id: form.lokasi_blc_id,
+        sesi_id: form.sesi_id,
+        jenis_kelamin: form.jenis_kelamin,
+        tanggal_lahir: form.tanggal_lahir,
+        alamat: form.alamat?.trim(),
+        kategori: form.kategori,
       });
       setDaftar((lama) => [baru, ...lama]);
-      setForm(kosong);
+      setForm((f) => ({ ...kosong, lokasi_blc_id: f.lokasi_blc_id, sesi_id: f.sesi_id }));
       setSukses(true);
       setTimeout(() => setSukses(false), 3000);
     } catch {
@@ -60,6 +94,22 @@ export default function BukuTamu() {
             <label className={labelClass}>Nama</label>
             <input value={form.nama} onChange={(e) => ubah("nama", e.target.value)} className={inputClass} />
           </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={labelClass}>BLC kunjungan</label>
+              <select value={form.lokasi_blc_id ?? ""} onChange={(e) => ubah("lokasi_blc_id", e.target.value)} className={inputClass}>
+                <option value="">Pilih BLC</option>
+                {opsi.blc.map((b) => <option key={b.id} value={b.id}>{b.nama}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>Sesi kunjungan</label>
+              <select value={form.sesi_id ?? ""} onChange={(e) => ubah("sesi_id", e.target.value)} className={inputClass}>
+                <option value="">Pilih sesi</option>
+                {opsi.sesi.map((s) => <option key={s.id} value={s.id}>Sesi {s.sesi} · {s.jam}</option>)}
+              </select>
+            </div>
+          </div>
           <div>
             <label className={labelClass}>Asal (instansi, sekolah, atau kota)</label>
             <input value={form.instansi} onChange={(e) => ubah("instansi", e.target.value)} className={inputClass} />
@@ -74,6 +124,34 @@ export default function BukuTamu() {
               <input type="tel" value={form.telepon} onChange={(e) => ubah("telepon", e.target.value)} className={inputClass} />
             </div>
           </div>
+          <details className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+            <summary className="cursor-pointer text-sm font-medium text-slate-700">Lengkapi data kunjungan (opsional)</summary>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={labelClass}>Jenis kelamin</label>
+                <select value={form.jenis_kelamin ?? ""} onChange={(e) => ubah("jenis_kelamin", e.target.value)} className={inputClass}>
+                  <option value="">Pilih</option>
+                  <option value="L">Laki-laki</option>
+                  <option value="P">Perempuan</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>Tanggal lahir</label>
+                <input type="date" value={form.tanggal_lahir ?? ""} onChange={(e) => ubah("tanggal_lahir", e.target.value)} className={inputClass} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className={labelClass}>Alamat</label>
+                <input value={form.alamat ?? ""} onChange={(e) => ubah("alamat", e.target.value)} className={inputClass} />
+              </div>
+              <div className="sm:col-span-2">
+                <label className={labelClass}>Kategori pengunjung</label>
+                <select value={form.kategori ?? ""} onChange={(e) => ubah("kategori", e.target.value)} className={inputClass}>
+                  <option value="">Pilih kategori</option>
+                  {opsi.kategori.map((k) => <option key={k} value={k}>{k}</option>)}
+                </select>
+              </div>
+            </div>
+          </details>
           <div>
             <label className={labelClass}>Pesan</label>
             <textarea
@@ -113,6 +191,7 @@ export default function BukuTamu() {
                     <p className="text-sm font-semibold text-slate-800">{p.nama}</p>
                     <p className="text-xs text-slate-400">
                       {p.instansi ? `${p.instansi} · ` : ""}
+                      {p.blc ? `${p.blc} · ` : ""}
                       {p.tanggal}
                     </p>
                   </div>

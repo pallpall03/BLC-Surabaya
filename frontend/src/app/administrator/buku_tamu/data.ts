@@ -1,35 +1,42 @@
+import { apiGet, apiPost, type PengunjungOpsi } from "@/lib/api";
+
 export type BukuTamu = {
   id: number;
   nama: string;
-  instansi: string; // asal pengunjung (instansi/sekolah/kota)
-  email: string;
-  telepon: string;
+  instansi: string | null;
   pesan: string;
+  rating: number | null;
   tanggal: string;
+  blc: string | null;
+  sesi: number | null;
   dibaca: boolean;
 };
 
-export type FormTamu = Pick<BukuTamu, "nama" | "instansi" | "email" | "telepon" | "pesan">;
+export type FormTamu = {
+  nama: string;
+  instansi: string;
+  email: string;
+  telepon: string;
+  pesan: string;
+  lokasi_blc_id?: number;
+  sesi_id?: number;
+  jenis_kelamin?: "L" | "P" | "";
+  tanggal_lahir?: string;
+  alamat?: string;
+  kategori?: string;
+};
 
-const KUNCI = "blc-buku-tamu";
+type BukuTamuBackend = Omit<BukuTamu, "dibaca">;
 
-const awal: BukuTamu[] = [
-  { id: 1, nama: "Rina", instansi: "SMKN 1 Surabaya", email: "rina@mail.com", telepon: "081200000001", pesan: "Kelasnya bermanfaat, instrukturnya sabar.", tanggal: "2026-11-20", dibaca: false },
-  { id: 2, nama: "Budi", instansi: "Warga Rungkut", email: "budi@mail.com", telepon: "081200000002", pesan: "Tempatnya nyaman dan internetnya cepat.", tanggal: "2026-11-18", dibaca: true },
-  { id: 3, nama: "Sari", instansi: "Universitas Airlangga", email: "sari@mail.com", telepon: "081200000003", pesan: "Kapan ada pelatihan desain grafis lagi?", tanggal: "2026-11-15", dibaca: false },
-];
-
-// SEMENTARA: disimpan di localStorage. NANTI DIGANTI fetch ke backend.
-function baca(): BukuTamu[] {
-  if (typeof window === "undefined") return awal;
-  try {
-    const s = window.localStorage.getItem(KUNCI);
-    return s ? (JSON.parse(s) as BukuTamu[]) : awal;
-  } catch {
-    return awal;
-  }
+function mapBukuTamu(data: BukuTamuBackend): BukuTamu {
+  return { ...data, dibaca: false };
 }
 
+<<<<<<< HEAD
+export async function ambilOpsiBukuTamu(): Promise<PengunjungOpsi> {
+  const res = await apiGet<{ data: PengunjungOpsi }>("/buku-tamu/opsi");
+  return res.data;
+=======
 function tulis(data: BukuTamu[]) {
   try {
     window.localStorage.setItem(KUNCI, JSON.stringify(data));
@@ -37,28 +44,36 @@ function tulis(data: BukuTamu[]) {
   } catch {
     // abaikan kalau penyimpanan penuh atau diblokir
   }
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 }
 
 export async function ambilBukuTamu(): Promise<BukuTamu[]> {
-  return baca();
+  const res = await apiGet<{ data: BukuTamuBackend[] }>("/buku-tamu/aktif");
+  return (res.data ?? []).map(mapBukuTamu);
 }
 
-// dipakai form Buku Tamu di home: NANTI DIGANTI fetch POST ke backend
 export async function kirimBukuTamu(form: FormTamu): Promise<BukuTamu> {
-  const baru: BukuTamu = {
-    id: Date.now(),
-    ...form,
-    tanggal: new Date().toISOString().slice(0, 10),
-    dibaca: false,
-  };
-  tulis([baru, ...baca()]);
-  return baru;
-}
+  let lokasiBlcId = form.lokasi_blc_id;
+  let sesiId = form.sesi_id;
+  if (!lokasiBlcId || !sesiId) {
+    const opsi = await ambilOpsiBukuTamu();
+    lokasiBlcId ??= opsi.blc[0]?.id;
+    sesiId ??= opsi.sesi[0]?.id;
+  }
+  if (!lokasiBlcId || !sesiId) throw new Error("BLC dan sesi belum tersedia.");
 
-export async function tandaiDibaca(id: number, dibaca: boolean = true): Promise<void> {
-  tulis(baca().map((b) => (b.id === id ? { ...b, dibaca } : b)));
-}
-
-export async function hapusBukuTamu(id: number): Promise<void> {
-  tulis(baca().filter((b) => b.id !== id));
+  const res = await apiPost<{ data: BukuTamuBackend }>("/buku-tamu", {
+    nama: form.nama,
+    instansi: form.instansi || null,
+    email: form.email || null,
+    telepon: form.telepon || null,
+    pesan: form.pesan,
+    lokasi_blc_id: lokasiBlcId,
+    sesi_id: sesiId,
+    jenis_kelamin: form.jenis_kelamin || null,
+    tanggal_lahir: form.tanggal_lahir || null,
+    alamat: form.alamat || null,
+    kategori: form.kategori || null,
+  });
+  return mapBukuTamu(res.data);
 }

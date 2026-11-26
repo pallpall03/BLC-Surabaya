@@ -3,15 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --hostname 127.0.0.1",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "start": "next start --hostname 127.0.0.1",
+    "lint": "eslint",
+    "postinstall": "node scripts/sync-pdf-worker.mjs"
   },
   "dependencies": {
-    "jose": "^6.2.18",
     "lucide-react": "^1.73.0",
+    "mammoth": "^1.13.0",
     "next": "16.4.6",
+    "pdfjs-dist": "^6.5.438",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "xlsx": "^0.18.5"

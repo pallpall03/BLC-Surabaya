@@ -2,15 +2,15 @@
 
 namespace App\Modules\Instruktur\InstrukturProfile\Http;
 
-use App\Modules\Instruktur\InstrukturProfile\Contracts\InstrukturProfileRepositoryInterface;
-use App\Modules\Instruktur\InstrukturProfile\Domain\InstrukturProfile;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Modules\Instruktur\InstrukturProfile\Contracts\InstrukturProfileRepository;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
-class InstrukturProfileController
+final class InstrukturProfileController extends Controller
 {
     public function __construct(
-        private InstrukturProfileRepositoryInterface $repository
+        private readonly InstrukturProfileRepository $repository
     ) {}
 
     public function index(): JsonResponse

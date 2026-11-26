@@ -18,7 +18,7 @@ final class EloquentKontenRepository implements KontenRepository
 
     public function find(int $id): mixed
     {
-        $model = KontenModel::with('children')->find($id);
+        $model = KontenModel::with('children')->aktif()->find($id);
         return $model ? $this->toDomain($model) : null;
     }
 
@@ -52,7 +52,7 @@ final class EloquentKontenRepository implements KontenRepository
 
     public function getOrdered(): array
     {
-        return KontenModel::ordered()->get()->map(fn ($m) => $this->toDomain($m))->all();
+        return KontenModel::aktif()->ordered()->get()->map(fn ($m) => $this->toDomain($m))->all();
     }
 
     public function getTree(): array

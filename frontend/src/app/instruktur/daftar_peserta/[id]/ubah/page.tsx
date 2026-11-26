@@ -1,39 +1,69 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
-  ArrowLeft, Building2, CalendarDays, Camera, Check, Fingerprint, GraduationCap, Mail, Map, MapPin, Mars,
-  Monitor, Palette, PencilLine, Phone, RotateCcw, Save, Trash2, UploadCloud, User, Venus, AlertCircle,
-  type LucideIcon,
+  AlertCircle, ArrowLeft, Building2, CalendarDays, CheckCircle2, Fingerprint, GraduationCap,
+  Mail, Map, MapPin, Phone, Save, User, type LucideIcon,
 } from "lucide-react";
+<<<<<<< HEAD
+import { getPeserta, getPesertaOpsi, updatePeserta, type PesertaDetail, type PesertaOpsi } from "@/lib/api";
+=======
 import { Card, Field, inp } from "../../components/elemenform";
 import FormPassword from "../../components/formpassword";
 import { getPeserta, updatePeserta, type PesertaDetail } from "@/lib/api";
 import { useCrudNotification } from "@/components/CrudNotification";
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
 type Nilai = {
   nik: string; nama: string; tanggalLahir: string; jenisKelamin: "L" | "P";
-  alamat: string; kecamatan: string; kelurahan: string; email: string; telepon: string;
-  kategori: string; materi: string;
+  alamat: string; kecamatan: string; kelurahan: string; kecamatanLain: string; kelurahanLain: string;
+  email: string; telepon: string; kategoriId: string; lokasiBlcId: string; isSurabaya: boolean;
 };
-type TeksKey = "nik" | "nama" | "tanggalLahir" | "alamat" | "kecamatan" | "kelurahan" | "email" | "telepon";
 
-const KATEGORI = ["SD", "SMP", "SMA", "MAHASISWA", "UMUM"];
-const MATERI: { nama: string; icon: LucideIcon }[] = [
-  { nama: "APLIKASI PERKANTORAN", icon: Monitor },
-  { nama: "DESAIN GRAFIS", icon: Palette },
-];
-const NAMA_KOLOM: Record<keyof Nilai, string> = {
-  nik: "NIK", nama: "Nama", tanggalLahir: "Tanggal lahir", jenisKelamin: "Jenis kelamin", alamat: "Alamat",
-  kecamatan: "Kecamatan", kelurahan: "Kelurahan", email: "Email", telepon: "No. telepon", kategori: "Kategori", materi: "Materi",
-};
+const inp = "w-full rounded-xl border border-orange-100 bg-orange-50/40 py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60";
 const KEMBALI = "/instruktur/daftar_peserta";
+
+function Card({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
+  return <section className="rounded-2xl border border-orange-100 bg-white p-6 shadow-lg shadow-orange-200/40">
+    <h2 className="mb-5 flex items-center gap-2 font-semibold text-slate-900"><Icon size={20} className="text-orange-500" /> {title}</h2>{children}
+  </section>;
+}
+
+function Field({ label, icon: Icon, children }: { label: string; icon: LucideIcon; children: React.ReactNode }) {
+  return <div><label className="mb-1.5 block text-sm font-medium text-slate-700">{label}</label><div className="relative">
+    <Icon size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-orange-400" />{children}
+  </div></div>;
+}
 
 export default function UbahPesertaPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+<<<<<<< HEAD
+  const [form, setForm] = useState<Nilai | null>(null);
+  const [initial, setInitial] = useState<Nilai | null>(null);
+  const [opsi, setOpsi] = useState<PesertaOpsi | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [sukses, setSukses] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    Promise.all([getPeserta(Number(id)), getPesertaOpsi()]).then(([pesertaRes, opsiRes]) => {
+      const p: PesertaDetail = pesertaRes.data;
+      const value: Nilai = {
+        nik: p.nik ?? "", nama: p.nama ?? "", tanggalLahir: p.tanggal_lahir ?? "", jenisKelamin: p.jk,
+        alamat: p.alamat ?? "", kecamatan: p.kecamatan ?? "", kelurahan: p.kelurahan ?? "",
+        kecamatanLain: p.kecamatan_lain ?? "", kelurahanLain: p.kelurahan_lain ?? "", email: p.email ?? "",
+        telepon: p.phone ?? "", kategoriId: String(p.kategori_peserta_id ?? ""),
+        lokasiBlcId: String(p.lokasi_blc_id ?? ""), isSurabaya: p.is_surabaya ?? true,
+      };
+      setForm(value); setInitial(value); setOpsi(opsiRes.data);
+    }).catch((e) => setError(e instanceof Error ? e.message : "Gagal memuat data peserta"))
+      .finally(() => setLoading(false));
+  }, [id]);
+=======
   const { showNotification } = useCrudNotification();
 
   const [form, setForm] = useState<Nilai>({
@@ -87,14 +117,38 @@ export default function UbahPesertaPage() {
     };
     void fetchData();
   }, [id, reloadKey]);
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
-  // Setelah popup sukses muncul, otomatis kembali ke daftar peserta
   useEffect(() => {
     if (!sukses) return;
-    const t = setTimeout(() => router.push(KEMBALI), 2500);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => router.push(KEMBALI), 2500);
+    return () => clearTimeout(timer);
   }, [sukses, router]);
 
+<<<<<<< HEAD
+  const set = <K extends keyof Nilai>(key: K, value: Nilai[K]) => setForm((f) => f ? { ...f, [key]: value } : f);
+  const berubah = !!initial && !!form && JSON.stringify(initial) !== JSON.stringify(form);
+
+  const simpan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form) return;
+    if (!/^\d{16}$/.test(form.nik) || !form.nama.trim() || !form.jenisKelamin || !form.lokasiBlcId) {
+      setError("Lengkapi NIK, nama, jenis kelamin, dan BLC dengan benar."); return;
+    }
+    setSaving(true); setError("");
+    try {
+      await updatePeserta(Number(id), {
+        nik: form.nik, nama: form.nama, tanggal_lahir: form.tanggalLahir || null, jk: form.jenisKelamin,
+        alamat: form.alamat, kecamatan: form.kecamatan, kelurahan: form.kelurahan,
+        kecamatan_lain: form.kecamatanLain, kelurahan_lain: form.kelurahanLain, email: form.email,
+        telepon: form.telepon, kategori_peserta_id: form.kategoriId ? Number(form.kategoriId) : null,
+        lokasi_blc_id: Number(form.lokasiBlcId), is_surabaya: form.isSurabaya,
+      });
+      setInitial(form); setSukses(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Gagal menyimpan perubahan");
+    } finally { setSaving(false); }
+=======
   const ref = initialForm ?? form;
   const berubah = (Object.keys(ref) as (keyof Nilai)[]).filter((k) => form[k] !== ref[k]);
   const fotoBerubah = fotoBaru !== null || fotoLama !== true;
@@ -194,10 +248,35 @@ export default function UbahPesertaPage() {
     } finally {
           setSaving(false);
         }
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   };
 
-  const diubah = (k: keyof Nilai) => form[k] !== ref[k];
+  if (loading) return <main className="flex min-h-screen items-center justify-center bg-orange-50/60"><div className="h-10 w-10 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" /></main>;
+  if (!form) return <main className="p-10 text-center text-red-600">{error || "Peserta tidak ditemukan."}</main>;
 
+<<<<<<< HEAD
+  return <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8"><div className="mx-auto max-w-3xl">
+    <Link href={KEMBALI} onClick={(e) => { if (berubah && !window.confirm("Keluar tanpa menyimpan perubahan?")) e.preventDefault(); }} className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-orange-700"><ArrowLeft size={16} /> Kembali ke daftar peserta</Link>
+    <div className="mb-6 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50">
+      <h1 className="text-2xl font-semibold">Ubah peserta</h1><p className="mt-1 text-sm text-orange-50">Perbarui data <b>{form.nama}</b>.</p>
+    </div>
+
+    <form onSubmit={simpan} noValidate className="space-y-6">
+      <Card icon={User} title="Data diri"><div className="grid gap-4 sm:grid-cols-2">
+        <Field label="NIK" icon={Fingerprint}><input value={form.nik} onChange={(e) => set("nik", e.target.value.replace(/\D/g, ""))} maxLength={16} className={inp} /></Field>
+        <Field label="Nama lengkap" icon={User}><input value={form.nama} onChange={(e) => set("nama", e.target.value)} className={inp} /></Field>
+        <Field label="Tanggal lahir" icon={CalendarDays}><input type="date" value={form.tanggalLahir} onChange={(e) => set("tanggalLahir", e.target.value)} className={inp} /></Field>
+        <div><span className="mb-1.5 block text-sm font-medium text-slate-700">Jenis kelamin</span><div className="grid grid-cols-2 gap-3">{(["L", "P"] as const).map((jk) => <label key={jk} className="rounded-xl border border-orange-100 bg-orange-50/40 px-4 py-2.5 text-center text-sm"><input type="radio" className="mr-2 accent-orange-500" checked={form.jenisKelamin === jk} onChange={() => set("jenisKelamin", jk)} />{jk === "L" ? "Laki-laki" : "Perempuan"}</label>)}</div></div>
+      </div></Card>
+
+      <Card icon={MapPin} title="Alamat dan kontak"><div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Alamat" icon={MapPin}><textarea value={form.alamat} onChange={(e) => set("alamat", e.target.value)} rows={2} className={inp} /></Field>
+        <Field label="Kecamatan" icon={Building2}><input value={form.kecamatan} onChange={(e) => set("kecamatan", e.target.value)} className={inp} /></Field>
+        <Field label="Kelurahan" icon={Map}><input value={form.kelurahan} onChange={(e) => set("kelurahan", e.target.value)} className={inp} /></Field>
+        <Field label="Email" icon={Mail}><input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} className={inp} /></Field>
+        <Field label="No. telepon" icon={Phone}><input value={form.telepon} onChange={(e) => set("telepon", e.target.value)} className={inp} /></Field>
+      </div></Card>
+=======
   if (loading) {
     return (
       <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
@@ -258,154 +337,29 @@ export default function UbahPesertaPage() {
             {jumlah > 0 ? `${jumlah} perubahan belum disimpan` : "Belum ada perubahan"}
           </span>
         </div>
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
-        <form onSubmit={simpan} noValidate autoComplete="off" className="space-y-6">
-          <Card icon={User} tone="bg-orange-100 text-orange-600" title="Data diri" desc="Identitas sesuai KTP.">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="NIK" id="nik" icon={Fingerprint} diubah={diubah("nik")} error={errors.nik}>
-                <input {...bind("nik")} inputMode="numeric" maxLength={16} placeholder="16 digit NIK" onChange={(e) => set("nik", e.target.value.replace(/\D/g, ""))} />
-              </Field>
-              <Field label="Nama lengkap" id="nama" icon={User} diubah={diubah("nama")} error={errors.nama}>
-                <input {...bind("nama")} placeholder="Sesuai KTP" />
-              </Field>
-              <Field label="Tanggal lahir" id="tanggalLahir" icon={CalendarDays} diubah={diubah("tanggalLahir")} error={errors.tanggalLahir}>
-                <input {...bind("tanggalLahir")} type="date" />
-              </Field>
-              <Field label="Jenis kelamin" diubah={diubah("jenisKelamin")}>
-                <div className="grid grid-cols-2 gap-3">
-                  {([[ "L", "Laki-laki", Mars, "sky" ], [ "P", "Perempuan", Venus, "pink" ]] as const).map(([v, label, Icon, warna]) => (
-                    <label key={v} className="cursor-pointer">
-                      <input type="radio" name="jk" className="peer sr-only" checked={form.jenisKelamin === v} onChange={() => set("jenisKelamin", v)} />
-                      <span className={`flex items-center justify-center gap-2 rounded-xl border border-orange-100 bg-orange-50/40 py-2.5 text-sm text-slate-600 transition hover:border-orange-300 peer-focus-visible:ring-4 peer-focus-visible:ring-orange-200/60 ${
-                        warna === "sky" ? "peer-checked:border-sky-400 peer-checked:bg-sky-50 peer-checked:text-sky-700" : "peer-checked:border-pink-400 peer-checked:bg-pink-50 peer-checked:text-pink-700" } peer-checked:font-medium`}>
-                        <Icon size={18} /> {label}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </Field>
-            </div>
-          </Card>
-
-          <Card icon={MapPin} tone="bg-sky-100 text-sky-600" title="Alamat dan kontak" desc="Tempat tinggal dan cara menghubungi peserta.">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Alamat" id="alamat" icon={MapPin} top diubah={diubah("alamat")} error={errors.alamat} className="sm:col-span-2">
-                <textarea {...bind("alamat")} rows={2} placeholder="Nama jalan, RT/RW, nomor rumah" />
-              </Field>
-              <Field label="Kecamatan" id="kecamatan" icon={Building2} diubah={diubah("kecamatan")} error={errors.kecamatan}>
-                <input {...bind("kecamatan")} placeholder="Contoh: Gunung Anyar" />
-              </Field>
-              <Field label="Kelurahan" id="kelurahan" icon={Map} diubah={diubah("kelurahan")} error={errors.kelurahan}>
-                <input {...bind("kelurahan")} placeholder="Contoh: Gunung Anyar" />
-              </Field>
-              <Field label="Email" id="email" icon={Mail} diubah={diubah("email")} error={errors.email}>
-                <input {...bind("email")} type="email" name="email-peserta" autoComplete="off" placeholder="nama@email.com" />
-              </Field>
-              <Field label="No. telepon" id="telepon" icon={Phone} diubah={diubah("telepon")} error={errors.telepon}>
-                <input {...bind("telepon")} inputMode="tel" placeholder="081234567890" onChange={(e) => set("telepon", e.target.value.replace(/[^\d+]/g, ""))} />
-              </Field>
-            </div>
-          </Card>
-
-          <Card icon={GraduationCap} tone="bg-violet-100 text-violet-600" title="Pelatihan" desc="Kategori peserta dan materi yang diikuti.">
-            <p className="mb-2 flex items-center text-sm font-medium text-slate-700">
-              Kategori {diubah("kategori") && <span className="ml-2 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold text-orange-700">diubah</span>}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {KATEGORI.map((k) => {
-                const aktif = form.kategori === k;
-                return (
-                  <button key={k} type="button" onClick={() => set("kategori", k)} aria-pressed={aktif}
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition ${
-                      aktif ? "border-violet-400 bg-violet-50 font-medium text-violet-700" : "border-slate-200 bg-white text-slate-600 hover:border-violet-300 hover:bg-violet-50/50"
-                    }`}>
-                    {aktif && <Check size={15} />} {k}
-                  </button>
-                );
-              })}
-            </div>
-            {errors.kategori && <p className="mt-2 flex items-center gap-1 text-xs text-red-600"><AlertCircle size={14} /> {errors.kategori}</p>}
-
-            <p className="mb-2 mt-5 flex items-center text-sm font-medium text-slate-700">
-              Materi {diubah("materi") && <span className="ml-2 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold text-orange-700">diubah</span>}
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {MATERI.map(({ nama, icon: Icon }) => {
-                const aktif = form.materi === nama;
-                return (
-                  <button key={nama} type="button" onClick={() => set("materi", nama)} aria-pressed={aktif}
-                    className={`flex items-center gap-3 rounded-xl border p-4 text-left text-sm transition hover:-translate-y-0.5 hover:shadow-md ${
-                      aktif ? "border-green-500 bg-green-50 font-medium text-green-700" : "border-orange-100 bg-orange-50/40 text-slate-600 hover:border-green-300"
-                    }`}>
-                    <Icon size={24} /> <span className="flex-1">{nama}</span> {aktif && <Check size={16} />}
-                  </button>
-                );
-              })}
-            </div>
-            {errors.materi && <p className="mt-2 flex items-center gap-1 text-xs text-red-600"><AlertCircle size={14} /> {errors.materi}</p>}
-          </Card>
-
-          <Card icon={Camera} tone="bg-emerald-100 text-emerald-600" title="Foto peserta" desc="Opsional. JPG atau PNG, maksimal 2 MB.">
-            {preview || fotoLama ? (
-              <div className="flex items-center gap-4 rounded-xl border border-orange-100 bg-orange-50/40 p-4">
-                {preview ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={preview} alt="Pratinjau foto" className="h-28 w-24 rounded-xl object-cover shadow-md" />
-                ) : (
-                  <span className="flex h-28 w-24 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-300 to-sky-200 text-white shadow-md"><User size={40} /></span>
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-slate-800">{preview ? fotoBaru?.name : "Foto saat ini"}</p>
-                  <p className="text-xs text-slate-500">{preview ? `${fotoBaru ? (fotoBaru.size / 1024).toFixed(0) : 0} KB · akan menggantikan foto lama` : "Tersimpan di server"}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <label htmlFor="foto" className="cursor-pointer rounded-lg border border-orange-200 px-3 py-1.5 text-sm font-medium text-orange-700 hover:bg-orange-50">Ganti foto</label>
-                    <button type="button" onClick={() => (preview ? setFotoBaru(null) : setFotoLama(false))}
-                      className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50">
-                      <Trash2 size={16} /> {preview ? "Batalkan foto baru" : "Hapus foto"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <label htmlFor="foto"
-                onDragOver={(e) => { e.preventDefault(); setSeret(true); }} onDragLeave={() => setSeret(false)}
-                onDrop={(e) => { e.preventDefault(); setSeret(false); pilihFoto(e.dataTransfer.files[0]); }}
-                className={`flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed px-4 py-10 text-center transition ${
-                  seret ? "border-orange-500 bg-orange-100" : "border-orange-200 bg-orange-50/40 hover:border-orange-400 hover:bg-orange-50"
-                }`}>
-                <UploadCloud size={36} className="text-orange-500" />
-                <span className="text-sm font-medium text-slate-700">Tarik foto ke sini atau klik untuk memilih</span>
-              </label>
-            )}
-            <input id="foto" type="file" accept="image/*" className="sr-only" onChange={(e) => { pilihFoto(e.target.files?.[0]); e.target.value = ""; }} />
-            {errors.foto && <p className="mt-2 flex items-center gap-1 text-xs text-red-600"><AlertCircle size={14} /> {errors.foto}</p>}
-          </Card>
-
-          {/* Tombol aksi */}
-          <div className="sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-orange-100 bg-white/90 p-4 shadow-xl shadow-orange-300/40 backdrop-blur">
-            <p className="min-w-0 flex-1 truncate text-sm text-slate-500">
-              {jumlah === 0 ? "Belum ada perubahan." : `Diubah: ${[...berubah.map((k) => NAMA_KOLOM[k]), ...(fotoBerubah ? ["Foto"] : [])].join(", ")}`}
-            </p>
-            <div className="ml-auto flex gap-3">
-              {jumlah > 0 && (
-                <button type="button" onClick={kembalikan} className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100">
-                  <RotateCcw size={16} /> Kembalikan
-                </button>
-              )}
-              <button type="button" onClick={keluar} disabled={!!sukses} className="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60">Batal</button>
-              <button type="submit" disabled={saving || !!sukses || jumlah === 0}
-                className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-medium text-white shadow-md shadow-green-600/30 hover:bg-green-700 disabled:opacity-50 disabled:shadow-none">
-                <Save size={18} /> {saving ? "Menyimpan..." : "Simpan perubahan"}
-              </button>
-            </div>
-          </div>
-        </form>
-
-        {/* Ubah password: form terpisah dengan tombol simpan sendiri */}
-        <div className="mt-10">
-          <FormPassword pesertaId={String(id)} nama={form.nama} />
-        </div>
+      <Card icon={GraduationCap} title="Pelatihan dan area"><div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Kategori peserta" icon={GraduationCap}><select value={form.kategoriId} onChange={(e) => set("kategoriId", e.target.value)} className={inp}><option value="">Pilih kategori</option>{opsi?.kategori.map((k) => <option key={k.id} value={k.id}>{k.nama_kelompok}</option>)}</select></Field>
+        <Field label="BLC" icon={MapPin}><select value={form.lokasiBlcId} onChange={(e) => set("lokasiBlcId", e.target.value)} className={inp}>{opsi?.blc.map((b) => <option key={b.id} value={b.id}>{b.nama_blc}</option>)}</select></Field>
       </div>
+<<<<<<< HEAD
+      <label className="mt-4 flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={form.isSurabaya} onChange={(e) => set("isSurabaya", e.target.checked)} className="h-4 w-4 accent-orange-500" /> Berdomisili di Surabaya</label>
+      {!form.isSurabaya && <div className="mt-4 grid gap-4 sm:grid-cols-2"><Field label="Kecamatan luar Surabaya" icon={Building2}><input value={form.kecamatanLain} onChange={(e) => set("kecamatanLain", e.target.value)} className={inp} /></Field><Field label="Kelurahan luar Surabaya" icon={Map}><input value={form.kelurahanLain} onChange={(e) => set("kelurahanLain", e.target.value)} className={inp} /></Field></div>}
+      </Card>
+
+      {error && <p role="alert" className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"><AlertCircle size={16} /> {error}</p>}
+      <div className="sticky bottom-4 flex items-center justify-between gap-3 rounded-2xl border border-orange-100 bg-white/90 p-4 shadow-xl backdrop-blur">
+        <span className="text-sm text-slate-500">{berubah ? "Ada perubahan belum disimpan" : "Belum ada perubahan"}</span>
+        <button type="submit" disabled={saving || !berubah} className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-medium text-white shadow-md hover:bg-green-700 disabled:opacity-50"><Save size={18} /> {saving ? "Menyimpan..." : "Simpan perubahan"}</button>
+      </div>
+    </form>
+  </div>
+  {sukses && <div role="alertdialog" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"><div className="rounded-2xl bg-white p-8 text-center shadow-2xl"><CheckCircle2 size={48} className="mx-auto text-emerald-500" /><h2 className="mt-4 text-xl font-semibold">Perubahan tersimpan</h2><button type="button" onClick={() => router.push(KEMBALI)} className="mt-5 rounded-xl bg-orange-500 px-5 py-2.5 text-white">Lihat daftar peserta</button></div></div>}
+  </main>;
+}
+=======
     </main>
   );
 }
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
