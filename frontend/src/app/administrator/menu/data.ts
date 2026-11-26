@@ -42,7 +42,10 @@ let dataContoh: MenuData[] = [
     aktif: true,
   },
 
-  // Akses & Pengguna
+  // =========================
+  // AKSES & PENGGUNA
+  // =========================
+
   {
     id: 2,
     nama: "Akses & Pengguna",
@@ -64,6 +67,16 @@ let dataContoh: MenuData[] = [
     aktif: true,
   },
   {
+    id: 24,
+    nama: "Ubah Password",
+    href: `${A}/ubah-password`,
+    ikon: "KeyRound",
+    indukId: 2,
+    role: "administrator",
+    urutan: 2,
+    aktif: true,
+  },
+  {
     id: 5,
     nama: "Manajemen Menu",
     href: `${A}/menu`,
@@ -74,7 +87,10 @@ let dataContoh: MenuData[] = [
     aktif: true,
   },
 
-  // Data Website
+  // =========================
+  // DATA WEBSITE
+  // =========================
+
   {
     id: 6,
     nama: "Data Website",
@@ -146,7 +162,10 @@ let dataContoh: MenuData[] = [
     aktif: true,
   },
 
-  // Informasi
+  // =========================
+  // INFORMASI
+  // =========================
+
   {
     id: 23,
     nama: "Informasi",

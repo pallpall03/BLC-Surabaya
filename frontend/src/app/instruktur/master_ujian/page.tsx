@@ -13,7 +13,12 @@ import {
 } from "@/lib/api";
 import HeaderHalaman from "./components/headerhalaman";
 import Paginasi from "./components/paginasi";
+<<<<<<< HEAD
 import ModalJadwal from "./components/modaljadwal";
+=======
+import TokenUjian, { buatToken } from "./components/tokenujian";
+import { useCrudNotification } from "@/components/CrudNotification";
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
 type Filter = "semua" | "pretest" | "posttest";
 type Pesan = { jenis: "sukses" | "error"; teks: string };
@@ -27,6 +32,7 @@ const FILTER: { nilai: Filter; label: string }[] = [
 ];
 const inputCls = "w-full rounded-xl border border-orange-100 bg-orange-50/40 py-2.5 pl-10 pr-3 text-sm outline-none transition placeholder:text-slate-400 hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60";
 
+<<<<<<< HEAD
 function MasterUjianContent() {
   const searchParams = useSearchParams();
   const tautanAwal = useRef({
@@ -39,6 +45,14 @@ function MasterUjianContent() {
   const [memuatOpsi, setMemuatOpsi] = useState(true);
   const [error, setError] = useState("");
   const [errorOpsi, setErrorOpsi] = useState("");
+=======
+const fmtDT = (s: string) => { const [d, t] = s.split("T"); return `${d.split("-").reverse().join("/")} ${t}`; };
+const namaDari = (x: Ujian) => `${x.jenis.toUpperCase()} - ${x.materi} PERTEMUAN ${x.pertemuan}`;
+
+export default function MasterUjianPage() {
+  const { showNotification } = useCrudNotification();
+  const [ujian, setUjian] = useState<Ujian[]>(UJIAN_AWAL);
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   const [cari, setCari] = useState("");
   const [filter, setFilter] = useState<Filter>("semua");
   const [page, setPage] = useState(1);
@@ -131,6 +145,7 @@ function MasterUjianContent() {
   const halaman = Math.min(page, totalHalaman);
   const baris = hasil.slice((halaman - 1) * PER_HALAMAN, halaman * PER_HALAMAN);
 
+<<<<<<< HEAD
   const refresh = async () => {
     setError("");
     try {
@@ -154,6 +169,20 @@ function MasterUjianContent() {
     } finally {
       setMenghapusId(null);
     }
+=======
+  const hapus = (x: Ujian) => {
+    if (!window.confirm(`Hapus ujian "${namaDari(x)}"? Peserta yang terdaftar juga ikut terhapus.`)) return;
+    // TODO: DELETE /api/ujian/{id}
+    setUjian((u) => u.filter((y) => y.id !== x.id));
+    showNotification({ type: "success", title: "Ujian dihapus", message: `${namaDari(x)} berhasil dihapus.` });
+  };
+
+  const buatUlangToken = (x: Ujian) => {
+    if (!window.confirm(`Buat token baru untuk "${namaDari(x)}"? Token lama tidak berlaku lagi.`)) return;
+    // TODO: POST /api/ujian/{id}/token
+    setUjian((u) => u.map((y) => (y.id === x.id ? { ...y, token: buatToken() } : y)));
+    showNotification({ type: "success", title: "Token diperbarui", message: `Token baru untuk ${namaDari(x)} berhasil dibuat.` });
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   };
 
   const bukaJadwal = (item: Ujian, jadwal: JadwalUjian | null = null) => {
@@ -187,6 +216,7 @@ function MasterUjianContent() {
   );
 
   return (
+<<<<<<< HEAD
     <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-6xl">
         <HeaderHalaman icon={FileQuestion} judul="Master ujian" deskripsi="Kelola pretest dan posttest, lalu jadwalkan ujian untuk kelas."
@@ -201,6 +231,19 @@ function MasterUjianContent() {
         )}
 
         <section aria-label="Daftar master ujian" aria-busy={loading} className="rounded-2xl border border-orange-200 bg-white shadow-xl shadow-orange-300/40">
+=======
+    <main className="instruktur-main print:bg-white">
+      <div className="mx-auto w-full max-w-6xl">
+        <HeaderHalaman icon={FileQuestion} judul="Master ujian" deskripsi="Buat ujian, atur jadwal, lalu daftarkan pesertanya."
+          aksi={
+            <Link href="/instruktur/master_ujian/ujianbaru"
+              className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-green-900/20 transition hover:-translate-y-0.5 hover:bg-green-700">
+              <Plus size={18} /> Buat ujian baru
+            </Link>
+          } />
+
+        <section className="instruktur-card rounded-2xl border border-orange-200 bg-white shadow-xl shadow-orange-300/40">
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
           <div className="flex flex-wrap items-center gap-3 border-b border-orange-100 p-4">
             <div className="relative min-w-[220px] flex-1">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-orange-400" size={18} />

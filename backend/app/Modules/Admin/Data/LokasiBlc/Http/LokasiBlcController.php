@@ -32,16 +32,13 @@ final class LokasiBlcController extends Controller
             'alamat' => 'nullable|string',
             'foto_blc' => 'nullable|string|max:255',
             'foto2_blc' => 'nullable|string|max:255',
-            'radius' => 'nullable|string',
             'latitude' => 'nullable|string',
             'longitude' => 'nullable|string',
-            'foto_absen_ins' => 'nullable|string|max:255',
-            'ver_foto_absen_ins' => 'nullable|integer',
             'area' => 'nullable|string',
             'aktif' => 'sometimes|boolean',
-            'is_korwil' => 'sometimes|boolean',
-            'is_teknisi_ahli' => 'sometimes|boolean',
-            'is_teknisi' => 'sometimes|boolean',
+            'jumlah_slot_computer' => 'nullable|integer',
+            'jadwal_blc' => 'nullable|string|max:255',
+            'wilayah_surabaya' => 'nullable|string|max:255',
         ]);
 
         $lokasi = $this->repository->create($validated);
@@ -64,16 +61,13 @@ final class LokasiBlcController extends Controller
             'alamat' => 'sometimes|nullable|string',
             'foto_blc' => 'sometimes|nullable|string|max:255',
             'foto2_blc' => 'sometimes|nullable|string|max:255',
-            'radius' => 'sometimes|nullable|string',
             'latitude' => 'sometimes|nullable|string',
             'longitude' => 'sometimes|nullable|string',
-            'foto_absen_ins' => 'sometimes|nullable|string|max:255',
-            'ver_foto_absen_ins' => 'sometimes|nullable|integer',
             'area' => 'sometimes|nullable|string',
             'aktif' => 'sometimes|boolean',
-            'is_korwil' => 'sometimes|boolean',
-            'is_teknisi_ahli' => 'sometimes|boolean',
-            'is_teknisi' => 'sometimes|boolean',
+            'jumlah_slot_computer' => 'sometimes|nullable|integer',
+            'jadwal_blc' => 'sometimes|nullable|string|max:255',
+            'wilayah_surabaya' => 'sometimes|nullable|string|max:255',
         ]);
 
         $lokasi = $this->repository->update($id, $validated);

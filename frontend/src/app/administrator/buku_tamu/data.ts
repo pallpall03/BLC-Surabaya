@@ -32,9 +32,19 @@ function mapBukuTamu(data: BukuTamuBackend): BukuTamu {
   return { ...data, dibaca: false };
 }
 
+<<<<<<< HEAD
 export async function ambilOpsiBukuTamu(): Promise<PengunjungOpsi> {
   const res = await apiGet<{ data: PengunjungOpsi }>("/buku-tamu/opsi");
   return res.data;
+=======
+function tulis(data: BukuTamu[]) {
+  try {
+    window.localStorage.setItem(KUNCI, JSON.stringify(data));
+    window.dispatchEvent(new Event("buku-tamu-berubah"));
+  } catch {
+    // abaikan kalau penyimpanan penuh atau diblokir
+  }
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 }
 
 export async function ambilBukuTamu(): Promise<BukuTamu[]> {

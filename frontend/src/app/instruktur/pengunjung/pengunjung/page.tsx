@@ -5,10 +5,14 @@ import {
   Briefcase, Building2, ChevronLeft, ChevronRight, FileDown, GraduationCap,
   HeartHandshake, Pencil, Plus, Search, SearchX, Trash2, Users, UsersRound, X, type LucideIcon,
 } from "lucide-react";
+<<<<<<< HEAD
 import {
   createPengunjung, deletePengunjung, getPengunjung, getPengunjungOpsi, updatePengunjung,
   type Pengunjung, type PengunjungInput, type PengunjungOpsi,
 } from "@/lib/api";
+=======
+import { useCrudNotification } from "@/components/CrudNotification";
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
 type Grup = "semua" | "Pelajar" | "Pekerja" | "Non Pekerja" | "Organisasi";
 
@@ -38,6 +42,7 @@ const hitung = (rows: Pengunjung[]) => ({
 const inputCls = "w-full rounded-xl border border-orange-100 bg-orange-50/40 px-3 py-2.5 text-sm outline-none transition hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60";
 
 export default function PengunjungPage() {
+<<<<<<< HEAD
   const [data, setData] = useState<Pengunjung[]>([]);
   const [opsi, setOpsi] = useState<PengunjungOpsi>({ blc: [], sesi: [], kategori: [] });
   const [mulai, setMulai] = useState(() => tanggalLokal().slice(0, 8) + "01");
@@ -45,12 +50,20 @@ export default function PengunjungPage() {
   const [blc, setBlc] = useState("");
   const [sesi, setSesi] = useState("");
   const [loading, setLoading] = useState(true);
+=======
+  const { showNotification } = useCrudNotification();
+  const [data, setData] = useState<Pengunjung[]>(DATA_AWAL);
+  const [mulai, setMulai] = useState(awalBulan());
+  const [sampai, setSampai] = useState(hariIni());
+  const [dicari, setDicari] = useState<{ mulai: string; sampai: string } | null>(null);
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   const [grup, setGrup] = useState<Grup>("semua");
   const [sub, setSub] = useState("");
   const [cari, setCari] = useState("");
   const [perPage, setPerPage] = useState(10);
   const [page, setPage] = useState(1);
   const [dipilih, setDipilih] = useState<Set<number>>(new Set());
+<<<<<<< HEAD
   const [pesan, setPesan] = useState("");
   const [formTerbuka, setFormTerbuka] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
@@ -64,6 +77,8 @@ export default function PengunjungPage() {
     setPesan(t);
     setTimeout(() => setPesan(""), 3500);
   }, []);
+=======
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
   const muatData = useCallback(async () => {
     if (!mulai || !sampai || mulai > sampai) return;
@@ -111,6 +126,7 @@ export default function PengunjungPage() {
   const mulaiIdx = (halaman - 1) * perPage;
   const baris = hasil.slice(mulaiIdx, mulaiIdx + perPage);
 
+<<<<<<< HEAD
   const terapkanFilter = () => {
     if (!mulai || !sampai) return toast("Isi tanggal mulai dan sampai.");
     if (mulai > sampai) return toast("Tanggal mulai tidak boleh melewati tanggal sampai.");
@@ -186,6 +202,19 @@ export default function PengunjungPage() {
     } catch (e) {
       toast(e instanceof Error ? e.message : "Gagal menghapus pengunjung.");
     }
+=======
+  const cariData = () => {
+    if (!mulai || !sampai) {
+      showNotification({ type: "error", title: "Pencarian gagal", message: "Isi tanggal mulai dan sampai." });
+      return;
+    }
+    if (mulai > sampai) {
+      showNotification({ type: "error", title: "Pencarian gagal", message: "Tanggal mulai tidak boleh melewati tanggal sampai." });
+      return;
+    }
+    setDicari({ mulai, sampai });
+    setGrup("semua"); setSub(""); setCari(""); setPage(1); setDipilih(new Set());
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   };
 
   const toggle = (id: number) => setDipilih((s) => {
@@ -200,11 +229,35 @@ export default function PengunjungPage() {
     else baris.forEach((b) => n.add(b.id));
     return n;
   });
+<<<<<<< HEAD
 
   return (
     <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50 print:hidden">
+=======
+  const hapusTerpilih = () => {
+    if (!window.confirm(`Hapus ${dipilih.size} pengunjung terpilih?`)) return;
+    // TODO: DELETE ke API Laravel
+    const jumlah = dipilih.size;
+    setData((d) => d.filter((x) => !dipilih.has(x.id)));
+    setDipilih(new Set());
+    showNotification({
+      type: "success",
+      title: "Pengunjung dihapus",
+      message: `${jumlah} pengunjung terpilih berhasil dihapus.`,
+    });
+  };
+
+  const inputCls = "w-full rounded-xl border border-orange-100 bg-orange-50/40 px-3 py-2.5 text-sm outline-none transition hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60";
+  const subJumlah = (s: string) => dalamRentang.filter((d) => d.kategori === s).length;
+
+  return (
+    <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
+      <div className="mx-auto max-w-6xl">
+        {/* Banner */}
+        <div className="instruktur-page-header mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50 print:hidden">
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
           <div className="flex items-center gap-4">
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/25"><Users size={28} /></span>
             <div>
@@ -332,6 +385,7 @@ export default function PengunjungPage() {
         </section>
       </div>
 
+<<<<<<< HEAD
       {formTerbuka && <div className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-slate-900/40 p-4 backdrop-blur-sm" onClick={() => setFormTerbuka(false)}>
         <div role="dialog" aria-modal="true" aria-labelledby="form-pengunjung" onClick={(e) => e.stopPropagation()} className="my-6 w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl">
           <div className="mb-5 flex items-center justify-between"><h2 id="form-pengunjung" className="text-xl font-semibold text-slate-900">{editId ? "Ubah Pengunjung" : "Daftarkan Pengunjung"}</h2>
@@ -356,6 +410,8 @@ export default function PengunjungPage() {
       </div>}
 
       {pesan && <div role="status" className="fixed bottom-6 right-6 z-[80] rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-lg print:hidden">{pesan}</div>}
+=======
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
     </main>
   );
 }

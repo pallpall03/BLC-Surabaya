@@ -7,11 +7,17 @@ import HeaderHalaman from "../../components/headerhalaman";
 import JadwalKelas from "../../components/jadwalkelas";
 import FormKelas, { type NilaiKelas, type OpsiKelas } from "../../components/formkelas";
 import { cariBentrok, validasiKelas, type Kelas } from "../../data";
+<<<<<<< HEAD
 import { getKelas, getKelasDetail, getKelasOpsi, updateKelas } from "@/lib/api";
+=======
+import { getKelas, getKelasDetail, updateKelas } from "@/lib/api";
+import { useCrudNotification } from "@/components/CrudNotification";
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
 export default function UbahKelasPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { showNotification } = useCrudNotification();
   const kelasId = Number(id);
   const [kelas, setKelas] = useState<Kelas | null>(null);
   const [kelasList, setKelasList] = useState<Kelas[]>([]);
@@ -22,6 +28,7 @@ export default function UbahKelasPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+<<<<<<< HEAD
     Promise.all([getKelasDetail(kelasId), getKelas(), getKelasOpsi()]).then(([detailRes, listRes, opsiRes]) => {
       const data = detailRes.data;
       setKelas(data);
@@ -30,6 +37,26 @@ export default function UbahKelasPage() {
       setNilai({ nama: data.nama, sesi: data.sesi_id, hari: data.hari, materi: data.materi_id, lokasiBlcId: data.lokasi_blc_id });
     }).catch((e) => setError(e instanceof Error ? e.message : "Gagal memuat data kelas"))
       .finally(() => setLoading(false));
+=======
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [kelasRes, listRes] = await Promise.all([
+          getKelasDetail(kelasId),
+          getKelas(),
+        ]);
+        setKelas(kelasRes.data);
+        setKelasList(listRes.data ?? []);
+        setNilai({ sesi: kelasRes.data.sesi, hari: kelasRes.data.hari, materi: kelasRes.data.materi });
+      } catch (e) {
+        console.error(e);
+        setError("Gagal memuat data kelas");
+      } finally {
+        setLoading(false);
+      }
+    };
+    void fetchData();
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   }, [kelasId]);
 
   const lain = kelasList.filter((k) => k.id !== kelasId);
@@ -44,9 +71,14 @@ export default function UbahKelasPage() {
     if (!nilai.nama.trim()) return setError("Nama kelas wajib diisi.");
     if (!nilai.lokasiBlcId) return setError("Pilih BLC.");
     const pesan = validasiKelas(nilai.hari, nilai.materi, bentrok);
-    if (pesan) return setError(pesan);
+    if (pesan) {
+      setError(pesan);
+      showNotification({ type: "error", title: "Data kelas belum valid", message: pesan });
+      return;
+    }
     setSaving(true);
     try {
+<<<<<<< HEAD
       await updateKelas(kelasId, {
         nama_kelas: nilai.nama.trim(), sesi_id: nilai.sesi, hari: nilai.hari,
         materi_id: nilai.materi, lokasi_blc_id: nilai.lokasiBlcId,
@@ -69,4 +101,55 @@ export default function UbahKelasPage() {
     <FormKelas nilai={nilai} onChange={(n) => { setError(""); setNilai(n); }} onSubmit={simpan} saving={saving}
       bentrok={bentrok} error={error} kembali="/instruktur/daftar_kelas" opsi={opsi} />
   </div></main>;
+=======
+      await updateKelas(kelasId, { sesi_id: nilai.sesi, hari: nilai.hari, materi_id: nilai.materi });
+      showNotification({ type: "success", title: "Kelas berhasil diperbarui", message: "Perubahan kelas berhasil disimpan." });
+      router.push("/instruktur/daftar_kelas");
+    } catch (e) {
+      console.error(e);
+      const pesan = e instanceof Error ? e.message : "Gagal menyimpan perubahan";
+      setError(pesan);
+      showNotification({ type: "error", title: "Kelas gagal diperbarui", message: pesan });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="instruktur-loading" role="status">
+        <span className="instruktur-spinner" aria-hidden="true" />
+        <span className="fw-semibold text-gray-800">Memuat data kelas…</span>
+      </div>
+    );
+  }
+
+  if (!kelas) {
+    return (
+      <div className="card"><div className="card-body text-center text-gray-600 py-15">
+        {error || "Kelas tidak ditemukan."}
+      </div></div>
+    );
+  }
+
+  return (
+    <>
+      <HeaderHalaman icon={PencilLine} judul="Ubah kelas" kembali="/instruktur/daftar_kelas" deskripsi={`Mengubah profil kelas ${kelas.nama}`} />
+
+      <div className="card mb-6">
+        <div className="card-header">
+          <div className="card-title d-flex align-items-center gap-2 fs-4 fw-bold">
+            <Clock size={20} className="text-primary" /> Jadwal kelas lain
+          </div>
+        </div>
+        <div className="card-body">
+          <JadwalKelas kelas={lain} dipilih={nilai} onKlikKosong={klikKosong} />
+        </div>
+      </div>
+
+      <FormKelas nilai={nilai} onChange={(n) => { setError(""); setNilai(n); }} onSubmit={simpan}
+        saving={saving} bentrok={bentrok} error={error} kembali="/instruktur/daftar_kelas" />
+    </>
+  );
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 }

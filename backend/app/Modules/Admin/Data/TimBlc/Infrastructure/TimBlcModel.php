@@ -17,31 +17,18 @@ final class TimBlcModel extends Model
         'nama_lengkap',
         'gender',
         'email',
-        'alamat',
         'role',
         'avatar',
         'phone',
-        'kategori_id',
         'lokasi_blc_id',
-        'nik',
-        'tanggal_lahir',
-        'kecamatan',
-        'kelurahan',
         'username',
         'is_delete',
-        'is_surabaya',
     ];
 
     protected $casts = [
         'is_delete' => 'boolean',
-        'is_surabaya' => 'boolean',
-        'tanggal_lahir' => 'date',
+        'lokasi_blc_id' => 'integer',
     ];
-
-    public function kategori(): BelongsTo
-    {
-        return $this->belongsTo(\App\Modules\Admin\Data\KategoriArtikel\Infrastructure\KategoriArtikelModel::class, 'kategori_id');
-    }
 
     public function lokasi(): BelongsTo
     {
@@ -50,7 +37,7 @@ final class TimBlcModel extends Model
 
     public function scopeAktif($query)
     {
-        return $query->where('is_delete', false)->where('is_surabaya', true);
+        return $query->where('is_delete', false);
     }
 
     public function scopeInstruktur($query)

@@ -4,10 +4,19 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+<<<<<<< HEAD
   AlertCircle, ArrowLeft, Building2, CalendarDays, Fingerprint, GraduationCap,
   Mail, Map, MapPin, Phone, Save, User, UserPlus, type LucideIcon,
 } from "lucide-react";
 import { createPeserta, getPesertaOpsi, type PesertaOpsi } from "@/lib/api";
+=======
+  AlertCircle, ArrowLeft, Building2, CalendarDays, Camera, Check, Code2, Fingerprint,
+  GraduationCap, Mail, MapPin, Map, Mars, Monitor, Palette, Phone, Save, Store,
+  Trash2, UploadCloud, User, UserPlus, Venus,
+  type LucideIcon,
+} from "lucide-react";
+import { useCrudNotification } from "@/components/CrudNotification";
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
 type FormPeserta = {
   nik: string; nama: string; tanggalLahir: string; jenisKelamin: "L" | "P" | "";
@@ -53,6 +62,12 @@ function Field({ label, icon: Icon, error, children, className = "" }: {
 
 export default function TambahPesertaPage() {
   const router = useRouter();
+<<<<<<< HEAD
+=======
+  const { showNotification } = useCrudNotification();
+  const kembali = () => router.push("/instruktur/daftar_peserta");
+
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   const [form, setForm] = useState<FormPeserta>(AWAL);
   const [opsi, setOpsi] = useState<PesertaOpsi | null>(null);
   const [errors, setErrors] = useState<Partial<Record<keyof FormPeserta, string>>>({});
@@ -94,10 +109,35 @@ export default function TambahPesertaPage() {
     setErrors(next);
     if (Object.keys(next).length) return;
 
+<<<<<<< HEAD
     if (!form.jenisKelamin) return;
+=======
+  const handleFoto = (file?: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setErrors((e) => ({ ...e, foto: "File harus berupa gambar (JPG/PNG)." }));
+      showNotification({ type: "error", title: "Foto tidak valid", message: "File harus berupa gambar (JPG/PNG)." });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setErrors((e) => ({ ...e, foto: "Ukuran foto maksimal 2 MB." }));
+      showNotification({ type: "error", title: "Foto tidak valid", message: "Ukuran foto maksimal 2 MB." });
+      return;
+    }
+    set("foto", file);
+  };
+
+  const simpan = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    if (!validasi()) {
+      showNotification({ type: "error", title: "Peserta gagal disimpan", message: "Periksa kembali isian yang wajib diisi." });
+      return;
+    }
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
     setSaving(true);
     setError("");
     try {
+<<<<<<< HEAD
       await createPeserta({
         nik: form.nik, nama: form.nama, tanggal_lahir: form.tanggalLahir, jk: form.jenisKelamin,
         alamat: form.alamat, kecamatan: form.kecamatan, kelurahan: form.kelurahan,
@@ -108,6 +148,22 @@ export default function TambahPesertaPage() {
       router.push("/instruktur/daftar_peserta");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal menyimpan peserta");
+=======
+      // TODO: kirim ke API Laravel dengan FormData (karena ada file foto)
+      // const body = new FormData();
+      // Object.entries(form).forEach(([k, v]) => v !== null && body.append(k, v as string | Blob));
+      // await fetch("/api/peserta", { method: "POST", body });
+      setSukses(form.nama);
+      showNotification({
+        type: "success",
+        title: "Peserta tersimpan",
+        message: `${form.nama} berhasil ditambahkan.`,
+        action: { label: "Lihat daftar peserta", onClick: () => router.push("/instruktur/daftar_peserta") },
+      });
+    } catch (e) {
+      const pesan = e instanceof Error ? e.message : "Peserta belum berhasil disimpan. Coba lagi.";
+      showNotification({ type: "error", title: "Peserta gagal disimpan", message: pesan });
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
     } finally {
       setSaving(false);
     }
@@ -116,10 +172,37 @@ export default function TambahPesertaPage() {
   return (
     <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-3xl">
+<<<<<<< HEAD
         <Link href="/instruktur/daftar_peserta" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-orange-700"><ArrowLeft size={16} /> Kembali ke daftar peserta</Link>
         <div className="mb-6 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50">
           <div className="flex items-center gap-4"><span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/25"><UserPlus size={28} /></span>
             <div><h1 className="text-2xl font-semibold">Tambah peserta</h1><p className="text-sm text-orange-50">Lengkapi data peserta pelatihan BLC.</p></div></div>
+=======
+        <Link href="/instruktur/daftar_peserta" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-orange-700">
+          <ArrowLeft size={16} /> Kembali ke daftar peserta
+        </Link>
+
+        {/* Banner + progres */}
+        <div className="instruktur-page-header mb-6 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50">
+          <div className="flex items-center gap-4">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/25">
+              <UserPlus size={28} />
+            </span>
+            <div>
+              <h1 className="text-2xl font-semibold">Tambah peserta</h1>
+              <p className="text-sm text-orange-50">Lengkapi data peserta pelatihan BLC.</p>
+            </div>
+          </div>
+          <div className="mt-5">
+            <div className="mb-1.5 flex justify-between text-xs font-medium text-orange-50">
+              <span>{terisi} dari {wajib.length} data terisi</span>
+              <span>{persen}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-white/30">
+              <div className="h-full rounded-full bg-white transition-all duration-500" style={{ width: `${persen}%` }} />
+            </div>
+          </div>
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
         </div>
 
         {loading ? <div className="flex justify-center py-16"><div className="h-10 w-10 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" /></div> : (
@@ -167,7 +250,10 @@ export default function TambahPesertaPage() {
           </form>
         )}
       </div>
+<<<<<<< HEAD
       {!loading && !opsi?.kategori.length && <p className="mx-auto mt-4 flex max-w-3xl items-center gap-2 text-sm text-amber-700"><AlertCircle size={16} /> Belum ada kategori peserta; hubungi admin untuk melengkapi data master.</p>}
+=======
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
     </main>
   );
 }

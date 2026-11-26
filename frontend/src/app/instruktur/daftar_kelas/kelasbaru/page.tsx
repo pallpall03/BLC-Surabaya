@@ -2,24 +2,36 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarPlus, Clock } from "lucide-react";
+import { AlertTriangle, CalendarPlus, Clock, RotateCcw } from "lucide-react";
 import HeaderHalaman from "../components/headerhalaman";
 import JadwalKelas from "../components/jadwalkelas";
 import FormKelas, { type NilaiKelas, type OpsiKelas } from "../components/formkelas";
 import { cariBentrok, validasiKelas, type Kelas } from "../data";
+<<<<<<< HEAD
 import { getKelas, getKelasOpsi, createKelas } from "@/lib/api";
 
 export default function BuatKelasPage() {
   const router = useRouter();
   const [nilai, setNilai] = useState<NilaiKelas>({ nama: "", sesi: 0, hari: [], materi: "", lokasiBlcId: 0 });
   const [opsi, setOpsi] = useState<OpsiKelas>({ sesi: [], materi: [], blc: [] });
+=======
+import { getKelas, createKelas } from "@/lib/api";
+import { useCrudNotification } from "@/components/CrudNotification";
+
+export default function BuatKelasPage() {
+  const router = useRouter();
+  const { showNotification } = useCrudNotification();
+  const [nilai, setNilai] = useState<NilaiKelas>({ sesi: 1, hari: [], materi: "" });
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
   const [saving, setSaving] = useState(false);
   const [kelasList, setKelasList] = useState<Kelas[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch existing kelas for conflict checking
   useEffect(() => {
+<<<<<<< HEAD
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -36,13 +48,32 @@ export default function BuatKelasPage() {
       } finally {
         setLoading(false);
       }
+=======
+    let aktif = true;
+    void getKelas()
+      .then((res) => {
+        if (aktif) setKelasList(res.data ?? []);
+      })
+      .catch(() => {
+        if (aktif) setLoadError("Jadwal kelas belum berhasil dimuat. Coba lagi beberapa saat.");
+      })
+      .finally(() => {
+        if (aktif) setLoading(false);
+      });
+    return () => {
+      aktif = false;
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
     };
-    fetchData();
-  }, []);
+  }, [reloadKey]);
+
+  const muatUlang = () => {
+    setLoading(true);
+    setLoadError("");
+    setReloadKey((value) => value + 1);
+  };
 
   const bentrok = cariBentrok(kelasList, nilai.sesi, nilai.hari);
 
-  // Klik sel kosong di jadwal: ganti sesi, atau tambah/hapus hari pada sesi yang sama
   const klikKosong = (hari: string, sesi: number) => {
     setError("");
     setNilai((n) =>
@@ -57,14 +88,28 @@ export default function BuatKelasPage() {
     if (!nilai.nama.trim()) return setError("Nama kelas wajib diisi.");
     if (!nilai.lokasiBlcId) return setError("Pilih BLC.");
     const pesan = validasiKelas(nilai.hari, nilai.materi, bentrok);
-    if (pesan) return setError(pesan);
+    if (pesan) {
+      setError(pesan);
+      showNotification({ type: "error", title: "Kelas gagal dibuat", message: pesan });
+      return;
+    }
     setSaving(true);
     try {
+<<<<<<< HEAD
       await createKelas({ nama_kelas: nilai.nama.trim(), materi_id: nilai.materi, sesi_id: nilai.sesi, hari: nilai.hari, lokasi_blc_id: nilai.lokasiBlcId });
       router.push("/instruktur/daftar_kelas");
     } catch (e) {
       console.error(e);
       setError(e instanceof Error ? e.message : "Gagal membuat kelas");
+=======
+      await createKelas({ nama_kelas: "", materi_id: nilai.materi, sesi_id: nilai.sesi, hari: nilai.hari, lokasi_blc_id: 1 });
+      showNotification({ type: "success", title: "Kelas dibuat", message: "Kelas baru berhasil disimpan." });
+      router.push("/instruktur/daftar_kelas");
+    } catch (e) {
+      const pesan = e instanceof Error ? e.message : "Kelas belum berhasil disimpan. Coba lagi.";
+      setError(pesan);
+      showNotification({ type: "error", title: "Kelas gagal dibuat", message: pesan });
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
     } finally {
       setSaving(false);
     }
@@ -72,29 +117,51 @@ export default function BuatKelasPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
-        <div className="mx-auto max-w-5xl">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent" />
-          </div>
-        </div>
-      </main>
+      <div className="instruktur-loading" role="status">
+        <span className="instruktur-spinner" aria-hidden="true" />
+        <span className="fw-semibold text-gray-800">Memuat jadwal kelas…</span>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
-      <div className="mx-auto max-w-5xl">
+    <main className="instruktur-main">
+      <div className="mx-auto w-full max-w-5xl">
         <HeaderHalaman icon={CalendarPlus} judul="Buat kelas baru" kembali="/instruktur/daftar_kelas"
           deskripsi="Lihat jadwal di bawah untuk memilih sesi dan hari yang masih kosong." />
 
-        <section className="mb-6 rounded-2xl border border-orange-200 bg-white p-5 shadow-xl shadow-orange-300/40">
+        <section className="instruktur-card mb-6 rounded-2xl border border-orange-200 bg-white p-5 shadow-xl shadow-orange-300/40">
           <h2 className="mb-4 flex items-center gap-2 font-semibold text-slate-900"><Clock size={20} className="text-orange-500" /> Jadwal kelas aktif</h2>
+<<<<<<< HEAD
           <JadwalKelas kelas={kelasList} dipilih={nilai} onKlikKosong={klikKosong} sesi={opsi.sesi} />
         </section>
 
         <FormKelas nilai={nilai} onChange={(n) => { setError(""); setNilai(n); }} onSubmit={simpan}
           saving={saving} bentrok={bentrok} error={error} kembali="/instruktur/daftar_kelas" opsi={opsi} />
+=======
+          {loadError ? (
+            <div className="d-flex flex-column align-items-center gap-3 py-8 text-center" role="alert">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+                <AlertTriangle size={24} />
+              </span>
+              <div>
+                <p className="fs-6 fw-semibold text-gray-900 mb-1">Jadwal kelas tidak dapat dimuat</p>
+                <p className="fs-7 text-gray-500 mb-0">{loadError}</p>
+              </div>
+              <button type="button" className="btn btn-sm btn-primary d-inline-flex align-items-center gap-2" onClick={muatUlang}>
+                <RotateCcw size={16} /> Coba lagi
+              </button>
+            </div>
+          ) : (
+            <JadwalKelas kelas={kelasList} dipilih={nilai} onKlikKosong={klikKosong} />
+          )}
+        </section>
+
+        {!loadError && (
+          <FormKelas nilai={nilai} onChange={(n) => { setError(""); setNilai(n); }} onSubmit={simpan}
+            saving={saving} bentrok={bentrok} error={error} kembali="/instruktur/daftar_kelas" />
+        )}
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
       </div>
     </main>
   );

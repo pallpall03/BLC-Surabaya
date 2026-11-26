@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, ClipboardList, MapPin, Pencil, Plus, Search,
 import HeaderHalaman from "./components/headerhalaman";
 import FotoKotak from "./components/fotokotak";
 import type { Aktivitas } from "./components/formaktivitas";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 // ===== DATA HARDCODE SEMENTARA =====
 // TODO (backend): ganti DATA_AWAL dengan data dari API, mis. GET /aktivitas
@@ -24,6 +25,7 @@ const kartu = "rounded-2xl border border-orange-200 bg-white shadow-xl shadow-or
 const inp = "rounded-xl border border-orange-100 bg-orange-50/40 px-3 py-2 text-sm outline-none transition hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60";
 
 export default function AktivitasPage() {
+  const { showNotification } = useCrudNotification();
   const [data, setData] = useState<Aktivitas[]>(DATA_AWAL);
   const [mulai, setMulai] = useState("");
   const [sampai, setSampai] = useState("");
@@ -32,7 +34,6 @@ export default function AktivitasPage() {
   const [page, setPage] = useState(1);
   const [terbuka, setTerbuka] = useState<number[]>([]);
   const [lihat, setLihat] = useState<{ id: number; i: number } | null>(null);
-  const [pesan, setPesan] = useState("");
 
   const hasil = useMemo(() => {
     const q = cari.trim().toLowerCase();
@@ -50,12 +51,11 @@ export default function AktivitasPage() {
   const reset = () => { setMulai(""); setSampai(""); setCari(""); setPage(1); };
   const ubah = <T,>(setter: (v: T) => void) => (v: T) => { setter(v); setPage(1); };
 
-  const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
   const hapus = (a: Aktivitas) => {
     if (!window.confirm(`Hapus aktivitas tanggal ${fmt(a.tanggal)}?`)) return;
     // TODO (backend): DELETE /aktivitas/{id}, lalu perbarui daftar
     setData((d) => d.filter((x) => x.id !== a.id));
-    toast("Aktivitas dihapus.");
+    showNotification({ type: "success", title: "Aktivitas dihapus", message: `Aktivitas tanggal ${fmt(a.tanggal)} berhasil dihapus.` });
   };
 
   // Penampil foto besar
@@ -78,16 +78,17 @@ export default function AktivitasPage() {
   };
 
   return (
-    <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
-      <div className="mx-auto max-w-6xl">
-        <HeaderHalaman icon={ClipboardList} judul="Aktivitas instruktur" deskripsi="Catat kegiatan harianmu dan lihat laporan aktivitas.">
-          <Link href="/instruktur/aktivitas/aktivitasbaru"
-            className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-green-900/20 transition hover:-translate-y-0.5 hover:bg-green-700">
-            <Plus size={18} /> Tambah aktivitas
-          </Link>
-        </HeaderHalaman>
+    <main className="instruktur-main">
+      <div className="mx-auto w-full max-w-6xl">
+        <HeaderHalaman icon={ClipboardList} judul="Aktivitas instruktur" deskripsi="Catat kegiatan harianmu dan lihat laporan aktivitas."
+          aksi={
+            <Link href="/instruktur/aktivitas/aktivitasbaru"
+              className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-green-900/20 transition hover:-translate-y-0.5 hover:bg-green-700">
+              <Plus size={18} /> Tambah aktivitas
+            </Link>
+          } />
 
-        <section className={kartu}>
+        <section className={`instruktur-card ${kartu}`}>
           {/* Filter */}
           <div className="flex flex-wrap items-end gap-3 border-b border-orange-100 p-4">
             <label className="text-xs font-medium text-slate-600">Dari tanggal
@@ -153,10 +154,10 @@ export default function AktivitasPage() {
                           ) : (
                             <button type="button" onClick={() => setLihat({ id: a.id, i: 0 })} aria-label="Lihat foto" className="flex items-center transition hover:scale-105">
                               {a.foto.slice(0, 3).map((f, i) => (
-                                <FotoKotak key={f.id} url={f.url} indeks={a.id + i} className={`h-12 w-14 rounded-lg border-2 border-white shadow ${i ? "-ml-4" : ""}`} />
+                                <FotoKotak key={f.id} url={f.url} indeks={a.id + i} className={`h-16 w-20 shrink-0 rounded-xl border-2 border-white object-cover shadow-md ${i ? "-ml-5" : ""}`} />
                               ))}
                               {a.foto.length > 3 && (
-                                <span className="-ml-4 flex h-12 w-14 items-center justify-center rounded-lg border-2 border-white bg-slate-800 text-xs font-semibold text-white shadow">+{a.foto.length - 3}</span>
+                                <span className="-ml-5 flex h-16 w-20 shrink-0 items-center justify-center rounded-xl border-2 border-white bg-slate-800 text-sm font-semibold text-white shadow-md">+{a.foto.length - 3}</span>
                               )}
                             </button>
                           )}
@@ -212,8 +213,6 @@ export default function AktivitasPage() {
           </div>
         </div>
       )}
-
-      {pesan && <div role="status" className="fixed bottom-6 right-6 z-[60] rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-lg">{pesan}</div>}
     </main>
   );
 }

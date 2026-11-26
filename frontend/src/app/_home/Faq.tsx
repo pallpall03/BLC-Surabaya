@@ -9,9 +9,15 @@ export default function Faq() {
   const [daftar, setDaftar] = useState<ItemFaq[]>([]);
 
   useEffect(() => {
-    ambilFaq().then((data) =>
-      setDaftar(data.filter((f) => f.aktif).sort((a, b) => a.urutan - b.urutan))
-    );
+    ambilFaq()
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setDaftar(data.filter((f) => f.aktif).sort((a, b) => a.urutan - b.urutan));
+        } else {
+          setDaftar([]);
+        }
+      })
+      .catch(() => setDaftar([]));
   }, []);
 
   return (

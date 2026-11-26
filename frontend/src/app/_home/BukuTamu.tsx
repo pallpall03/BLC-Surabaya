@@ -24,6 +24,7 @@ export default function BukuTamu() {
   const [sukses, setSukses] = useState<boolean>(false);
 
   useEffect(() => {
+<<<<<<< HEAD
     void Promise.allSettled([ambilBukuTamu(), ambilOpsiBukuTamu()]).then(([pesan, pilihan]) => {
       if (pesan.status === "fulfilled") setDaftar(pesan.value);
       if (pilihan.status === "fulfilled") {
@@ -36,6 +37,11 @@ export default function BukuTamu() {
         }));
       }
     });
+=======
+    ambilBukuTamu()
+      .then((data) => setDaftar(Array.isArray(data) ? data : []))
+      .catch(() => setDaftar([]));
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   }, []);
 
   function ubah(kolom: keyof FormTamu, nilai: string) {
@@ -172,7 +178,7 @@ export default function BukuTamu() {
         </div>
 
         <div className="max-h-[480px] space-y-3 overflow-y-auto pr-1">
-          {daftar.length === 0 ? (
+          {(!Array.isArray(daftar) || daftar.length === 0) ? (
             <p className="py-8 text-center text-sm text-slate-400">Belum ada pesan.</p>
           ) : (
             daftar.map((p) => (
