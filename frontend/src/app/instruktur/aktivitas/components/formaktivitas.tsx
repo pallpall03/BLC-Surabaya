@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, CalendarDays, Camera, Check, Clock, FileText, MapPin, Plus, Save, UploadCloud, X } from "lucide-react";
 import FotoKotak from "./fotokotak";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 // ===== Tipe data (dipakai halaman daftar, baru, dan ubah) =====
 export type Foto = { id: number; url: string };
@@ -56,6 +57,7 @@ export default function FormAktivitas({ nilai, onChange, onSubmit, saving, error
   error?: string;
   kembali: string;
 }) {
+  const { showNotification } = useCrudNotification();
   const [errFoto, setErrFoto] = useState("");
   const [seret, setSeret] = useState(false);
   const inputFoto = useRef<HTMLInputElement>(null);
@@ -80,14 +82,23 @@ export default function FormAktivitas({ nilai, onChange, onSubmit, saving, error
       if (jumlahFoto + diterima.length >= MAKS_FOTO) { pesan = `Maksimal ${MAKS_FOTO} foto.`; break; }
       diterima.push(f);
     }
-    if (pesan) setErrFoto(pesan);
+    if (pesan) {
+      setErrFoto(pesan);
+      showNotification({ type: "error", title: "Foto tidak valid", message: pesan });
+    }
     if (diterima.length) onChange({ ...nilai, fotoBaru: [...nilai.fotoBaru, ...diterima] });
+  };
+
+  const kirim = (e: React.FormEvent) => {
+    const pesan = validasiAktivitas(nilai);
+    if (pesan) showNotification({ type: "error", title: "Data aktivitas belum lengkap", message: pesan });
+    onSubmit(e);
   };
 
   const tombolX = "absolute right-1 top-1 rounded-full bg-white/95 p-1 text-slate-600 shadow hover:bg-red-50 hover:text-red-600";
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-6 rounded-2xl border border-orange-200 bg-white p-6 shadow-xl shadow-orange-300/40">
+    <form onSubmit={kirim} noValidate className="space-y-6 rounded-2xl border border-orange-200 bg-white p-6 shadow-xl shadow-orange-300/40">
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
           <label htmlFor="tanggal" className={label}><CalendarDays size={18} className="text-orange-500" /> Tanggal</label>

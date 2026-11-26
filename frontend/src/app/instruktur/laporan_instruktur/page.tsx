@@ -79,8 +79,8 @@ export default function LaporanInstrukturPage() {
   const tombolPanah = "rounded-lg border border-orange-200 p-2 text-slate-600 transition hover:bg-orange-50";
 
   return (
-    <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8 print:bg-white print:p-0">
-      <div className="mx-auto max-w-6xl space-y-6">
+    <main className="instruktur-main print:bg-white">
+      <div className="mx-auto w-full max-w-6xl space-y-6">
         <div className="print:hidden">
           <h1 className="text-2xl font-semibold text-slate-900">Laporan bulanan instruktur</h1>
           <p className="mt-1 text-sm text-slate-500">Rekap kelas yang diajar dan aktivitasmu selama satu bulan.</p>

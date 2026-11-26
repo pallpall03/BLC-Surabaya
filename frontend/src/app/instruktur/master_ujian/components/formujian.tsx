@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AlertCircle, CalendarClock, CheckCircle2, Clock, Hash, Save, Shuffle } from "lucide-react";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 // TODO: ganti dengan GET /api/materi (berisi pertemuan dan jumlah soal yang tersedia)
 export const MATERI: { nama: string; pertemuan: { no: number; soal: number }[] }[] = [
@@ -62,6 +63,7 @@ export default function FormUjian({ awal, kembali, labelSimpan = "Simpan", savin
   saving?: boolean;
   onSimpan: (nilai: NilaiUjian) => void;
 }) {
+  const { showNotification } = useCrudNotification();
   const [f, setF] = useState<NilaiUjian>(awal ?? nilaiAwal());
   const [errors, setErrors] = useState<Partial<Record<keyof NilaiUjian, string>>>({});
 
@@ -87,7 +89,11 @@ export default function FormUjian({ awal, kembali, labelSimpan = "Simpan", savin
     else if (f.mulai && f.sampai <= f.mulai) e.sampai = "Harus setelah tanggal mulai.";
     if (!(Number(f.waktu) >= 1)) e.waktu = "Isi waktu dalam menit.";
     setErrors(e);
-    if (Object.keys(e).length === 0) onSimpan(f);
+    if (Object.keys(e).length > 0) {
+      showNotification({ type: "error", title: "Data ujian belum valid", message: Object.values(e).join(" ") });
+      return;
+    }
+    onSimpan(f);
   };
 
   return (

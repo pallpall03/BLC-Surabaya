@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  CalendarDays, Camera, CheckCircle2, ChevronLeft, ChevronRight, Clock, FileDown, ImagePlus,
+  CalendarDays, Camera, ChevronLeft, ChevronRight, Clock, FileDown, ImagePlus,
   MapPin, Megaphone, Pencil, Plus, Save, Search, SearchX, Trash2, X, AlertCircle, FileText,
 } from "lucide-react";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 type Foto = { id: number; warna?: string; url?: string };
 type Sosialisasi = { id: number; tanggal: string; sesi: number; lokasi: string; keterangan: string; foto: Foto[] };
@@ -43,6 +44,7 @@ function Gambar({ f, className }: { f: Foto; className: string }) {
 }
 
 export default function SosialisasiPage() {
+  const { showNotification } = useCrudNotification();
   const [data, setData] = useState<Sosialisasi[]>(DATA_AWAL);
   const [mulai, setMulai] = useState(awalBulan());
   const [sampai, setSampai] = useState(hariIni());
@@ -55,23 +57,12 @@ export default function SosialisasiPage() {
   const [fotoLama, setFotoLama] = useState<Foto[]>([]);
   const [fotoBaru, setFotoBaru] = useState<FotoBaru[]>([]);
 
-  const [pesan, setPesan] = useState("");
-  const [sukses, setSukses] = useState<{ judul: string; detail: string } | null>(null);
-
-  useEffect(() => {
-    if (!sukses) return;
-    const t = setTimeout(() => setSukses(null), 3500);
-    return () => clearTimeout(t);
-  }, [sukses]);
-
   useEffect(() => {
     if (!panel) return;
     const esc = (e: KeyboardEvent) => { if (e.key === "Escape") tutupPanel(); };
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
   });
-
-  const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
 
   const hasil = useMemo(() => {
     const q = cari.trim().toLowerCase();
@@ -121,7 +112,10 @@ export default function SosialisasiPage() {
     if (!form.lokasi.trim()) e.lokasi = "Lokasi wajib diisi.";
     if (!form.keterangan.trim()) e.keterangan = "Keterangan wajib diisi.";
     setErrors(e);
-    if (Object.keys(e).length) return;
+    if (Object.keys(e).length > 0) {
+      showNotification({ type: "error", title: "Sosialisasi gagal disimpan", message: Object.values(e)[0] ?? "Lengkapi data sosialisasi." });
+      return;
+    }
 
     // TODO: kirim FormData ke API Laravel (tanggal, sesi, lokasi, keterangan, foto[], foto_hapus[])
     // tambah: POST /api/sosialisasi, ubah: PUT /api/sosialisasi/{id}
@@ -133,10 +127,10 @@ export default function SosialisasiPage() {
 
     if (panel?.mode === "ubah") {
       setData((d) => d.map((x) => (x.id === panel.id ? { ...x, ...isi } : x)));
-      setSukses({ judul: "Sosialisasi diperbarui", detail: `${isi.lokasi} · ${fmt(isi.tanggal)}` });
+      showNotification({ type: "success", title: "Sosialisasi diperbarui", message: `${isi.lokasi} · ${fmt(isi.tanggal)}` });
     } else {
       setData((d) => [{ id: Math.max(0, ...d.map((x) => x.id)) + 1, ...isi }, ...d]);
-      setSukses({ judul: "Sosialisasi tersimpan", detail: `${isi.lokasi} · ${fmt(isi.tanggal)}` });
+      showNotification({ type: "success", title: "Sosialisasi tersimpan", message: `${isi.lokasi} · ${fmt(isi.tanggal)}` });
     }
     setFotoBaru([]); // url sudah dipakai oleh data, jangan di-revoke
     setPanel(null);
@@ -146,7 +140,7 @@ export default function SosialisasiPage() {
     if (!window.confirm(`Hapus sosialisasi di ${s.lokasi} (${fmt(s.tanggal)})?`)) return;
     // TODO: DELETE /api/sosialisasi/{id}
     setData((d) => d.filter((x) => x.id !== s.id));
-    toast("Sosialisasi dihapus.");
+    showNotification({ type: "success", title: "Sosialisasi dihapus", message: `Sosialisasi di ${s.lokasi} berhasil dihapus.` });
   };
 
   const mode = panel?.mode;
@@ -155,7 +149,7 @@ export default function SosialisasiPage() {
     <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-6xl">
         {/* Banner */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50 print:hidden">
+        <div className="instruktur-page-header mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50 print:hidden">
           <div className="flex items-center gap-4">
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/25"><Megaphone size={28} /></span>
             <div>
@@ -256,7 +250,7 @@ export default function SosialisasiPage() {
         <div onClick={tutupPanel} className={`absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity ${panel ? "opacity-100" : "opacity-0"}`} />
         <aside className={`relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl shadow-orange-300/50 transition duration-200 ${panel ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
           role="dialog" aria-modal="true" aria-label={mode === "ubah" ? "Ubah sosialisasi" : "Tambah sosialisasi"}>
-          <div className="flex items-center gap-3 bg-gradient-to-br from-orange-500 to-amber-400 p-5 text-white">
+          <div className="instruktur-modal-header flex items-center gap-3 bg-gradient-to-br from-orange-500 to-amber-400 p-5 text-white">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/25">{mode === "ubah" ? <Pencil size={22} /> : <Plus size={22} />}</span>
             <div className="mr-auto">
               <h2 className="font-semibold">{mode === "ubah" ? "Ubah sosialisasi" : "Tambah sosialisasi"}</h2>
@@ -338,28 +332,6 @@ export default function SosialisasiPage() {
         </aside>
       </div>
 
-      {/* Popup sukses */}
-      {sukses && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm print:hidden" onClick={() => setSukses(null)} role="alertdialog" aria-live="polite">
-          <style>{`
-            @keyframes pop { 0% { transform: scale(.6); opacity: 0 } 60% { transform: scale(1.05); opacity: 1 } 100% { transform: scale(1) } }
-            @keyframes bar { from { width: 100% } to { width: 0% } }
-          `}</style>
-          <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-white p-8 text-center shadow-2xl shadow-orange-300/50" style={{ animation: "pop .35s ease-out" }}>
-            <button type="button" onClick={() => setSukses(null)} aria-label="Tutup" className="absolute right-3 top-3 rounded-full p-1.5 text-slate-400 hover:bg-orange-50 hover:text-orange-600"><X size={16} /></button>
-            <span className="relative mx-auto flex h-20 w-20 items-center justify-center">
-              <span className="absolute inset-0 animate-ping rounded-full bg-emerald-200/70" />
-              <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><CheckCircle2 size={44} /></span>
-            </span>
-            <h3 className="mt-5 text-xl font-semibold text-slate-900">{sukses.judul}</h3>
-            <p className="mt-1 text-sm text-slate-500">{sukses.detail}</p>
-            <button type="button" onClick={() => setSukses(null)} className="mt-6 w-full rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-orange-300/50 transition hover:-translate-y-0.5 hover:bg-orange-600">Oke</button>
-            <span className="absolute bottom-0 left-0 h-1 bg-orange-400" style={{ animation: "bar 3.5s linear forwards" }} />
-          </div>
-        </div>
-      )}
-
-      {pesan && <div role="status" className="fixed bottom-6 right-6 z-[80] rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-lg print:hidden">{pesan}</div>}
     </main>
   );
 }
