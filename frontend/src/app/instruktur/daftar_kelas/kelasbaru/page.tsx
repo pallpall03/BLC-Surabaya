@@ -1,10 +1,6 @@
 "use client";
 
-<<<<<<< HEAD
-import { useState } from "react";
-=======
 import { useEffect, useState } from "react";
->>>>>>> 76d4f7dd648545a996f558989eb874d401051596
 import { useRouter } from "next/navigation";
 import { CalendarPlus, Clock } from "lucide-react";
 import HeaderHalaman from "../components/headerhalaman";
@@ -42,11 +38,7 @@ export default function BuatKelasPage() {
   // Klik sel kosong di jadwal: ganti sesi, atau tambah/hapus hari pada sesi yang sama
   const klikKosong = (hari: string, sesi: number) => {
     setError("");
-    setNilai((n) =>
-      n.sesi !== sesi
-        ? { ...n, sesi, hari: [hari] }
-        : { ...n, hari: n.hari.includes(hari) ? n.hari.filter((h) => h !== hari) : [...n.hari, hari] }
-    );
+    setNilai((n) => n.sesi !== sesi ? { ...n, sesi, hari: [hari] } : { ...n, hari: n.hari.includes(hari) ? n.hari.filter((h) => h !== hari) : [...n.hari, hari] });
   };
 
   const simpan = async (e: React.FormEvent) => {
@@ -82,7 +74,6 @@ export default function BuatKelasPage() {
       <HeaderHalaman icon={CalendarPlus} judul="Buat kelas baru" kembali="/instruktur/daftar_kelas"
         deskripsi="Lihat jadwal di bawah untuk memilih sesi dan hari yang masih kosong." />
 
-<<<<<<< HEAD
       <div className="card mb-6">
         <div className="card-header">
           <div className="card-title d-flex align-items-center gap-2 fs-4 fw-bold">
@@ -90,17 +81,8 @@ export default function BuatKelasPage() {
           </div>
         </div>
         <div className="card-body">
-          <JadwalKelas kelas={KELAS_CONTOH} dipilih={nilai} onKlikKosong={klikKosong} />
-        </div>
-=======
-        <section className="mb-6 rounded-2xl border border-orange-200 bg-white p-5 shadow-xl shadow-orange-300/40">
-          <h2 className="mb-4 flex items-center gap-2 font-semibold text-slate-900"><Clock size={20} className="text-orange-500" /> Jadwal kelas aktif</h2>
           <JadwalKelas kelas={kelasList} dipilih={nilai} onKlikKosong={klikKosong} />
-        </section>
-
-        <FormKelas nilai={nilai} onChange={(n) => { setError(""); setNilai(n); }} onSubmit={simpan}
-          saving={saving} bentrok={bentrok} error={error} kembali="/instruktur/daftar_kelas" />
->>>>>>> 76d4f7dd648545a996f558989eb874d401051596
+        </div>
       </div>
 
       <FormKelas nilai={nilai} onChange={(n) => { setError(""); setNilai(n); }} onSubmit={simpan}

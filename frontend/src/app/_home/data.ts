@@ -153,3 +153,11 @@ export async function ubahStatusTestimoni(
     };
   }
 }
+export const menuNavbar = [
+  { label: "Beranda", id: "beranda", anak: false },
+  { label: "Informasi", id: "informasi", anak: true },
+  { label: "Artikel", id: "artikel", anak: false },
+  { label: "Lokasi", id: "lokasi", anak: false },
+  { label: "Testimoni", id: "testimoni", anak: false },
+  { label: "Pengguna", id: "pengguna", anak: false },
+];

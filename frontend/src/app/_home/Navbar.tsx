@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
-import { idSection, menuNavbar } from "./data";
+import { ambilTestimoni, menuNavbar } from "./data";
 import { ambilInformasi, type Informasi } from "../administrator/konten/data";
 import { ambilIkon } from "@/app/administrator/konten/ikon";
 
@@ -12,6 +12,7 @@ export default function Navbar() {
   const [infoBuka, setInfoBuka] = useState<boolean>(false);
   const [daftarInfo, setDaftarInfo] = useState<Informasi[]>([]);
   const infoRef = useRef<HTMLDivElement>(null);
+  const idSection = menuNavbar.map((m) => m.id);
 
   function ke(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });

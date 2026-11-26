@@ -219,7 +219,7 @@ export default function HalamanUserManager() {
                             </tr>
                           ) : (
                             tampil.map((u, i) => (
-                              <tr key={u.id} className="transition hover:bg-slate-50">
+                              <tr key={u.username} className="transition hover:bg-slate-50">
                                 <td className="px-6 py-3.5 text-slate-400">{awal + i + 1}</td>
                                 <td className="px-4 py-3.5">
                                   <div className="flex items-center gap-3">
