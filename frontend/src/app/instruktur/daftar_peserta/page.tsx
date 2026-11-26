@@ -8,6 +8,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import HeaderHalaman from "../daftar_kelas/components/headerhalaman";
+import { useCrudNotification } from "@/components/CrudNotification";
+
 type Peserta = { id: number; nik: string; nama: string; blc: string; jk: "L" | "P"; tervalidasi: boolean };
 type StatusFilter = "semua" | "valid" | "non";
 
@@ -81,6 +84,7 @@ function Aksi({ p, onValidasi, onHapus }: { p: Peserta; onValidasi: () => void; 
 }
 
 export default function DaftarPesertaPage() {
+  const { showNotification } = useCrudNotification();
   const [data, setData] = useState<Peserta[]>(DATA_AWAL);
   const [cari, setCari] = useState("");
   const [area, setArea] = useState("");
@@ -90,7 +94,6 @@ export default function DaftarPesertaPage() {
   const [tampilan, setTampilan] = useState<"tabel" | "kartu">("tabel");
   const [perPage, setPerPage] = useState(10);
   const [page, setPage] = useState(1);
-  const [pesan, setPesan] = useState("");
 
   const daftarArea = useMemo(() => Array.from(new Set(data.map((d) => d.blc))).sort(), [data]);
   const jumlahValid = data.filter((d) => d.tervalidasi).length;
@@ -121,12 +124,20 @@ export default function DaftarPesertaPage() {
   const reset = () => { setCari(""); setArea(""); setCariArea(""); setStatus("semua"); setPage(1); };
   const pilihArea = (a: string) => { setArea(a); setCariArea(a); setBukaArea(false); setPage(1); };
 
-  const tampilkanPesan = (teks: string) => { setPesan(teks); setTimeout(() => setPesan(""), 3000); };
-  const toggleValidasi = (id: number) => setData((d) => d.map((p) => (p.id === id ? { ...p, tervalidasi: !p.tervalidasi } : p)));
+  const toggleValidasi = (id: number) => {
+    const peserta = data.find((p) => p.id === id);
+    if (!peserta) return;
+    setData((d) => d.map((p) => (p.id === id ? { ...p, tervalidasi: !p.tervalidasi } : p)));
+    showNotification({
+      type: "success",
+      title: peserta.tervalidasi ? "Validasi dibatalkan" : "Peserta divalidasi",
+      message: `${peserta.nama} ${peserta.tervalidasi ? "kembali berstatus non validasi" : "berhasil divalidasi"}.`,
+    });
+  };
   const hapus = (p: Peserta) => {
     if (!window.confirm(`Hapus peserta ${p.nama}?`)) return;
     setData((d) => d.filter((x) => x.id !== p.id));
-    tampilkanPesan("Peserta dihapus.");
+    showNotification({ type: "success", title: "Peserta dihapus", message: `${p.nama} berhasil dihapus.` });
   };
 
   const statistik: { kunci: StatusFilter; label: string; nilai: number; icon: LucideIcon; warna: string; aktif: string }[] = [
@@ -137,6 +148,8 @@ export default function DaftarPesertaPage() {
 
   return (
     <>
+      <HeaderHalaman icon={Users} judul="Daftar peserta" deskripsi="Kelola data peserta dan pantau status validasinya." />
+
       {/* Kartu statistik (bisa diklik untuk memfilter) */}
       <div className="row g-5 g-xl-6 mb-6">
         {statistik.map(({ kunci, label, nilai, icon: Icon, warna, aktif }) => (
@@ -326,12 +339,6 @@ export default function DaftarPesertaPage() {
           </div>
         </div>
       </div>
-
-      {pesan && (
-        <div role="status" className="position-fixed bottom-0 end-0 m-6 rounded px-5 py-3 bg-dark text-white shadow fs-7" style={{ zIndex: 1090 }}>
-          {pesan}
-        </div>
-      )}
     </>
   );
 }

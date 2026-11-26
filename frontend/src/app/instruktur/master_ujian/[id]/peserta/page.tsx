@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { ArrowLeft, CalendarClock, Clock, Download, FileQuestion, RotateCcw, Search, SearchX, Shuffle, Trash2, UserCheck, UserPlus, X } from "lucide-react";
 import HeaderHalaman from "../../components/headerhalaman";
 import Paginasi from "../../components/paginasi";
-import PopupSukses from "../../components/popupsukses";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 type Peserta = { id: number; nik: string; username: string; nama: string; jk: "L" | "P"; kategori: string; area: string; noDaftar: string; tglDaftar: string };
 type Terdaftar = { p: Peserta; benar: number | null; nilai: number | null; mulai: string; selesai: string; waktu: string };
@@ -56,6 +56,7 @@ const inputCls = "w-full rounded-xl border border-orange-100 bg-orange-50/40 px-
 
 export default function IsiPesertaPage() {
   const { id } = useParams<{ id: string }>();
+  const { showNotification } = useCrudNotification();
   const info = INFO[id];
 
   const [tab, setTab] = useState<Tab>("belum");
@@ -68,7 +69,6 @@ export default function IsiPesertaPage() {
   const [page, setPage] = useState(1);
   const [cariSudah, setCariSudah] = useState("");
   const [pageSudah, setPageSudah] = useState(1);
-  const [sukses, setSukses] = useState<number | null>(null);
 
   const idTerdaftar = useMemo(() => new Set(terdaftar.map((t) => t.p.id)), [terdaftar]);
 
@@ -117,23 +117,33 @@ export default function IsiPesertaPage() {
 
   const daftarkan = () => {
     const baru = SEMUA.filter((p) => pilih.has(p.id)).map<Terdaftar>((p) => ({ p, benar: null, nilai: null, mulai: "-", selesai: "-", waktu: "-" }));
-    if (baru.length === 0) return;
+    if (baru.length === 0) {
+      showNotification({ type: "error", title: "Peserta belum dipilih", message: "Pilih minimal satu peserta untuk didaftarkan." });
+      return;
+    }
     // TODO: POST /api/ujian/{id}/peserta dengan body { peserta_ids: [...] }
     setTerdaftar((t) => [...baru, ...t]);
     setPilih(new Set());
-    setSukses(baru.length);
+    showNotification({
+      type: "success",
+      title: "Peserta didaftarkan",
+      message: `${baru.length.toLocaleString("id-ID")} peserta masuk ke ujian ini.`,
+      action: { label: "Lihat peserta", onClick: () => setTab("sudah") },
+    });
   };
 
   const resetUjian = (t: Terdaftar) => {
     if (!window.confirm(`Reset ujian ${t.p.nama}? Nilai dan jawaban akan dihapus, peserta bisa mengulang.`)) return;
     // TODO: POST /api/ujian/{id}/peserta/{pesertaId}/reset
     setTerdaftar((l) => l.map((x) => (x.p.id === t.p.id ? { ...x, benar: null, nilai: null, mulai: "-", selesai: "-", waktu: "-" } : x)));
+    showNotification({ type: "success", title: "Ujian peserta direset", message: `${t.p.nama} dapat mengulang ujian.` });
   };
 
   const hapusPeserta = (t: Terdaftar) => {
     if (!window.confirm(`Hapus ${t.p.nama} dari ujian ini?`)) return;
     // TODO: DELETE /api/ujian/{id}/peserta/{pesertaId}
     setTerdaftar((l) => l.filter((x) => x.p.id !== t.p.id));
+    showNotification({ type: "success", title: "Peserta dikeluarkan", message: `${t.p.nama} berhasil dihapus dari ujian ini.` });
   };
 
   const excel = () => {
@@ -298,8 +308,6 @@ export default function IsiPesertaPage() {
           </div>
         </div>
       )}
-
-      {sukses !== null && <PopupSukses judul="Peserta didaftarkan" detail={`${sukses.toLocaleString("id-ID")} peserta masuk ke ujian ini.`} onTutup={() => { setSukses(null); setTab("sudah"); }} />}
     </main>
   );
 }

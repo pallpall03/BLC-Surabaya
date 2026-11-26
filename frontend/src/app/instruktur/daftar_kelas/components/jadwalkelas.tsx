@@ -9,7 +9,7 @@ const WARNA = [
   { bg: "bg-light-warning", border: "border-warning", teks: "text-warning" },
 ];
 
-const SEL = { height: 56 };
+const SEL = { minHeight: 76 };
 
 export default function JadwalKelas({ kelas, dipilih, onKlikKosong }: {
   kelas: Kelas[];

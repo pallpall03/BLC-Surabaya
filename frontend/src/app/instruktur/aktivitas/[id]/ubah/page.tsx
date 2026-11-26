@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { PencilLine } from "lucide-react";
 import HeaderHalaman from "../../components/headerhalaman";
 import FormAktivitas, { validasiAktivitas, type Aktivitas, type NilaiAktivitas } from "../../components/formaktivitas";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 // HARDCODE: satu aktivitas contoh (apa pun id-nya, yang tampil data ini).
 // TODO (backend): ambil dari API memakai id dari URL, mis. GET /aktivitas/{id}
@@ -20,6 +21,7 @@ const CONTOH: Aktivitas = {
 export default function UbahAktivitasPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { showNotification } = useCrudNotification();
   const [nilai, setNilai] = useState<NilaiAktivitas>({
     tanggal: CONTOH.tanggal, sesi: CONTOH.sesi, lokasi: CONTOH.lokasi, keterangan: CONTOH.keterangan,
     fotoLama: CONTOH.foto, fotoBaru: [],
@@ -43,6 +45,7 @@ export default function UbahAktivitasPage() {
       // nilai.fotoLama.forEach((f) => body.append("foto_lama[]", String(f.id)));  // id foto lama yang DIPERTAHANKAN
       // nilai.fotoBaru.forEach((f) => body.append("foto[]", f));                  // foto baru
       // await fetch(`${process.env.NEXT_PUBLIC_API_URL}/aktivitas/${id}`, { method: "POST", body });
+      showNotification({ type: "success", title: "Aktivitas diperbarui", message: "Perubahan aktivitas berhasil disimpan." });
       router.push("/instruktur/aktivitas");
     } finally {
       setSaving(false);

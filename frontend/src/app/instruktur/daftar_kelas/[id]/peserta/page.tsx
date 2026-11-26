@@ -6,6 +6,7 @@ import { CheckCircle2, ClipboardList, Mars, Search, SearchX, UserCheck, UserMinu
 import HeaderHalaman from "../../components/headerhalaman";
 import { jamSesi, type Kelas } from "../../data";
 import { getKelasDetail, getCalonPeserta, getKelasPeserta, addPesertaToKelas, removePesertaFromKelas, type Peserta } from "@/lib/api";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 const JK = ({ jk }: { jk: "L" | "P" }) =>
   jk === "L" ? (
@@ -21,6 +22,7 @@ type CalonPeserta = Peserta & { noDaftar: string };
 export default function PesertaKelasPage() {
   const { id } = useParams<{ id: string }>();
   const kelasId = Number(id);
+  const { showNotification } = useCrudNotification();
 
   const [kelas, setKelas] = useState<Kelas | null>(null);
   const [tersedia, setTersedia] = useState<CalonPeserta[]>([]);
@@ -28,10 +30,11 @@ export default function PesertaKelasPage() {
   const [dipilih, setDipilih] = useState<number[]>([]);
   const [cari, setCari] = useState("");
   const [area, setArea] = useState("");
-  const [pesan, setPesan] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
+  const toast = (t: string, type: "success" | "error" = "success") => {
+    showNotification({ type, title: type === "success" ? "Berhasil" : "Operasi gagal", message: t });
+  };
 
   // Fetch data
   useEffect(() => {
@@ -48,13 +51,13 @@ export default function PesertaKelasPage() {
         setTerdaftar(terdaftarRes.data.map(p => ({ ...p, noDaftar: `-` })));
       } catch (e) {
         console.error(e);
-        toast("Gagal memuat data");
+        showNotification({ type: "error", title: "Operasi gagal", message: "Gagal memuat data" });
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, [kelasId]);
+  }, [kelasId, showNotification]);
 
   const daftarArea = useMemo(() => Array.from(new Set(tersedia.map((p) => p.blc))).sort(), [tersedia]);
   const tampil = useMemo(() => {
@@ -62,25 +65,16 @@ export default function PesertaKelasPage() {
     return tersedia.filter((p) => (!q || p.nama.toLowerCase().includes(q) || p.nik.includes(q)) && (!area || p.blc === area));
   }, [tersedia, cari, area]);
 
-<<<<<<< HEAD
-  if (!kelas) {
-    return <div className="card"><div className="card-body text-center text-gray-600 py-15">Kelas tidak ditemukan.</div></div>;
-  }
-=======
   if (loading) {
     return (
-      <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent" />
-          </div>
-        </div>
-      </main>
+      <div className="instruktur-loading" role="status">
+        <span className="instruktur-spinner" aria-hidden="true" />
+        <span className="fw-semibold text-gray-800">Memuat peserta kelas…</span>
+      </div>
     );
   }
 
   if (!kelas) return <main className="p-10 text-center text-slate-600">Kelas tidak ditemukan.</main>;
->>>>>>> 76d4f7dd648545a996f558989eb874d401051596
 
   const semua = tampil.length > 0 && tampil.every((p) => dipilih.includes(p.id));
   const toggle = (pid: number) => setDipilih((d) => (d.includes(pid) ? d.filter((x) => x !== pid) : [...d, pid]));
@@ -89,7 +83,10 @@ export default function PesertaKelasPage() {
 
   const daftarkan = async () => {
     const pindah = tersedia.filter((p) => dipilih.includes(p.id));
-    if (pindah.length === 0) return;
+    if (pindah.length === 0) {
+      toast("Pilih minimal satu peserta untuk didaftarkan.", "error");
+      return;
+    }
     try {
       await addPesertaToKelas(kelasId, pindah.map(p => p.id));
       setTerdaftar((t) => [...t, ...pindah]);
@@ -98,7 +95,7 @@ export default function PesertaKelasPage() {
       toast(`${pindah.length} peserta didaftarkan.`);
     } catch (e) {
       console.error(e);
-      toast("Gagal mendaftarkan peserta");
+      toast("Gagal mendaftarkan peserta", "error");
     }
   };
 
@@ -110,7 +107,7 @@ export default function PesertaKelasPage() {
       toast("Peserta dikeluarkan dari kelas.");
     } catch (e) {
       console.error(e);
-      toast("Gagal mengeluarkan peserta");
+      toast("Gagal mengeluarkan peserta", "error");
     }
   };
 
@@ -174,11 +171,11 @@ export default function PesertaKelasPage() {
                 </thead>
                 <tbody className="text-gray-600 fw-semibold">
                   {tampil.map((p) => (
-                    <tr key={p.id} onClick={() => toggle(p.id)} style={{ cursor: "pointer" }} className={dipilih.includes(p.id) ? "table-active" : ""}>
+                    <tr key={p.id} className={dipilih.includes(p.id) ? "table-active" : ""}>
                       <td>
                         <div className="form-check form-check-sm form-check-custom form-check-solid">
                           <input type="checkbox" className="form-check-input" checked={dipilih.includes(p.id)} onChange={() => toggle(p.id)}
-                            onClick={(e) => e.stopPropagation()} aria-label={`Pilih ${p.nama}`} />
+                            aria-label={`Pilih ${p.nama}`} />
                         </div>
                       </td>
                       <td>{p.nik}</td>
@@ -249,11 +246,6 @@ export default function PesertaKelasPage() {
               </button>
             </div>
           </div>
-        </div>
-      )}
-      {pesan && (
-        <div role="status" className="position-fixed top-0 end-0 m-6 rounded px-5 py-3 bg-dark text-white shadow fs-7" style={{ zIndex: 1090 }}>
-          {pesan}
         </div>
       )}
     </>

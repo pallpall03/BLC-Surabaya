@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Activity, CalendarDays, CheckCircle2, Clock, Pencil, Plus, Printer, RotateCcw, Search, SearchX, Trash2, UserPlus, Users,
@@ -10,35 +10,36 @@ import HeaderHalaman from "./components/headerhalaman";
 import JadwalKelas from "./components/jadwalkelas";
 import { jamSesi } from "./data";
 import { getKelas, createKelas, updateKelas, deleteKelas, type Kelas } from "@/lib/api";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 type Filter = "Semua" | "Aktif" | "Selesai";
 
 export default function DaftarKelasPage() {
+  const { showNotification } = useCrudNotification();
   const [kelas, setKelas] = useState<Kelas[]>([]);
   const [filter, setFilter] = useState<Filter>("Semua");
   const [cari, setCari] = useState("");
-  const [pesan, setPesan] = useState("");
-    const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
 
-    // Fetch kelas dari API
-    const fetchKelas = async () => {
-      try {
-        setLoading(true);
-        const res = await getKelas();
-        setKelas(res.data ?? []);
-      } catch (e) {
-        console.error(e);
-        setPesan("Gagal memuat data kelas");
-        setTimeout(() => setPesan(""), 3000);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchKelas = useCallback(async () => {
+    setLoading(true);
+    setLoadError("");
+    try {
+      const res = await getKelas();
+      setKelas(res.data ?? []);
+    } catch {
+      setLoadError("Data kelas belum berhasil dimuat. Coba lagi beberapa saat.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-    useEffect(() => {
-      fetchKelas();
-    }, []);
+  useEffect(() => {
+    void fetchKelas();
+  }, [fetchKelas, reloadKey]);
 
     const tampil = useMemo(() => {
       const q = cari.trim().toLowerCase();
@@ -47,8 +48,6 @@ export default function DaftarKelasPage() {
         (!q || k.nama.toLowerCase().includes(q) || k.materi.toLowerCase().includes(q))
       );
     }, [kelas, filter, cari]);
-
-    const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
 
     const handleCreate = async (data: Omit<Kelas, "id" | "totalPeserta">) => {
       try {
@@ -61,11 +60,11 @@ export default function DaftarKelasPage() {
           lokasi_blc_id: 1, // TODO: get from user context
         });
         setKelas((prev) => [...prev, res.data]);
-        toast("Kelas berhasil dibuat");
+        showNotification({ type: "success", title: "Kelas dibuat", message: "Kelas berhasil dibuat." });
         return true;
       } catch (e) {
         console.error(e);
-        toast("Gagal membuat kelas");
+        showNotification({ type: "error", title: "Kelas gagal dibuat", message: e instanceof Error ? e.message : "Gagal membuat kelas." });
         return false;
       } finally {
         setSubmitting(false);
@@ -83,11 +82,11 @@ export default function DaftarKelasPage() {
         if (data.status !== undefined) payload.status = data.status === "Aktif" ? 1 : 0;
         const res = await updateKelas(id, payload);
         setKelas((prev) => prev.map((k) => (k.id === id ? res.data : k)));
-        toast("Kelas berhasil diperbarui");
+        showNotification({ type: "success", title: "Kelas diperbarui", message: "Kelas berhasil diperbarui." });
         return true;
       } catch (e) {
         console.error(e);
-        toast("Gagal memperbarui kelas");
+        showNotification({ type: "error", title: "Kelas gagal diperbarui", message: e instanceof Error ? e.message : "Gagal memperbarui kelas." });
         return false;
       } finally {
         setSubmitting(false);
@@ -99,10 +98,10 @@ export default function DaftarKelasPage() {
       try {
         await deleteKelas(id);
         setKelas((prev) => prev.filter((k) => k.id !== id));
-        toast("Kelas dihapus");
+        showNotification({ type: "success", title: "Kelas dihapus", message: "Kelas berhasil dihapus." });
       } catch (e) {
         console.error(e);
-        toast("Gagal menghapus kelas");
+        showNotification({ type: "error", title: "Kelas gagal dihapus", message: e instanceof Error ? e.message : "Gagal menghapus kelas." });
       }
     };
 
@@ -114,7 +113,6 @@ export default function DaftarKelasPage() {
 
   const jumlah = (f: Filter) => (f === "Semua" ? kelas.length : kelas.filter((k) => k.status === f).length);
 
-<<<<<<< HEAD
   const statistik: { kunci: Filter; label: string; icon: LucideIcon; warna: string; aktif: string }[] = [
     { kunci: "Semua", label: "Semua kelas", icon: CalendarDays, warna: "bg-light-primary text-primary", aktif: "border-primary" },
     { kunci: "Aktif", label: "Kelas aktif", icon: Activity, warna: "bg-light-success text-success", aktif: "border-success" },
@@ -134,36 +132,28 @@ export default function DaftarKelasPage() {
           <div className="card-toolbar">
             {/* TODO: ganti dengan ekspor PDF dari backend jika perlu */}
             <button type="button" onClick={() => window.print()} className="btn btn-sm btn-light-primary d-inline-flex align-items-center gap-2">
-=======
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent" />
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  return (
-    <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
-      <div className="mx-auto max-w-6xl">
-        <HeaderHalaman icon={CalendarDays} judul="Daftar kelas" deskripsi="Lihat jadwal kelas aktif dan kelola semua kelas." />
-
-        <section className={`${kartu} mb-6`}>
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="flex items-center gap-2 font-semibold text-slate-900"><Clock size={20} className="text-orange-500" /> Jadwal kelas aktif</h2>
-            <button type="button" onClick={() => window.print()}
-              className="inline-flex items-center gap-2 rounded-xl border border-orange-200 px-4 py-2 text-sm font-medium text-orange-700 hover:bg-orange-50">
->>>>>>> 76d4f7dd648545a996f558989eb874d401051596
               <Printer size={16} /> Cetak jadwal
             </button>
           </div>
         </div>
-        <div className="card-body">
-          <JadwalKelas kelas={kelas} />
+        <div className="card-body" aria-busy={loading}>
+          {loading ? (
+            <div className="instruktur-loading" role="status">
+              <span className="instruktur-spinner" aria-hidden="true" />
+              <span className="fw-semibold text-gray-800">Memuat jadwal kelas…</span>
+              <span className="fs-8">Data sedang diambil dari server.</span>
+            </div>
+          ) : loadError ? (
+            <div className="d-flex flex-column align-items-center gap-3 text-center py-10" role="alert">
+              <p className="fs-6 fw-semibold text-gray-900 mb-0">Jadwal kelas tidak dapat dimuat</p>
+              <p className="fs-7 text-gray-500 mb-0">{loadError}</p>
+              <button type="button" className="btn btn-sm btn-primary" onClick={() => setReloadKey((value) => value + 1)}>
+                Coba lagi
+              </button>
+            </div>
+          ) : (
+            <JadwalKelas kelas={kelas} />
+          )}
         </div>
       </div>
 
@@ -203,8 +193,21 @@ export default function DaftarKelasPage() {
           </div>
         </div>
 
-        <div className="card-body py-4">
-          {tampil.length === 0 ? (
+        <div className="card-body py-4" aria-busy={loading}>
+          {loading ? (
+            <div className="instruktur-loading" role="status">
+              <span className="instruktur-spinner" aria-hidden="true" />
+              <span className="fw-semibold text-gray-800">Memuat data kelas…</span>
+            </div>
+          ) : loadError ? (
+            <div className="d-flex flex-column align-items-center gap-3 text-center py-10" role="alert">
+              <p className="fs-6 fw-semibold text-gray-900 mb-0">Daftar kelas tidak dapat dimuat</p>
+              <p className="fs-7 text-gray-500 mb-0">{loadError}</p>
+              <button type="button" className="btn btn-sm btn-primary" onClick={() => setReloadKey((value) => value + 1)}>
+                Coba lagi
+              </button>
+            </div>
+          ) : tampil.length === 0 ? (
             <div className="d-flex flex-column align-items-center gap-3 text-center py-15">
               <span className="symbol symbol-80px symbol-circle">
                 <span className="symbol-label bg-light-primary text-primary"><SearchX size={32} /></span>
@@ -273,12 +276,6 @@ export default function DaftarKelasPage() {
           )}
         </div>
       </div>
-
-      {pesan && (
-        <div role="status" className="position-fixed bottom-0 end-0 m-6 rounded px-5 py-3 bg-dark text-white shadow fs-7" style={{ zIndex: 1090 }}>
-          {pesan}
-        </div>
-      )}
     </>
   );
 }

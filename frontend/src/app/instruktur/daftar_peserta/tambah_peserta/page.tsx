@@ -4,11 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  AlertCircle, ArrowLeft, Building2, CalendarDays, Camera, Check, CheckCircle2, Code2, Fingerprint,
+  AlertCircle, ArrowLeft, Building2, CalendarDays, Camera, Check, Code2, Fingerprint,
   GraduationCap, Mail, MapPin, Map, Mars, Monitor, Palette, Phone, Save, Store,
   Trash2, UploadCloud, User, UserPlus, Venus,
   type LucideIcon,
 } from "lucide-react";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 type FormPeserta = {
   nik: string; nama: string; tanggalLahir: string; jenisKelamin: "L" | "P" | "";
@@ -78,6 +79,7 @@ function Field({ label, id, icon: Icon, error, top, className = "", children }: 
 
 export default function TambahPesertaPage() {
   const router = useRouter();
+  const { showNotification } = useCrudNotification();
   const kembali = () => router.push("/instruktur/daftar_peserta");
 
   const [form, setForm] = useState<FormPeserta>(AWAL);
@@ -136,14 +138,25 @@ export default function TambahPesertaPage() {
 
   const handleFoto = (file?: File) => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) return setErrors((e) => ({ ...e, foto: "File harus berupa gambar (JPG/PNG)." }));
-    if (file.size > 2 * 1024 * 1024) return setErrors((e) => ({ ...e, foto: "Ukuran foto maksimal 2 MB." }));
+    if (!file.type.startsWith("image/")) {
+      setErrors((e) => ({ ...e, foto: "File harus berupa gambar (JPG/PNG)." }));
+      showNotification({ type: "error", title: "Foto tidak valid", message: "File harus berupa gambar (JPG/PNG)." });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setErrors((e) => ({ ...e, foto: "Ukuran foto maksimal 2 MB." }));
+      showNotification({ type: "error", title: "Foto tidak valid", message: "Ukuran foto maksimal 2 MB." });
+      return;
+    }
     set("foto", file);
   };
 
   const simpan = async (ev: React.FormEvent) => {
     ev.preventDefault();
-    if (!validasi()) return;
+    if (!validasi()) {
+      showNotification({ type: "error", title: "Peserta gagal disimpan", message: "Periksa kembali isian yang wajib diisi." });
+      return;
+    }
     setSaving(true);
     try {
       // TODO: kirim ke API Laravel dengan FormData (karena ada file foto)
@@ -151,6 +164,15 @@ export default function TambahPesertaPage() {
       // Object.entries(form).forEach(([k, v]) => v !== null && body.append(k, v as string | Blob));
       // await fetch("/api/peserta", { method: "POST", body });
       setSukses(form.nama);
+      showNotification({
+        type: "success",
+        title: "Peserta tersimpan",
+        message: `${form.nama} berhasil ditambahkan.`,
+        action: { label: "Lihat daftar peserta", onClick: () => router.push("/instruktur/daftar_peserta") },
+      });
+    } catch (e) {
+      const pesan = e instanceof Error ? e.message : "Peserta belum berhasil disimpan. Coba lagi.";
+      showNotification({ type: "error", title: "Peserta gagal disimpan", message: pesan });
     } finally {
       setSaving(false);
     }
@@ -166,7 +188,7 @@ export default function TambahPesertaPage() {
         </Link>
 
         {/* Banner + progres */}
-        <div className="mb-6 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50">
+        <div className="instruktur-page-header mb-6 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50">
           <div className="flex items-center gap-4">
             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/25">
               <UserPlus size={28} />
@@ -336,32 +358,6 @@ export default function TambahPesertaPage() {
           </div>
         </form>
       </div>
-
-      {/* Popup sukses */}
-      {sukses && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm" role="alertdialog" aria-live="polite">
-          <style>{`
-            @keyframes pop { 0% { transform: scale(.6); opacity: 0 } 60% { transform: scale(1.05); opacity: 1 } 100% { transform: scale(1) } }
-            @keyframes bar { from { width: 100% } to { width: 0% } }
-          `}</style>
-          <div className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-white p-8 text-center shadow-2xl shadow-orange-300/50"
-            style={{ animation: "pop .35s ease-out" }}>
-            <span className="relative mx-auto flex h-20 w-20 items-center justify-center">
-              <span className="absolute inset-0 animate-ping rounded-full bg-emerald-200/70" />
-              <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                <CheckCircle2 size={44} />
-              </span>
-            </span>
-            <h3 className="mt-5 text-xl font-semibold text-slate-900">Peserta tersimpan</h3>
-            <p className="mt-1 text-sm text-slate-500"><b className="text-slate-700">{sukses}</b> berhasil ditambahkan. Mengalihkan ke daftar peserta...</p>
-            <button type="button" onClick={() => router.push("/instruktur/daftar_peserta")}
-              className="mt-6 w-full rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-orange-300/50 transition hover:-translate-y-0.5 hover:bg-orange-600">
-              Lihat daftar peserta
-            </button>
-            <span className="absolute bottom-0 left-0 h-1 bg-orange-400" style={{ animation: "bar 2.5s linear forwards" }} />
-          </div>
-        </div>
-      )}
     </main>
   );
 }

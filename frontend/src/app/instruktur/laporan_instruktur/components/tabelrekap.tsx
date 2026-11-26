@@ -38,14 +38,15 @@ export default function TabelRekap({ data }: { data: LaporanHarian[] }) {
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-orange-200 bg-white shadow-xl shadow-orange-300/40 print:shadow-none">
-      <table className="w-full min-w-[860px] border-collapse text-left text-sm">
+      <table className="instruktur-report-table w-full min-w-[980px] border-collapse text-left text-sm" aria-label="Rekap laporan bulanan instruktur">
+        <caption className="sr-only">Rekap kelas, kehadiran, dan aktivitas instruktur per tanggal</caption>
         <thead className="bg-orange-50 text-orange-900">
           <tr>
-            <th className="w-36 px-4 py-3 font-medium">Tanggal</th>
-            <th className="w-52 px-4 py-3 font-medium">Kelas dan sesi</th>
-            <th className="w-48 px-4 py-3 font-medium">Materi</th>
-            <th className="w-44 px-4 py-3 font-medium">Kehadiran peserta</th>
-            <th className="px-4 py-3 font-medium">Ringkasan aktivitas</th>
+            <th scope="col" className="w-40 px-4 py-3 font-medium">Tanggal</th>
+            <th scope="col" className="w-56 px-4 py-3 font-medium">Kelas dan sesi</th>
+            <th scope="col" className="w-52 px-4 py-3 font-medium">Materi</th>
+            <th scope="col" className="w-48 px-4 py-3 font-medium">Kehadiran peserta</th>
+            <th scope="col" className="px-4 py-3 font-medium">Ringkasan aktivitas</th>
           </tr>
         </thead>
         {data.map((h, i) => {
@@ -56,16 +57,16 @@ export default function TabelRekap({ data }: { data: LaporanHarian[] }) {
           const panjang = h.aktivitas.length > 90;
           const buka = terbuka.includes(h.tanggal);
           return (
-            <tbody key={h.tanggal} className={`border-t border-orange-200 print:break-inside-avoid ${i % 2 ? "bg-orange-50/40" : "bg-white"}`}>
+            <tbody key={h.tanggal} className={`border-t-2 border-orange-200 print:break-inside-avoid ${i % 2 ? "bg-orange-50/40" : "bg-white"}`}>
               {baris.map((p, j) => {
                 const persen = p && p.total > 0 ? Math.round((p.hadir / p.total) * 100) : 0;
                 const w = warnaHadir(persen);
                 return (
                   <tr key={j} className={j > 0 ? "border-t border-dashed border-orange-100" : ""}>
                     {j === 0 && (
-                      <td rowSpan={n} className="border-r border-orange-100 px-4 py-3 align-top">
-                        <span className="block text-xs font-medium text-orange-600">{hari}</span>
-                        <span className="font-semibold text-slate-900">{d} {BULAN[m - 1]} {y}</span>
+                      <td rowSpan={n} className="instruktur-report-date border-r-2 border-orange-200 px-4 py-4 align-top">
+                        <span className="inline-flex rounded-lg bg-white px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-orange-700 shadow-sm">{hari}</span>
+                        <span className="mt-2 block whitespace-nowrap text-base font-bold text-slate-900">{d} {BULAN[m - 1]} {y}</span>
                       </td>
                     )}
                     <td className="px-4 py-3 align-top">
