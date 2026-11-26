@@ -76,11 +76,7 @@ export default function BuatKelasPage() {
 
   const klikKosong = (hari: string, sesi: number) => {
     setError("");
-    setNilai((n) =>
-      n.sesi !== sesi
-        ? { ...n, sesi, hari: [hari] }
-        : { ...n, hari: n.hari.includes(hari) ? n.hari.filter((h) => h !== hari) : [...n.hari, hari] }
-    );
+    setNilai((n) => n.sesi !== sesi ? { ...n, sesi, hari: [hari] } : { ...n, hari: n.hari.includes(hari) ? n.hari.filter((h) => h !== hari) : [...n.hari, hari] });
   };
 
   const simpan = async (e: React.FormEvent) => {

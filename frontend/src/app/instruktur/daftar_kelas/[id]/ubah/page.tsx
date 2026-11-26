@@ -1,8 +1,7 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Clock, PencilLine } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 import HeaderHalaman from "../../components/headerhalaman";
 import JadwalKelas from "../../components/jadwalkelas";
 import FormKelas, { type NilaiKelas, type OpsiKelas } from "../../components/formkelas";
@@ -24,7 +23,6 @@ export default function UbahKelasPage() {
   const [nilai, setNilai] = useState<NilaiKelas>({ nama: "", sesi: 0, hari: [], materi: "", lokasiBlcId: 0 });
   const [opsi, setOpsi] = useState<OpsiKelas>({ sesi: [], materi: [], blc: [] });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -51,8 +49,6 @@ export default function UbahKelasPage() {
       } catch (e) {
         console.error(e);
         setError("Gagal memuat data kelas");
-      } finally {
-        setLoading(false);
       }
     };
     void fetchData();
