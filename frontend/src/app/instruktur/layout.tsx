@@ -1,10 +1,10 @@
-import AuthGuard from "@/components/auth/AuthGuard";
+import DashboardGuard from "@/components/auth/DashboardGuard";
 import InstrukturShell from "@/components/instruktur/InstrukturShell";
 
 export default function InstrukturLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AuthGuard role="instruktur">
+    <DashboardGuard path="/instruktur">
       <InstrukturShell>{children}</InstrukturShell>
-    </AuthGuard>
+    </DashboardGuard>
   );
 }

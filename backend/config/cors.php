@@ -9,6 +9,7 @@ return [
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
     'max_age' => 0,
-    // Token dikirim lewat header Authorization (Bearer), bukan cookie.
-    'supports_credentials' => false,
+    // Sesi login memakai cookie httpOnly (blc_dashboard_token), jadi browser harus
+    // diizinkan mengirim cookie saat memanggil API dari origin frontend.
+    'supports_credentials' => true,
 ];

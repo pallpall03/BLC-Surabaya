@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { CheckCircle2, ClipboardList, Mars, Search, SearchX, UserCheck, UserMinus, UserPlus, Venus } from "lucide-react";
 import HeaderHalaman from "../../components/headerhalaman";
@@ -12,45 +12,49 @@ const JK = ({ jk }: { jk: "L" | "P" }) =>
   jk === "L" ? <span className="inline-flex items-center gap-1 text-sky-600"><Mars size={15} /> L</span>
              : <span className="inline-flex items-center gap-1 text-pink-600"><Venus size={15} /> P</span>;
 
-type CalonPeserta = Peserta & { noDaftar: string };
-
 export default function PesertaKelasPage() {
   const { id } = useParams<{ id: string }>();
   const kelasId = Number(id);
 
   const [kelas, setKelas] = useState<Kelas | null>(null);
-  const [tersedia, setTersedia] = useState<CalonPeserta[]>([]);
-  const [terdaftar, setTerdaftar] = useState<CalonPeserta[]>([]);
+  const [tersedia, setTersedia] = useState<Peserta[]>([]);
+  const [terdaftar, setTerdaftar] = useState<Peserta[]>([]);
   const [dipilih, setDipilih] = useState<number[]>([]);
   const [cari, setCari] = useState("");
   const [area, setArea] = useState("");
   const [pesan, setPesan] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
+  const toast = useCallback((t: string) => {
+    setPesan(t);
+    setTimeout(() => setPesan(""), 3000);
+  }, []);
 
-  // Fetch data
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [kelasRes, calonRes, terdaftarRes] = await Promise.all([
+        getKelasDetail(kelasId),
+        getCalonPeserta(kelasId),
+        getKelasPeserta(kelasId),
+      ]);
+      setKelas(kelasRes.data);
+      setTersedia(calonRes.data);
+      setTerdaftar(terdaftarRes.data);
+    } catch (e) {
+      console.error(e);
+      toast("Gagal memuat data");
+    } finally {
+      setLoading(false);
+    }
+  }, [kelasId, toast]);
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [kelasRes, calonRes, terdaftarRes] = await Promise.all([
-          getKelasDetail(kelasId),
-          getCalonPeserta(kelasId),
-          getKelasPeserta(kelasId),
-        ]);
-        setKelas(kelasRes.data);
-        setTersedia(calonRes.data.map(p => ({ ...p, noDaftar: `-` })));
-        setTerdaftar(terdaftarRes.data.map(p => ({ ...p, noDaftar: `-` })));
-      } catch (e) {
-        console.error(e);
-        toast("Gagal memuat data");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [kelasId]);
+    void Promise.resolve().then(() => {
+      setLoading(true);
+      return fetchData();
+    });
+  }, [fetchData]);
 
   const daftarArea = useMemo(() => Array.from(new Set(tersedia.map((p) => p.blc))).sort(), [tersedia]);
   const tampil = useMemo(() => {
@@ -92,7 +96,7 @@ export default function PesertaKelasPage() {
     }
   };
 
-  const keluarkan = async (p: CalonPeserta) => {
+  const keluarkan = async (p: Peserta) => {
     try {
       await removePesertaFromKelas(kelasId, p.id);
       setTerdaftar((t) => t.filter((x) => x.id !== p.id));
@@ -113,7 +117,7 @@ export default function PesertaKelasPage() {
             <span className="flex flex-wrap items-center gap-2">
               Kelas <b>{kelas.nama}</b>
               {kelas.hari.map((h) => <span key={h} className="rounded-full bg-white/25 px-2.5 py-0.5 text-xs font-medium">{h}</span>)}
-              <span className="text-orange-100">Sesi {kelas.sesi} · {jamSesi(kelas.sesi)}</span>
+              <span className="text-orange-100">Sesi {kelas.sesi} · {kelas.waktuSesi ?? jamSesi(kelas.sesi)}</span>
             </span>
           } />
 
@@ -127,7 +131,7 @@ export default function PesertaKelasPage() {
             <div className="flex flex-wrap gap-3">
               <div className="relative">
                 <Search size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-orange-400" />
-                <input type="search" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama, NIK, no. pendaftaran" aria-label="Cari peserta"
+                <input type="search" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama atau NIK" aria-label="Cari peserta"
                   className="w-64 rounded-xl border border-orange-100 bg-orange-50/40 py-2 pl-9 pr-3 text-sm outline-none transition hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60" />
               </div>
               <select value={area} onChange={(e) => setArea(e.target.value)} aria-label="Filter area BLC"
@@ -149,7 +153,7 @@ export default function PesertaKelasPage() {
                 <thead className="bg-orange-50 text-orange-900">
                   <tr>
                     <th className={`${th} w-12`}><input type="checkbox" checked={semua} onChange={toggleSemua} aria-label="Pilih semua" className="h-4 w-4 accent-orange-500" /></th>
-                    <th className={th}>NIK</th><th className={th}>No. pendaftaran</th><th className={th}>Nama lengkap</th>
+                    <th className={th}>ID Peserta</th><th className={th}>NIK</th><th className={th}>Nama lengkap</th>
                     <th className={th}>L/P</th><th className={th}>Kategori</th><th className={th}>BLC</th>
                   </tr>
                 </thead>
@@ -157,8 +161,8 @@ export default function PesertaKelasPage() {
                   {tampil.map((p) => (
                     <tr key={p.id} onClick={() => toggle(p.id)} className={`cursor-pointer transition ${dipilih.includes(p.id) ? "bg-orange-50" : "hover:bg-orange-50/50"}`}>
                       <td className="px-4 py-3"><input type="checkbox" checked={dipilih.includes(p.id)} onChange={() => toggle(p.id)} onClick={(e) => e.stopPropagation()} aria-label={`Pilih ${p.nama}`} className="h-4 w-4 accent-orange-500" /></td>
+                      <td className="px-4 py-3 tabular-nums text-slate-600">{p.id}</td>
                       <td className="px-4 py-3 tabular-nums text-slate-600">{p.nik}</td>
-                      <td className="px-4 py-3 text-slate-600">{p.noDaftar}</td>
                       <td className="px-4 py-3 font-medium text-slate-900">{p.nama}</td>
                       <td className="px-4 py-3"><JK jk={p.jk} /></td>
                       <td className="px-4 py-3"><span className="rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-medium text-violet-700">{p.kategori}</span></td>
@@ -185,13 +189,13 @@ export default function PesertaKelasPage() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[800px] text-left text-sm">
                 <thead className="bg-emerald-50 text-emerald-900">
-                  <tr><th className={th}>NIK</th><th className={th}>No. pendaftaran</th><th className={th}>Nama lengkap</th><th className={th}>L/P</th><th className={th}>Kategori</th><th className={`${th} text-right`}>Aksi</th></tr>
+                  <tr><th className={th}>ID Peserta</th><th className={th}>NIK</th><th className={th}>Nama lengkap</th><th className={th}>L/P</th><th className={th}>Kategori</th><th className={`${th} text-right`}>Aksi</th></tr>
                 </thead>
                 <tbody className="divide-y divide-orange-100">
                   {terdaftar.map((p) => (
                     <tr key={p.id} className="transition hover:bg-emerald-50/40">
+                      <td className="px-4 py-3 tabular-nums text-slate-600">{p.id}</td>
                       <td className="px-4 py-3 tabular-nums text-slate-600">{p.nik}</td>
-                      <td className="px-4 py-3 text-slate-600">{p.noDaftar}</td>
                       <td className="px-4 py-3 font-medium text-slate-900">{p.nama}</td>
                       <td className="px-4 py-3"><JK jk={p.jk} /></td>
                       <td className="px-4 py-3"><span className="rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-medium text-violet-700">{p.kategori}</span></td>

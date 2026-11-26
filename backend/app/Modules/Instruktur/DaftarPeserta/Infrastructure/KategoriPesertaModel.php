@@ -6,9 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class KategoriPesertaModel extends Model
 {
-    protected $table = 'kategori_peserta';
+    protected $table = 'kategori_artikel';
     protected $guarded = ['id'];
     protected $casts = [
-        'is_aktif' => 'boolean',
+        'urutan' => 'integer',
+        'is_delete' => 'boolean',
     ];
 }

@@ -18,11 +18,14 @@ final class TestimoniServiceProvider extends ServiceProvider
     {
         Route::prefix('testimoni')->group(function (): void {
             Route::get('/', [Http\TestimoniController::class, 'index']);
-            Route::post('/', [Http\TestimoniController::class, 'store']);
             Route::get('/{id}', [Http\TestimoniController::class, 'show']);
-            Route::put('/{id}', [Http\TestimoniController::class, 'update']);
-            Route::patch('/{id}', [Http\TestimoniController::class, 'update']);
-            Route::delete('/{id}', [Http\TestimoniController::class, 'destroy']);
+
+            Route::middleware(['auth:api', 'role:superadmin'])->group(function (): void {
+                Route::post('/', [Http\TestimoniController::class, 'store']);
+                Route::put('/{id}', [Http\TestimoniController::class, 'update']);
+                Route::patch('/{id}', [Http\TestimoniController::class, 'update']);
+                Route::delete('/{id}', [Http\TestimoniController::class, 'destroy']);
+            });
         });
     }
 }

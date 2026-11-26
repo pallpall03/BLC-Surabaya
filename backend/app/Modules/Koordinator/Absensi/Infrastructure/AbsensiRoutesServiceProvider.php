@@ -8,7 +8,7 @@ class AbsensiRoutesServiceProvider
 {
     public static function register(): void
     {
-        Route::prefix('absensi')->group(function () {
+        Route::middleware(['auth:api', 'role:koordinator'])->prefix('absensi')->group(function () {
             Route::get('/', [\App\Modules\Koordinator\Absensi\Http\AbsensiController::class, 'index']);
             Route::get('/{id}', [\App\Modules\Koordinator\Absensi\Http\AbsensiController::class, 'show']);
             Route::post('/', [\App\Modules\Koordinator\Absensi\Http\AbsensiController::class, 'store']);

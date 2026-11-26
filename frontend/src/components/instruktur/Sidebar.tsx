@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Activity, ChevronDown, ClipboardList, FileText, GraduationCap, MapPin, Megaphone, Users, UsersRound, X,FileQuestion,
+  Activity, ChevronDown, FileQuestion, FileText, GraduationCap, MapPin, Megaphone, X,
   type LucideIcon,
 } from "lucide-react";
 
@@ -48,10 +48,12 @@ export default function Sidebar({ buka, tutup }: { buka: boolean; tutup: () => v
   const pathname = usePathname();
   const on = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
-  const adaPelatihan = on("/instruktur/pelatihan");
-  const adaPengunjung = on("/instruktur/pengunjung");
-  const [pelatihan, setPelatihan] = useState(adaPelatihan);
-  const [pengunjung, setPengunjung] = useState(adaPengunjung);
+  const adaPelatihan = on("/instruktur/pelatihan") || on("/instruktur/daftar_peserta") || on("/instruktur/daftar_kelas");
+  const adaLaporan = on("/instruktur/laporan_instruktur") || on("/instruktur/pengunjung");
+  const [pelatihanState, setPelatihanState] = useState({ path: pathname, open: adaPelatihan });
+  const [laporanState, setLaporanState] = useState({ path: pathname, open: adaLaporan });
+  const pelatihan = pelatihanState.path === pathname ? pelatihanState.open : adaPelatihan;
+  const laporan = laporanState.path === pathname ? laporanState.open : adaLaporan;
 
   return (
     <>
@@ -82,26 +84,24 @@ export default function Sidebar({ buka, tutup }: { buka: boolean; tutup: () => v
           <p className="px-3 pb-1 pt-2 text-xs font-medium uppercase tracking-wide text-slate-400">Menu</p>
 
 
-          <Item href="/instruktur/daftar_peserta" icon={Users} label="Daftar peserta" aktif={on("/instruktur/daftar_peserta")} onClick={tutup} />
-          <Item href="/instruktur/daftar_kelas" icon={ClipboardList} label="Daftar kelas" aktif={on("/instruktur/daftar_kelas")} onClick={tutup} />
-
-          <Grup icon={GraduationCap} label="Pelatihan" aktif={adaPelatihan} open={pelatihan} toggle={() => setPelatihan((v) => !v)}>
+          <Grup icon={GraduationCap} label="Pelatihan" aktif={adaPelatihan} open={pelatihan} toggle={() => setPelatihanState({ path: pathname, open: !pelatihan })}>
+            <Sub href="/instruktur/daftar_peserta" label="Daftar peserta" aktif={on("/instruktur/daftar_peserta")} onClick={tutup} />
+            <Sub href="/instruktur/daftar_kelas" label="Daftar kelas" aktif={on("/instruktur/daftar_kelas")} onClick={tutup} />
             <Sub href="/instruktur/pelatihan/daftar_hadir" label="Daftar hadir" aktif={on("/instruktur/pelatihan/daftar_hadir")} onClick={tutup} />
             <Sub href="/instruktur/pelatihan/laporan" label="Laporan" aktif={on("/instruktur/pelatihan/laporan")} onClick={tutup} />
           </Grup>
 
-          <Grup icon={UsersRound} label="Pengunjung" aktif={adaPengunjung} open={pengunjung} toggle={() => setPengunjung((v) => !v)}>
+          <Item href="/instruktur/master_ujian" icon={FileQuestion} label="Master ujian" aktif={on("/instruktur/master_ujian")} onClick={tutup} />
+
+          <Grup icon={FileText} label="Laporan Instruktur" aktif={adaLaporan} open={laporan} toggle={() => setLaporanState({ path: pathname, open: !laporan })}>
+            <Sub href="/instruktur/laporan_instruktur" label="Laporan & foto pengunjung" aktif={on("/instruktur/laporan_instruktur") || on("/instruktur/pengunjung/foto_kegiatan")} onClick={tutup} />
             <Sub href="/instruktur/pengunjung/pengunjung" label="Pengunjung" aktif={on("/instruktur/pengunjung/pengunjung")} onClick={tutup} />
-            <Sub href="/instruktur/pengunjung/foto_kegiatan" label="Foto kegiatan" aktif={on("/instruktur/pengunjung/foto_kegiatan")} onClick={tutup} />
           </Grup>
 
           <Item href="/instruktur/sosialisasi" icon={Megaphone} label="Sosialisasi" aktif={on("/instruktur/sosialisasi")} onClick={tutup} />
 
           <Item href="/instruktur/aktivitas" icon={Activity} label="Aktivitas" aktif={on("/instruktur/aktivitas")} onClick={tutup} />
 
-          <Item href="/instruktur/laporan_instruktur" icon={FileText} label="Laporan Instruktur" aktif={on("/instruktur/laporan_instruktur")} onClick={tutup} />
-
-          <Item href="/instruktur/master_ujian" icon={FileQuestion} label="Master ujian" aktif={on("/instruktur/master_ujian")} onClick={tutup} />
         </nav>
       </aside>
     </>

@@ -8,7 +8,7 @@ class PiagamPesertaRoutesServiceProvider
 {
     public static function register(): void
     {
-        Route::prefix('piagam-peserta')->group(function () {
+        Route::middleware(['auth:api', 'role:koordinator'])->prefix('piagam-peserta')->group(function () {
             Route::get('/', [\App\Modules\Koordinator\PiagamPeserta\Http\PiagamPesertaController::class, 'index']);
             Route::get('/{id}', [\App\Modules\Koordinator\PiagamPeserta\Http\PiagamPesertaController::class, 'show']);
             Route::post('/', [\App\Modules\Koordinator\PiagamPeserta\Http\PiagamPesertaController::class, 'store']);

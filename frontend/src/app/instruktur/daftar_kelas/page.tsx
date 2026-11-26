@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   CalendarDays, CheckCircle2, Clock, Pencil, Plus, Printer, RotateCcw, Search, SearchX, Trash2, UserPlus, Users,
@@ -8,7 +8,7 @@ import {
 import HeaderHalaman from "./components/headerhalaman";
 import JadwalKelas from "./components/jadwalkelas";
 import { jamSesi } from "./data";
-import { getKelas, createKelas, updateKelas, deleteKelas, type Kelas } from "@/lib/api";
+import { getKelas, getKelasOpsi, updateKelas, deleteKelas, type Kelas, type Sesi } from "@/lib/api";
 
 type Filter = "Semua" | "Aktif" | "Selesai";
 const kartu = "rounded-2xl border border-orange-200 bg-white p-5 shadow-xl shadow-orange-300/40";
@@ -18,27 +18,26 @@ export default function DaftarKelasPage() {
   const [filter, setFilter] = useState<Filter>("Semua");
   const [cari, setCari] = useState("");
   const [pesan, setPesan] = useState("");
+  const [sesi, setSesi] = useState<Sesi[]>([]);
     const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
 
-    // Fetch kelas dari API
-    const fetchKelas = async () => {
+    const toast = useCallback((t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); }, []);
+
+    const fetchKelas = useCallback(async () => {
       try {
-        setLoading(true);
-        const res = await getKelas();
+        const [res, opsiRes] = await Promise.all([getKelas(), getKelasOpsi()]);
         setKelas(res.data ?? []);
+        setSesi(opsiRes.data.sesi);
       } catch (e) {
-        console.error(e);
-        setPesan("Gagal memuat data kelas");
-        setTimeout(() => setPesan(""), 3000);
+        toast(e instanceof Error ? e.message : "Gagal memuat data kelas");
       } finally {
         setLoading(false);
       }
-    };
+    }, [toast]);
 
     useEffect(() => {
-      fetchKelas();
-    }, []);
+      void Promise.resolve().then(() => { setLoading(true); return fetchKelas(); });
+    }, [fetchKelas]);
 
     const tampil = useMemo(() => {
       const q = cari.trim().toLowerCase();
@@ -48,37 +47,13 @@ export default function DaftarKelasPage() {
       );
     }, [kelas, filter, cari]);
 
-    const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
-
-    const handleCreate = async (data: Omit<Kelas, "id" | "totalPeserta">) => {
-      try {
-        setSubmitting(true);
-        const res = await createKelas({
-          nama_kelas: data.nama,
-          materi_id: data.materi,
-          sesi_id: data.sesi,
-          hari: data.hari,
-          lokasi_blc_id: 1, // TODO: get from user context
-        });
-        setKelas((prev) => [...prev, res.data]);
-        toast("Kelas berhasil dibuat");
-        return true;
-      } catch (e) {
-        console.error(e);
-        toast("Gagal membuat kelas");
-        return false;
-      } finally {
-        setSubmitting(false);
-      }
-    };
-
     const handleUpdate = async (id: number, data: Partial<Kelas>) => {
       try {
-        setSubmitting(true);
         const payload: Record<string, unknown> = {};
         if (data.nama !== undefined) payload.nama_kelas = data.nama;
-        if (data.materi !== undefined) payload.materi_id = data.materi;
-        if (data.sesi !== undefined) payload.sesi_id = data.sesi;
+        if (data.materi_id !== undefined) payload.materi_id = data.materi_id;
+        if (data.sesi_id !== undefined) payload.sesi_id = data.sesi_id;
+        if (data.lokasi_blc_id !== undefined) payload.lokasi_blc_id = data.lokasi_blc_id;
         if (data.hari !== undefined) payload.hari = data.hari;
         if (data.status !== undefined) payload.status = data.status === "Aktif" ? 1 : 0;
         const res = await updateKelas(id, payload);
@@ -86,11 +61,8 @@ export default function DaftarKelasPage() {
         toast("Kelas berhasil diperbarui");
         return true;
       } catch (e) {
-        console.error(e);
-        toast("Gagal memperbarui kelas");
+        toast(e instanceof Error ? e.message : "Gagal memperbarui kelas");
         return false;
-      } finally {
-        setSubmitting(false);
       }
     };
 
@@ -139,7 +111,7 @@ export default function DaftarKelasPage() {
               <Printer size={16} /> Cetak jadwal
             </button>
           </div>
-          <JadwalKelas kelas={kelas} />
+          <JadwalKelas kelas={kelas} sesi={sesi} />
         </section>
 
         <section className={kartu}>
@@ -188,11 +160,11 @@ export default function DaftarKelasPage() {
                     <tr key={k.id} className="transition hover:bg-orange-50/60">
                       <td className="px-4 py-3">
                         <span className="block font-medium text-slate-900">{k.nama}</span>
-                        <span className="text-xs text-slate-500">{k.tanggal}</span>
+                        <span className="text-xs text-slate-500">{k.tanggal || "Jadwal mingguan"}</span>
                       </td>
                       <td className="px-4 py-3 text-slate-700">
                         <span className="block">Sesi {k.sesi}</span>
-                        <span className="text-xs text-slate-500">{jamSesi(k.sesi)}</span>
+                        <span className="text-xs text-slate-500">{k.waktuSesi ?? jamSesi(k.sesi)}</span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-1">

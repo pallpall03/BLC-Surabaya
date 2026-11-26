@@ -2,35 +2,46 @@
 
 namespace App\Modules\Instruktur\DaftarPeserta\Infrastructure;
 
-use App\Models\User;
 use App\Modules\Admin\Data\LokasiBlc\Infrastructure\LokasiBlcModel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PesertaModel extends Model
 {
-    use SoftDeletes;
-
     protected $table = 'peserta';
 
-    /** Hanya kolom isian form. Status validasi diubah lewat SetValidasiPeserta (forceFill). */
+    /** Hanya kolom isian form. Status validasi dan soft flag diubah lewat repository. */
     protected $fillable = [
         'nik',
-        'nama',
-        'jk',
-        'tanggal_lahir',
-        'telepon',
+        'nama_lengkap',
+        'gender',
+        'email',
         'alamat',
+        'phone',
+        'kategori_id',
         'lokasi_blc_id',
-        'kategori_peserta_id',
+        'tanggal_lahir',
+        'kecamatan',
+        'kelurahan',
+        'kecamatan_lain',
+        'kelurahan_lain',
+        'is_surabaya',
     ];
 
     protected $casts = [
         'tanggal_lahir' => 'date',
-        'tervalidasi' => 'boolean',
-        'tanggal_validasi' => 'datetime',
+        'is_surabaya' => 'boolean',
+        'is_delete' => 'boolean',
+        'is_validated' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope('is_delete', function (Builder $query): void {
+            $query->where('peserta.is_delete', false);
+        });
+    }
 
     public function lokasiBlc(): BelongsTo
     {
@@ -39,11 +50,6 @@ class PesertaModel extends Model
 
     public function kategoriPeserta(): BelongsTo
     {
-        return $this->belongsTo(KategoriPesertaModel::class, 'kategori_peserta_id');
-    }
-
-    public function divalidasiOleh(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'divalidasi_oleh');
+        return $this->belongsTo(KategoriPesertaModel::class, 'kategori_id');
     }
 }

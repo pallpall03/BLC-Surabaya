@@ -24,6 +24,14 @@ final class UjianServiceProvider extends ServiceProvider
             ->prefix('instruktur/ujian')
             ->group(function (): void {
                 Route::get('/', [Http\UjianController::class, 'index']);
+                Route::get('/opsi', [Http\UjianController::class, 'opsi']);
+                Route::post('/', [Http\UjianController::class, 'store']);
+                Route::post('/jadwal', [Http\UjianController::class, 'storeJadwal']);
+                Route::match(['put', 'patch'], '/jadwal/{id}', [Http\UjianController::class, 'updateJadwal'])->whereNumber('id');
+                Route::delete('/jadwal/{id}', [Http\UjianController::class, 'destroyJadwal'])->whereNumber('id');
+                Route::get('/{id}', [Http\UjianController::class, 'show'])->whereNumber('id');
+                Route::match(['put', 'patch'], '/{id}', [Http\UjianController::class, 'update'])->whereNumber('id');
+                Route::delete('/{id}', [Http\UjianController::class, 'destroy'])->whereNumber('id');
             });
     }
 }

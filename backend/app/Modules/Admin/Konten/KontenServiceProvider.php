@@ -20,11 +20,14 @@ final class KontenServiceProvider extends ServiceProvider
             Route::get('/', [Http\KontenController::class, 'index']);
             Route::get('/flat', [Http\KontenController::class, 'flat']);
             Route::get('/slug/{slug}', [Http\KontenController::class, 'bySlug']);
-            Route::post('/', [Http\KontenController::class, 'store']);
             Route::get('/{id}', [Http\KontenController::class, 'show']);
-            Route::put('/{id}', [Http\KontenController::class, 'update']);
-            Route::patch('/{id}', [Http\KontenController::class, 'update']);
-            Route::delete('/{id}', [Http\KontenController::class, 'destroy']);
+
+            Route::middleware(['auth:api', 'role:superadmin'])->group(function (): void {
+                Route::post('/', [Http\KontenController::class, 'store']);
+                Route::put('/{id}', [Http\KontenController::class, 'update']);
+                Route::patch('/{id}', [Http\KontenController::class, 'update']);
+                Route::delete('/{id}', [Http\KontenController::class, 'destroy']);
+            });
         });
     }
 }

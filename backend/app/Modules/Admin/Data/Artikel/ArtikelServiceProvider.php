@@ -24,11 +24,14 @@ final class ArtikelServiceProvider extends ServiceProvider
                 Route::get('/', [Http\ArtikelController::class, 'index']);
                 Route::get('/latest', [Http\ArtikelController::class, 'latest']);
                 Route::get('/kategori/{kategoriId}', [Http\ArtikelController::class, 'byKategori']);
-                Route::post('/', [Http\ArtikelController::class, 'store']);
                 Route::get('/{id}', [Http\ArtikelController::class, 'show']);
-                Route::put('/{id}', [Http\ArtikelController::class, 'update']);
-                Route::patch('/{id}', [Http\ArtikelController::class, 'update']);
-                Route::delete('/{id}', [Http\ArtikelController::class, 'destroy']);
+
+                Route::middleware(['auth:api', 'role:superadmin'])->group(function (): void {
+                    Route::post('/', [Http\ArtikelController::class, 'store']);
+                    Route::put('/{id}', [Http\ArtikelController::class, 'update']);
+                    Route::patch('/{id}', [Http\ArtikelController::class, 'update']);
+                    Route::delete('/{id}', [Http\ArtikelController::class, 'destroy']);
+                });
             });
         }
 }

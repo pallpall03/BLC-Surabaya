@@ -8,15 +8,26 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class MateriModel extends Model
 {
     protected $table = 'materi';
-    protected $guarded = ['id'];
-    protected $casts = [
-        'durasi_jam' => 'integer',
-        'is_aktif' => 'boolean',
+
+    protected $keyType = 'string';
+
+    public $incrementing = false;
+
+    protected $fillable = [
+        'id',
+        'nama_materi',
+        'id_index',
+        'is_delete',
     ];
 
-    public function sesi(): HasMany
+    protected $casts = [
+        'id_index' => 'integer',
+        'is_delete' => 'boolean',
+    ];
+
+    public function scopeAktif($query)
     {
-        return $this->hasMany(SesiModel::class, 'materi_id');
+        return $query->where('is_delete', false);
     }
 
     public function kelas(): HasMany

@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { CalendarPlus, Clock } from "lucide-react";
 import HeaderHalaman from "../components/headerhalaman";
 import JadwalKelas from "../components/jadwalkelas";
-import FormKelas, { type NilaiKelas } from "../components/formkelas";
+import FormKelas, { type NilaiKelas, type OpsiKelas } from "../components/formkelas";
 import { cariBentrok, validasiKelas, type Kelas } from "../data";
-import { getKelas, createKelas } from "@/lib/api";
+import { getKelas, getKelasOpsi, createKelas } from "@/lib/api";
 
 export default function BuatKelasPage() {
   const router = useRouter();
-  const [nilai, setNilai] = useState<NilaiKelas>({ sesi: 1, hari: [], materi: "" });
+  const [nilai, setNilai] = useState<NilaiKelas>({ nama: "", sesi: 0, hari: [], materi: "", lokasiBlcId: 0 });
+  const [opsi, setOpsi] = useState<OpsiKelas>({ sesi: [], materi: [], blc: [] });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [kelasList, setKelasList] = useState<Kelas[]>([]);
@@ -22,10 +23,16 @@ export default function BuatKelasPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await getKelas();
-        setKelasList(res.data);
+        const [kelasRes, opsiRes] = await Promise.all([getKelas(), getKelasOpsi()]);
+        setKelasList(kelasRes.data);
+        setOpsi(opsiRes.data);
+        setNilai((n) => ({
+          ...n,
+          sesi: opsiRes.data.sesi[0]?.id ?? 0,
+          lokasiBlcId: opsiRes.data.blc.length === 1 ? opsiRes.data.blc[0].id : 0,
+        }));
       } catch (e) {
-        console.error(e);
+        setError(e instanceof Error ? e.message : "Gagal memuat data kelas");
       } finally {
         setLoading(false);
       }
@@ -47,15 +54,17 @@ export default function BuatKelasPage() {
 
   const simpan = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!nilai.nama.trim()) return setError("Nama kelas wajib diisi.");
+    if (!nilai.lokasiBlcId) return setError("Pilih BLC.");
     const pesan = validasiKelas(nilai.hari, nilai.materi, bentrok);
     if (pesan) return setError(pesan);
     setSaving(true);
     try {
-      await createKelas({ nama_kelas: "", materi_id: nilai.materi, sesi_id: nilai.sesi, hari: nilai.hari, lokasi_blc_id: 1 });
+      await createKelas({ nama_kelas: nilai.nama.trim(), materi_id: nilai.materi, sesi_id: nilai.sesi, hari: nilai.hari, lokasi_blc_id: nilai.lokasiBlcId });
       router.push("/instruktur/daftar_kelas");
     } catch (e) {
       console.error(e);
-      setError("Gagal membuat kelas");
+      setError(e instanceof Error ? e.message : "Gagal membuat kelas");
     } finally {
       setSaving(false);
     }
@@ -81,11 +90,11 @@ export default function BuatKelasPage() {
 
         <section className="mb-6 rounded-2xl border border-orange-200 bg-white p-5 shadow-xl shadow-orange-300/40">
           <h2 className="mb-4 flex items-center gap-2 font-semibold text-slate-900"><Clock size={20} className="text-orange-500" /> Jadwal kelas aktif</h2>
-          <JadwalKelas kelas={kelasList} dipilih={nilai} onKlikKosong={klikKosong} />
+          <JadwalKelas kelas={kelasList} dipilih={nilai} onKlikKosong={klikKosong} sesi={opsi.sesi} />
         </section>
 
         <FormKelas nilai={nilai} onChange={(n) => { setError(""); setNilai(n); }} onSubmit={simpan}
-          saving={saving} bentrok={bentrok} error={error} kembali="/instruktur/daftar_kelas" />
+          saving={saving} bentrok={bentrok} error={error} kembali="/instruktur/daftar_kelas" opsi={opsi} />
       </div>
     </main>
   );

@@ -2,7 +2,7 @@
 
 namespace App\Modules\Instruktur\InstrukturProfile\Infrastructure;
 
-use App\Modules\Instruktur\InstrukturProfile\Contracts\InstrukturProfileRepositoryInterface;
+use App\Modules\Instruktur\InstrukturProfile\Contracts\InstrukturProfileRepository;
 use App\Modules\Instruktur\InstrukturProfile\Domain\InstrukturProfile;
 use App\Modules\Instruktur\InstrukturProfile\Domain\ValueObjects\InstrukturProfileId;
 use App\Modules\Instruktur\InstrukturProfile\Domain\ValueObjects\PenggunaId;
@@ -10,7 +10,7 @@ use App\Modules\Instruktur\InstrukturProfile\Domain\ValueObjects\LokasiBlcId;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
-class EloquentInstrukturProfileRepository implements InstrukturProfileRepositoryInterface
+final class EloquentInstrukturProfileRepository implements InstrukturProfileRepository
 {
     public function all(): array
     {

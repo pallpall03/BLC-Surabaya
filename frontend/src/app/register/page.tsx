@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { daftar, simpanUserTampilan, AuthError } from '@/lib/auth';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -13,7 +13,6 @@ export default function RegisterPage() {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -28,26 +27,16 @@ export default function RegisterPage() {
     setMessage({ type: '', text: '' });
 
     try {
-      const response = await fetch('/api/v1/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+      const data = await daftar(formData);
+
+      simpanUserTampilan(data.user);
+      setMessage({ type: 'success', text: 'Registrasi berhasil! Anda sudah masuk...' });
+      setTimeout(() => window.location.assign(data.dashboard_url || '/'), 1500);
+    } catch (galat) {
+      setMessage({
+        type: 'error',
+        text: galat instanceof AuthError ? galat.message : 'Koneksi ke server gagal',
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage({ type: 'success', text: 'Registrasi berhasil! Mengalihkan ke login...' });
-        setTimeout(() => router.push('/login'), 1500);
-      } else {
-        // Utamakan pesan per-field dari validasi Laravel (422), jika ada.
-        const pesanField = data.errors ? (Object.values(data.errors).flat()[0] as string | undefined) : undefined;
-        setMessage({ type: 'error', text: pesanField || data.message || 'Registrasi gagal' });
-      }
-    } catch {
-      setMessage({ type: 'error', text: 'Koneksi ke server gagal' });
     } finally {
       setLoading(false);
     }
@@ -72,7 +61,7 @@ export default function RegisterPage() {
             </div>
           )}
           
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form method="post" action="/register" onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Nama Lengkap

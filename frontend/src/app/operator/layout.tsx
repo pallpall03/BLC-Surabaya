@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
-import AuthGuard from "@/components/auth/AuthGuard";
+import DashboardGuard from "@/components/auth/DashboardGuard";
 import PanelShell from "@/components/shared/PanelShell";
 
 export default function LayoutOperator({ children }: { children: ReactNode }) {
   return (
-    <AuthGuard role="operator">
+    <DashboardGuard path="/operator">
       <PanelShell peran="operator">{children}</PanelShell>
-    </AuthGuard>
+    </DashboardGuard>
   );
 }

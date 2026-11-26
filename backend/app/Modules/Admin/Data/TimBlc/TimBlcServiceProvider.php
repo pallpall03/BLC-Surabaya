@@ -18,11 +18,14 @@ final class TimBlcServiceProvider extends ServiceProvider
     {
         Route::prefix('tim-blc')->group(function (): void {
             Route::get('/', [Http\TimBlcController::class, 'index']);
-            Route::post('/', [Http\TimBlcController::class, 'store']);
             Route::get('/{id}', [Http\TimBlcController::class, 'show']);
-            Route::put('/{id}', [Http\TimBlcController::class, 'update']);
-            Route::patch('/{id}', [Http\TimBlcController::class, 'update']);
-            Route::delete('/{id}', [Http\TimBlcController::class, 'destroy']);
+
+            Route::middleware(['auth:api', 'role:superadmin'])->group(function (): void {
+                Route::post('/', [Http\TimBlcController::class, 'store']);
+                Route::put('/{id}', [Http\TimBlcController::class, 'update']);
+                Route::patch('/{id}', [Http\TimBlcController::class, 'update']);
+                Route::delete('/{id}', [Http\TimBlcController::class, 'destroy']);
+            });
         });
     }
 }

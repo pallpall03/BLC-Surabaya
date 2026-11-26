@@ -17,18 +17,18 @@ const JUDUL: [string, string][] = [
   ["/instruktur/daftar_kelas", "Daftar kelas"],
   ["/instruktur/pelatihan/daftar_hadir", "Daftar hadir"],
   ["/instruktur/pelatihan/laporan", "Laporan pelatihan"],
-  ["/instruktur/pengunjung/foto_kegiatan", "Foto kegiatan"],
+  ["/instruktur/pengunjung/foto_kegiatan", "Foto & laporan pengunjung"],
   ["/instruktur/pengunjung/pengunjung", "Pengunjung"],
   ["/instruktur/tambah_pengunjung", "Tambah pengunjung"],
   ["/instruktur/sosialisasi", "Sosialisasi"],
   ["/instruktur/master_ujian/ujianbaru", "Buat ujian baru"],
   ["/instruktur/master_ujian/*/ubah", "Ubah ujian"],
-  ["/instruktur/master_ujian/*/peserta", "Isi peserta ujian"],
+  ["/instruktur/master_ujian/*/peserta", "Kelas & peserta ujian"],
   ["/instruktur/master_ujian", "Master ujian"],
   ["/instruktur/aktivitas/aktivitasbaru", "Tambah aktivitas"],
   ["/instruktur/aktivitas/*/ubah", "Ubah aktivitas"],
   ["/instruktur/aktivitas", "Aktivitas"],
-  ["/instruktur/laporan_instruktur", "Laporan instruktur"],
+  ["/instruktur/laporan_instruktur", "Laporan pengunjung"],
   
 ];
 

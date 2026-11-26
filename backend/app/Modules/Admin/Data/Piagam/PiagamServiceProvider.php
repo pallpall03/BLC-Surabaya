@@ -18,11 +18,14 @@ final class PiagamServiceProvider extends ServiceProvider
     {
         Route::prefix('piagam')->group(function (): void {
             Route::get('/', [Http\PiagamController::class, 'index']);
-            Route::post('/', [Http\PiagamController::class, 'store']);
             Route::get('/{id}', [Http\PiagamController::class, 'show']);
-            Route::put('/{id}', [Http\PiagamController::class, 'update']);
-            Route::patch('/{id}', [Http\PiagamController::class, 'update']);
-            Route::delete('/{id}', [Http\PiagamController::class, 'destroy']);
+
+            Route::middleware(['auth:api', 'role:superadmin'])->group(function (): void {
+                Route::post('/', [Http\PiagamController::class, 'store']);
+                Route::put('/{id}', [Http\PiagamController::class, 'update']);
+                Route::patch('/{id}', [Http\PiagamController::class, 'update']);
+                Route::delete('/{id}', [Http\PiagamController::class, 'destroy']);
+            });
         });
     }
 }

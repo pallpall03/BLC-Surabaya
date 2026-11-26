@@ -8,9 +8,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class SoalUjianModel extends Model
 {
     protected $table = 'soal_ujian';
-    protected $guarded = ['id'];
+
+    protected $fillable = [
+        'master_ujian_id',
+        'pertanyaan',
+        'pilihan',
+        'jawaban_benar',
+        'nomor',
+        'bobot',
+        'penjelasan',
+        'is_aktif',
+    ];
+
     protected $casts = [
         'pilihan' => 'array',
+        'jawaban_benar' => 'integer',
+        'nomor' => 'integer',
         'bobot' => 'integer',
         'is_aktif' => 'boolean',
     ];

@@ -1,5 +1,6 @@
 import { AlertTriangle, CalendarDays, Check, Clock, Plus } from "lucide-react";
 import { HARI, MATERI, SESI, type Kelas } from "../data";
+import type { Sesi } from "@/lib/api";
 
 // Warna kartu per materi (urutan mengikuti daftar MATERI)
 const WARNA = [
@@ -9,12 +10,14 @@ const WARNA = [
   { kotak: "border-emerald-200 border-l-emerald-500 bg-emerald-50 text-emerald-900", sub: "text-emerald-700" },
 ];
 
-export default function JadwalKelas({ kelas, dipilih, onKlikKosong }: {
+export default function JadwalKelas({ kelas, dipilih, onKlikKosong, sesi: sesiApi }: {
   kelas: Kelas[];
   dipilih?: { sesi: number; hari: string[] };
   onKlikKosong?: (hari: string, sesi: number) => void;
+  sesi?: Sesi[];
 }) {
   const aktif = kelas.filter((k) => k.status === "Aktif");
+  const sesi = sesiApi?.length ? sesiApi.map((s) => ({ id: s.id, no: s.sesi, jam: s.jam })) : SESI.map((s) => ({ ...s, id: s.no }));
   return (
     <div>
       <div className="overflow-x-auto rounded-2xl border border-orange-200 shadow-sm">
@@ -24,8 +27,8 @@ export default function JadwalKelas({ kelas, dipilih, onKlikKosong }: {
               <th className="w-32 px-4 py-3 text-left font-semibold">
                 <span className="flex items-center gap-2"><CalendarDays size={18} /> Hari</span>
               </th>
-              {SESI.map((s) => (
-                <th key={s.no} className="border-l border-white/40 px-3 py-3 text-left font-medium">
+              {sesi.map((s) => (
+                <th key={s.id} className="border-l border-white/40 px-3 py-3 text-left font-medium">
                   <span className="flex items-center gap-2">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/25 text-sm font-bold">{s.no}</span>
                     <span>
@@ -46,8 +49,8 @@ export default function JadwalKelas({ kelas, dipilih, onKlikKosong }: {
                     <span className="block font-semibold text-slate-900">{h}</span>
                     <span className="text-xs font-normal text-slate-500">{terisi} kelas</span>
                   </th>
-                  {SESI.map((s) => {
-                    const k = aktif.find((x) => x.sesi === s.no && x.hari.includes(h));
+                  {sesi.map((s) => {
+                    const k = aktif.find((x) => x.sesi_id === s.id && x.hari.includes(h));
                     const pilih = !!dipilih && dipilih.sesi === s.no && dipilih.hari.includes(h);
                     let isi: React.ReactNode;
                     if (k && pilih) {
@@ -66,20 +69,20 @@ export default function JadwalKelas({ kelas, dipilih, onKlikKosong }: {
                       );
                     } else if (pilih) {
                       isi = (
-                        <button type="button" onClick={() => onKlikKosong?.(h, s.no)}
+                        <button type="button" onClick={() => onKlikKosong?.(h, s.id)}
                           className="flex h-14 w-full items-center justify-center gap-1 rounded-lg border border-green-400 bg-green-100 text-xs font-semibold text-green-800">
                           <Check size={14} /> Dipilih
                         </button>
                       );
                     } else {
                       isi = (
-                        <button type="button" disabled={!onKlikKosong} onClick={() => onKlikKosong?.(h, s.no)}
+                        <button type="button" disabled={!onKlikKosong} onClick={() => onKlikKosong?.(h, s.id)}
                           className="flex h-14 w-full items-center justify-center gap-1 rounded-lg border border-dashed border-slate-300 bg-white/70 text-xs font-medium text-slate-500 transition enabled:hover:border-green-500 enabled:hover:bg-green-50 enabled:hover:text-green-700">
                           {onKlikKosong && <Plus size={14} />} Kosong
                         </button>
                       );
                     }
-                    return <td key={s.no} className="border-l border-orange-100 p-1.5 align-middle">{isi}</td>;
+                    return <td key={s.id} className="border-l border-orange-100 p-1.5 align-middle">{isi}</td>;
                   })}
                 </tr>
               );

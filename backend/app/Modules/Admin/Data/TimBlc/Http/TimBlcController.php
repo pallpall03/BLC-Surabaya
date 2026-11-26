@@ -4,6 +4,7 @@ namespace App\Modules\Admin\Data\TimBlc\Http;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Admin\Data\TimBlc\Contracts\TimBlcRepository;
+use App\Modules\Admin\Data\TimBlc\Domain\TimBlc;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,7 @@ final class TimBlcController extends Controller
     public function index(): JsonResponse
     {
         $tim = $this->repository->getAktif();
-        return response()->json(['data' => $tim]);
+        return response()->json(['data' => array_map(fn (TimBlc $item) => $this->publik($item), $tim)]);
     }
 
     public function store(Request $request): JsonResponse
@@ -40,7 +41,7 @@ final class TimBlcController extends Controller
         if (!$tim) {
             return response()->json(['message' => 'Tim BLC not found'], 404);
         }
-        return response()->json(['data' => $tim]);
+        return response()->json(['data' => $this->publik($tim)]);
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -62,5 +63,18 @@ final class TimBlcController extends Controller
     {
         $this->repository->delete($id);
         return response()->json(['message' => 'Deleted']);
+    }
+
+    /** @return array<string, mixed> */
+    private function publik(TimBlc $tim): array
+    {
+        return [
+            'id' => $tim->id,
+            'namaLengkap' => $tim->namaLengkap,
+            'role' => $tim->role,
+            'avatar' => $tim->avatar,
+            'lokasiBlcId' => $tim->lokasiBlcId,
+            'isSurabaya' => $tim->isSurabaya,
+        ];
     }
 }

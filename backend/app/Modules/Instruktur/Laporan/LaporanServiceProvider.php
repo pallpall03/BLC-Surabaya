@@ -14,16 +14,17 @@ final class LaporanServiceProvider extends ServiceProvider
         $this->app->bind(LaporanRepository::class, EloquentLaporanRepository::class);
     }
 
-    /**
-     * Dipanggil dari routes/modules.php (lihat ModuleRegistry).
-     * Hanya role: instruktur.
-     */
     public static function routes(): void
     {
         Route::middleware(['auth:api', 'role:instruktur'])
             ->prefix('instruktur/laporan')
             ->group(function (): void {
                 Route::get('/', [Http\LaporanController::class, 'index']);
+                Route::get('/opsi', [Http\LaporanController::class, 'opsi']);
+                Route::post('/', [Http\LaporanController::class, 'store']);
+                Route::get('/{id}', [Http\LaporanController::class, 'show'])->whereNumber('id');
+                Route::match(['put', 'patch'], '/{id}', [Http\LaporanController::class, 'update'])->whereNumber('id');
+                Route::delete('/{id}', [Http\LaporanController::class, 'destroy'])->whereNumber('id');
             });
     }
 }

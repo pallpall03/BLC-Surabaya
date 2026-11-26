@@ -8,13 +8,10 @@ class MasterDataRoutesServiceProvider
 {
     public static function register(): void
     {
-        Route::prefix('master-data')->group(function () {
+        Route::middleware(['auth:api', 'role:koordinator'])->prefix('master-data')->group(function () {
             // Master Data overview
             Route::get('/', [\App\Modules\Koordinator\MasterData\Http\MasterDataController::class, 'index']);
-            Route::get('/{namaModul}', [\App\Modules\Koordinator\MasterData\Http\MasterDataController::class, 'show']);
             Route::post('/', [\App\Modules\Koordinator\MasterData\Http\MasterDataController::class, 'store']);
-            Route::put('/{namaModul}', [\App\Modules\Koordinator\MasterData\Http\MasterDataController::class, 'update']);
-            Route::delete('/{namaModul}', [\App\Modules\Koordinator\MasterData\Http\MasterDataController::class, 'destroy']);
 
             // Sub-entities with their own controllers
             Route::prefix('instruktur')->group(function () {
@@ -88,6 +85,10 @@ class MasterDataRoutesServiceProvider
                 Route::put('/{id}', [\App\Modules\Koordinator\MasterData\Http\ModulController::class, 'update']);
                 Route::delete('/{id}', [\App\Modules\Koordinator\MasterData\Http\ModulController::class, 'destroy']);
             });
+
+            Route::get('/{namaModul}', [\App\Modules\Koordinator\MasterData\Http\MasterDataController::class, 'show']);
+            Route::put('/{namaModul}', [\App\Modules\Koordinator\MasterData\Http\MasterDataController::class, 'update']);
+            Route::delete('/{namaModul}', [\App\Modules\Koordinator\MasterData\Http\MasterDataController::class, 'destroy']);
         });
     }
 }

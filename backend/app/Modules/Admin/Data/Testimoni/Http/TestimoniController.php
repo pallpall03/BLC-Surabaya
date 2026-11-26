@@ -4,6 +4,7 @@ namespace App\Modules\Admin\Data\Testimoni\Http;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Admin\Data\Testimoni\Contracts\TestimoniRepository;
+use App\Modules\Admin\Data\Testimoni\Domain\Testimoni;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,7 @@ final class TestimoniController extends Controller
     public function index(): JsonResponse
     {
         $testimoni = $this->repository->getAktif();
-        return response()->json(['data' => $testimoni]);
+        return response()->json(['data' => array_map(fn (Testimoni $item) => $this->publik($item), $testimoni)]);
     }
 
     public function store(Request $request): JsonResponse
@@ -40,7 +41,7 @@ final class TestimoniController extends Controller
         if (!$testimoni) {
             return response()->json(['message' => 'Testimoni not found'], 404);
         }
-        return response()->json(['data' => $testimoni]);
+        return response()->json(['data' => $this->publik($testimoni)]);
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -62,5 +63,16 @@ final class TestimoniController extends Controller
     {
         $this->repository->delete($id);
         return response()->json(['message' => 'Deleted']);
+    }
+
+    /** @return array<string, mixed> */
+    private function publik(Testimoni $testimoni): array
+    {
+        return [
+            'id' => $testimoni->id,
+            'nama' => $testimoni->nama,
+            'lokasiBlcId' => $testimoni->lokasiBlcId,
+            'isSurabaya' => $testimoni->isSurabaya,
+        ];
     }
 }

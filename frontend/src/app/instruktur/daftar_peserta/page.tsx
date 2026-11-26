@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   BadgeCheck,
@@ -124,6 +124,7 @@ export default function DaftarPesertaPage() {
   const [loading, setLoading] = useState(true);
   const [cari, setCari] = useState("");
   const [area, setArea] = useState("");
+  const [areaId, setAreaId] = useState<number | undefined>();
   const [cariArea, setCariArea] = useState("");
   const [bukaArea, setBukaArea] = useState(false);
   const [status, setStatus] = useState<StatusFilter>("semua");
@@ -132,54 +133,56 @@ export default function DaftarPesertaPage() {
   const [page, setPage] = useState(1);
   const [pesan, setPesan] = useState("");
   const [totalData, setTotalData] = useState(0);
-  const [totalHalaman, setTotalHalaman] = useState(1);
+  const [statistikApi, setStatistikApi] = useState({ semua: 0, tervalidasi: 0, belum: 0 });
   const [opsi, setOpsi] = useState<PesertaOpsi | null>(null);
-  const [kelasId, setKelasId] = useState<number | null>(null);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const tampilkanPesan = useCallback((teks: string) => {
+    setPesan(teks);
+    setTimeout(() => setPesan(""), 3000);
+  }, []);
+
+  const fetchData = useCallback(async () => {
     try {
       const res = await getDaftarPeserta({
         search: cari || undefined,
-        status_validasi: status === "semua" ? undefined : status === "valid" ? "1" : "0",
+        status,
         page,
         per_page: perPage,
-        kelas_id: kelasId || undefined,
+        lokasi_blc_id: areaId,
       });
       setData(res.data);
-      setTotalData(res.data.length);
-      setTotalHalaman(Math.max(1, Math.ceil(res.data.length / perPage)));
-    } catch (e) {
+      setTotalData(res.meta?.total ?? res.data.length);
+      if (res.statistik) setStatistikApi(res.statistik);
+    } catch {
       tampilkanPesan("Gagal memuat data peserta");
     } finally {
       setLoading(false);
     }
-  };
+  }, [cari, areaId, status, page, perPage, tampilkanPesan]);
 
-  const fetchOpsi = async () => {
+  const fetchOpsi = useCallback(async () => {
     try {
       const res = await getPesertaOpsi();
       setOpsi(res.data);
-    } catch (e) {
-      // ignore
+    } catch {
+      tampilkanPesan("Gagal memuat pilihan BLC");
     }
-  };
+  }, [tampilkanPesan]);
 
   useEffect(() => {
-    fetchData();
-    fetchOpsi();
-  }, [cari, area, status, page, perPage, kelasId]);
+    void Promise.resolve().then(() => { setLoading(true); return fetchData(); });
+    void Promise.resolve().then(fetchOpsi);
+  }, [fetchData, fetchOpsi]);
 
   const daftarArea = useMemo(
-    () => Array.from(new Set(data.map((d) => d.blc))).sort(),
-    [data]
+    () => opsi?.blc ?? [],
+    [opsi]
   );
-  const jumlahValid = data.filter((d) => d.tervalidasi).length;
 
   const saranArea = useMemo(
     () =>
       daftarArea.filter((a) =>
-        a.toLowerCase().includes(cariArea.trim().toLowerCase())
+        a.nama_blc.toLowerCase().includes(cariArea.trim().toLowerCase())
       ),
     [daftarArea, cariArea]
   );
@@ -187,7 +190,7 @@ export default function DaftarPesertaPage() {
   const totalHalamanCalc = Math.max(1, Math.ceil(totalData / perPage));
   const halaman = Math.min(page, totalHalamanCalc);
   const mulai = (halaman - 1) * perPage;
-  const baris = data.slice(mulai, mulai + perPage);
+  const baris = data;
   const adaFilter = cari !== "" || area !== "" || cariArea !== "" || status !== "semua";
 
   const ubah = <T,>(setter: (v: T) => void) => (v: T) => {
@@ -197,30 +200,26 @@ export default function DaftarPesertaPage() {
   const reset = () => {
     setCari("");
     setArea("");
+    setAreaId(undefined);
     setCariArea("");
     setStatus("semua");
     setPage(1);
   };
-  const pilihArea = (a: string) => {
-    setArea(a);
-    setCariArea(a);
+  const pilihArea = (a?: { id: number; nama_blc: string }) => {
+    setArea(a?.nama_blc ?? "");
+    setAreaId(a?.id);
+    setCariArea(a?.nama_blc ?? "");
     setBukaArea(false);
     setPage(1);
-  };
-
-  const tampilkanPesan = (teks: string) => {
-    setPesan(teks);
-    setTimeout(() => setPesan(""), 3000);
   };
 
   const handleToggleValidasi = async (id: number, currentStatus: boolean) => {
     try {
       await validasiPeserta(id, !currentStatus);
-      setData((d) =>
-        d.map((p) => (p.id === id ? { ...p, tervalidasi: !p.tervalidasi } : p))
-      );
+      setLoading(true);
+      await fetchData();
       tampilkanPesan(currentStatus ? "Validasi dibatalkan" : "Peserta tervalidasi");
-    } catch (e) {
+    } catch {
       tampilkanPesan("Gagal mengubah validasi");
     }
   };
@@ -229,9 +228,10 @@ export default function DaftarPesertaPage() {
     if (!window.confirm(`Hapus peserta ${p.nama}?`)) return;
     try {
       await deletePeserta(p.id);
-      setData((d) => d.filter((x) => x.id !== p.id));
+      setLoading(true);
+      await fetchData();
       tampilkanPesan("Peserta dihapus");
-    } catch (e) {
+    } catch {
       tampilkanPesan("Gagal menghapus peserta");
     }
   };
@@ -247,7 +247,7 @@ export default function DaftarPesertaPage() {
     {
       kunci: "semua",
       label: "Semua peserta",
-      nilai: totalData,
+      nilai: statistikApi.semua,
       icon: Users,
       warna: "bg-orange-100 text-orange-600",
       aktif: "border-orange-400 ring-4 ring-orange-200/60",
@@ -255,7 +255,7 @@ export default function DaftarPesertaPage() {
     {
       kunci: "valid",
       label: "Tervalidasi",
-      nilai: jumlahValid,
+      nilai: statistikApi.tervalidasi,
       icon: BadgeCheck,
       warna: "bg-emerald-100 text-emerald-600",
       aktif: "border-emerald-400 ring-4 ring-emerald-200/60",
@@ -263,7 +263,7 @@ export default function DaftarPesertaPage() {
     {
       kunci: "non",
       label: "Belum validasi",
-      nilai: totalData - jumlahValid,
+      nilai: statistikApi.belum,
       icon: CircleDashed,
       warna: "bg-slate-100 text-slate-500",
       aktif: "border-slate-400 ring-4 ring-slate-200",
@@ -349,6 +349,7 @@ export default function DaftarPesertaPage() {
                   onChange={(e) => {
                     setCariArea(e.target.value);
                     setArea("");
+                    setAreaId(undefined);
                     setPage(1);
                     setBukaArea(true);
                   }}
@@ -364,7 +365,7 @@ export default function DaftarPesertaPage() {
                     aria-label="Hapus area"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      pilihArea("");
+                      pilihArea();
                     }}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-orange-100 hover:text-orange-600"
                   >
@@ -378,15 +379,15 @@ export default function DaftarPesertaPage() {
                         type="button"
                         onMouseDown={(e) => {
                           e.preventDefault();
-                          pilihArea("");
+                          pilihArea();
                         }}
                         className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-slate-600 hover:bg-orange-50"
                       >
-                        Semua area <span className="text-xs text-slate-400">{data.length}</span>
+                        Semua area
                       </button>
                     </li>
                     {saranArea.map((a) => (
-                      <li key={a}>
+                      <li key={a.id}>
                         <button
                           type="button"
                           onMouseDown={(e) => {
@@ -394,13 +395,10 @@ export default function DaftarPesertaPage() {
                             pilihArea(a);
                           }}
                           className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-orange-50 ${
-                            area === a ? "font-medium text-orange-700" : "text-slate-700"
+                            areaId === a.id ? "font-medium text-orange-700" : "text-slate-700"
                           }`}
                         >
-                          {a}{" "}
-                          <span className="text-xs text-slate-400">
-                            {data.filter((d) => d.blc === a).length}
-                          </span>
+                          {a.nama_blc}
                         </button>
                       </li>
                     ))}

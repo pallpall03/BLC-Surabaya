@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use App\Modules\Admin\Data\TimBlc\Infrastructure\TimBlcModel;
 use App\Modules\Admin\Data\KategoriArtikel\Infrastructure\KategoriArtikelModel;
@@ -112,11 +114,36 @@ class TimBlcSeeder extends Seeder
             ],
         ];
 
+        // Endpoint instruktur mencari tim_blc lewat users.id. Pastikan minimal satu baris
+        // instruktur tertaut ke akun instruktur demo, bukan ke id user yang kebetulan sama.
+        $instrukturDemoId = User::query()->where('email', 'instruktur@blc.test')->value('id')
+            ?? User::query()
+                ->whereHas('role', fn ($query) => $query->where('slug', Role::INSTRUKTUR))
+                ->orderBy('id')
+                ->value('id');
+
+        $sudahTertaut = false;
+
         foreach ($tim as $item) {
-            TimBlcModel::firstOrCreate(
+            $baris = TimBlcModel::firstOrCreate(
                 ['email' => $item['email']],
                 $item
             );
+
+            if ($sudahTertaut || $item['role'] !== Role::INSTRUKTUR || $instrukturDemoId === null) {
+                continue;
+            }
+
+            $pemilik = $baris->user_id !== null
+                ? User::query()->with('role')->find($baris->user_id)
+                : null;
+
+            if ($pemilik === null || $pemilik->role?->slug !== Role::INSTRUKTUR) {
+                $baris->user_id = (string) $instrukturDemoId;
+                $baris->save();
+            }
+
+            $sudahTertaut = (string) $baris->user_id === (string) $instrukturDemoId;
         }
     }
 }

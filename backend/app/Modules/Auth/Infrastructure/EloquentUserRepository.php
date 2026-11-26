@@ -17,8 +17,11 @@ final class EloquentUserRepository implements UserRepository
 
         return User::query()
             ->with('role')
-            ->where('nik', $login)
-            ->orWhereRaw('lower(username) = ?', [mb_strtolower($login)])
+            ->where(function ($query) use ($login): void {
+                $query->where('nik', $login)
+                    ->orWhereRaw('lower(username) = ?', [mb_strtolower($login)])
+                    ->orWhereRaw('lower(email) = ?', [mb_strtolower($login)]);
+            })
             ->first();
     }
 

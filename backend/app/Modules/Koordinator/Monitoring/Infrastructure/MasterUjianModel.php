@@ -9,17 +9,24 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class MasterUjianModel extends Model
 {
     protected $table = 'master_ujian';
-    protected $guarded = ['id'];
+
+    protected $fillable = [
+        'judul',
+        'materi_id',
+        'tipe',
+        'durasi_menit',
+        'nilai_minimum',
+        'acak_soal',
+        'is_aktif',
+        'is_delete',
+    ];
+
     protected $casts = [
         'durasi_menit' => 'integer',
-        'jumlah_soal' => 'integer',
         'nilai_minimum' => 'integer',
         'acak_soal' => 'boolean',
-        'acak_jawaban' => 'boolean',
-        'tampilkan_hasil' => 'boolean',
         'is_aktif' => 'boolean',
-        'tanggal_mulai' => 'date',
-        'tanggal_selesai' => 'date',
+        'is_delete' => 'boolean',
     ];
 
     public function materi(): BelongsTo
@@ -29,7 +36,12 @@ class MasterUjianModel extends Model
 
     public function soal(): HasMany
     {
-        return $this->hasMany(SoalUjianModel::class, 'master_ujian_id');
+        return $this->hasMany(SoalUjianModel::class, 'master_ujian_id')->orderBy('nomor');
+    }
+
+    public function jadwal(): HasMany
+    {
+        return $this->hasMany(JadwalUjianModel::class, 'master_ujian_id');
     }
 
     public function hasil(): HasMany

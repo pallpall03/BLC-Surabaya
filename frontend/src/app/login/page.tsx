@@ -1,16 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, RefreshCw } from 'lucide-react';
-
-// Halaman tujuan setelah login, menurut role dari backend.
-// Role yang halamannya belum dibuat (koordinator, peserta) sementara diarahkan ke beranda.
-const HALAMAN_ROLE: Record<string, string> = {
-  superadmin: '/administrator',
-  operator: '/operator',
-  instruktur: '/instruktur',
-};
+import { ambilCaptcha, masuk, simpanUserTampilan, AuthError } from '@/lib/auth';
 
 // Captcha dimuat ulang tiap 1 menit (mengikuti sibunda.go.id); server mengirim angka yang sama (refresh_in).
 const REFRESH_DETIK = 60;
@@ -19,8 +11,6 @@ type Captcha = { id: string; image: string };
 type Pesan = { jenis: 'sukses' | 'galat' | 'terkunci'; teks: string };
 
 export default function LoginPage() {
-  const router = useRouter();
-
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [lihatPassword, setLihatPassword] = useState(false);
@@ -37,11 +27,9 @@ export default function LoginPage() {
   const muatCaptcha = useCallback(async () => {
     setMemuatCaptcha(true);
     try {
-      const res = await fetch('/api/v1/auth/captcha', { cache: 'no-store' });
-      if (!res.ok) throw new Error('gagal');
-      const data = await res.json();
-      setCaptcha({ id: data.captcha_id, image: data.image });
-      setRefreshDetik(data.refresh_in ?? REFRESH_DETIK);
+      const data = await ambilCaptcha();
+      setCaptcha({ id: data.id, image: data.image });
+      setRefreshDetik(data.refresh_in || REFRESH_DETIK);
       setJawabanCaptcha('');
     } catch {
       setCaptcha(null);
@@ -67,7 +55,7 @@ export default function LoginPage() {
     if (terkunci) return;
 
     if (!login.trim()) {
-      setPesan({ jenis: 'galat', teks: 'NIK atau username wajib diisi.' });
+      setPesan({ jenis: 'galat', teks: 'NIK, username, atau email wajib diisi.' });
       return;
     }
     if (captchaWajib && !jawabanCaptcha.trim()) {
@@ -79,47 +67,38 @@ export default function LoginPage() {
     setPesan(null);
 
     try {
-      const response = await fetch('/api/v1/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          login: login.trim(),
-          password,
-          ...(captchaWajib && captcha ? { captcha_id: captcha.id, captcha: jawabanCaptcha.trim() } : {}),
-        }),
+      const data = await masuk({
+        login: login.trim(),
+        password,
+        captchaId: captchaWajib && captcha ? captcha.id : undefined,
+        captcha: captchaWajib && captcha ? jawabanCaptcha.trim() : undefined,
       });
 
-      const data = await response.json().catch(() => ({}));
-
-      if (response.ok) {
-        setPesan({ jenis: 'sukses', teks: 'Login berhasil! Mengalihkan...' });
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('auth_user', JSON.stringify(data.user));
-        const tujuan = HALAMAN_ROLE[data.user?.role?.slug] ?? '/';
-        setTimeout(() => router.push(tujuan), 600);
+      simpanUserTampilan(data.user);
+      setPesan({ jenis: 'sukses', teks: 'Login berhasil! Mengalihkan...' });
+      setTimeout(() => window.location.assign(data.dashboard_url || '/'), 600);
+    } catch (galat) {
+      if (!(galat instanceof AuthError)) {
+        setPesan({ jenis: 'galat', teks: 'Koneksi ke server gagal' });
         return;
       }
 
-      if (response.status === 423 || data.locked) {
+      if (galat.status === 423 || galat.data.locked === true) {
         setTerkunci(true);
         setCaptchaWajib(false);
-        setPesan({ jenis: 'terkunci', teks: data.message || 'Akun terkunci. Hubungi admin untuk membukanya.' });
+        setPesan({ jenis: 'terkunci', teks: galat.message || 'Akun terkunci. Hubungi admin untuk membukanya.' });
         return;
       }
 
-      // 422 dari validasi Laravel membawa pesan per field.
-      const pesanField = data.errors ? (Object.values(data.errors).flat()[0] as string | undefined) : undefined;
-      setPesan({ jenis: 'galat', teks: pesanField || data.message || 'Login gagal' });
+      setPesan({ jenis: 'galat', teks: galat.message || 'Login gagal' });
       setPassword('');
-      setSisaPercobaan(typeof data.attempts_left === 'number' ? data.attempts_left : null);
+      setSisaPercobaan(typeof galat.data.attempts_left === 'number' ? galat.data.attempts_left : null);
 
-      if (data.captcha_required) {
+      if (galat.data.captcha_required === true) {
         // captcha sekali pakai: setelah dicoba (benar atau salah) harus diganti
         setCaptchaWajib(true);
-        muatCaptcha();
+        void muatCaptcha();
       }
-    } catch {
-      setPesan({ jenis: 'galat', teks: 'Koneksi ke server gagal' });
     } finally {
       setLoading(false);
     }
@@ -146,7 +125,7 @@ export default function LoginPage() {
           <div className="d-flex flex-column flex-lg-row-fluid w-lg-50 p-10 order-2 order-lg-1">
             <div className="d-flex flex-center flex-column flex-lg-row-fluid">
               <div className="w-lg-500px p-10">
-                <form className="form w-100" noValidate onSubmit={handleSubmit}>
+                <form className="form w-100" method="post" action="/login" noValidate onSubmit={handleSubmit}>
                   <div className="text-center mb-10">
                     <div className="d-inline-flex align-items-center justify-content-center rounded mb-5"
                       style={{ width: 56, height: 56, background: '#f97316', color: '#fff', fontWeight: 800, letterSpacing: 1 }}>
@@ -171,14 +150,14 @@ export default function LoginPage() {
                   )}
 
                   <div className="fv-row mb-8">
-                    <label htmlFor="login" className="form-label fs-6 fw-bold text-dark">NIK atau Username</label>
+                    <label htmlFor="login" className="form-label fs-6 fw-bold text-dark">NIK, Username, atau Email</label>
                     <input
                       id="login"
                       type="text"
                       name="login"
                       inputMode="text"
                       autoComplete="username"
-                      placeholder="Masukkan NIK atau username"
+                      placeholder="Masukkan NIK, username, atau email"
                       maxLength={255}
                       value={login}
                       onChange={(e) => setLogin(e.target.value)}

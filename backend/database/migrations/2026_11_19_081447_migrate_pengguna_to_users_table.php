@@ -12,15 +12,39 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 1. Add missing columns to users table
+        // 1. Kolom yang dipakai login (username/status/is_aktif/last_login_at).
+        //    Dijaga hasColumn supaya aman bila kolom sudah dibuat migrasi lain, dan tanpa
+        //    "after" supaya kompatibel dengan SQLite (dipakai test).
         Schema::table('users', function (Blueprint $table) {
-            $table->string('username')->unique()->nullable()->after('name');
-            $table->string('status', 20)->default('aktif')->after('username');
-            $table->string('tipe', 50)->nullable()->after('status');
-            $table->string('plain_password')->nullable()->after('password');
-            $table->timestamp('last_login_at')->nullable()->after('plain_password');
-            $table->boolean('is_aktif')->default(true)->after('last_login_at');
+            if (! Schema::hasColumn('users', 'username')) {
+                $table->string('username')->nullable()->unique();
+            }
+            if (! Schema::hasColumn('users', 'status')) {
+                $table->string('status', 20)->default('aktif');
+            }
+            if (! Schema::hasColumn('users', 'tipe')) {
+                $table->string('tipe', 50)->nullable();
+            }
+            if (! Schema::hasColumn('users', 'plain_password')) {
+                $table->string('plain_password')->nullable();
+            }
+            if (! Schema::hasColumn('users', 'last_login_at')) {
+                $table->timestamp('last_login_at')->nullable();
+            }
+            if (! Schema::hasColumn('users', 'is_aktif')) {
+                $table->boolean('is_aktif')->default(true);
+            }
         });
+
+        // Instalasi baru tidak memiliki tabel legacy `pengguna`: kolom users di atas sudah cukup.
+        if (! Schema::hasTable('pengguna')) {
+            return;
+        }
+
+        // Penyaluran data legacy memakai sintaks Postgres (split_part, ON CONFLICT).
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
 
         // 1b. Database lokal: pengguna belum tentu punya username/status/tipe/plain_password.
         Schema::table('pengguna', function (Blueprint $table) {

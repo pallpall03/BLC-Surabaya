@@ -2,15 +2,17 @@
 
 namespace App\Modules\Instruktur\InstrukturProfile;
 
+use App\Modules\Instruktur\InstrukturProfile\Contracts\InstrukturProfileRepository;
+use App\Modules\Instruktur\InstrukturProfile\Infrastructure\EloquentInstrukturProfileRepository;
 use Illuminate\Support\ServiceProvider;
 
-class InstrukturProfileServiceProvider extends ServiceProvider
+final class InstrukturProfileServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->app->bind(
-            \App\Modules\Instruktur\InstrukturProfile\Contracts\InstrukturProfileRepositoryInterface::class,
-            \App\Modules\Instruktur\InstrukturProfile\Infrastructure\EloquentInstrukturProfileRepository::class
+            InstrukturProfileRepository::class,
+            EloquentInstrukturProfileRepository::class,
         );
     }
 

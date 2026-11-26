@@ -10,4 +10,11 @@ use App\Modules\Instruktur\Ujian\Domain\Ujian;
  */
 interface UjianRepository extends Repository
 {
+    public function opsi(int $instrukturId): array;
+
+    public function createJadwal(int $instrukturId, array $data): array;
+
+    public function updateJadwal(int $instrukturId, int $id, array $data): ?array;
+
+    public function deleteJadwal(int $instrukturId, int $id): bool;
 }

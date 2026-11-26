@@ -20,6 +20,9 @@
 # production
 /build
 
+# aset parser PDF disalin dari pdfjs-dist oleh postinstall
+/public/pdfjs/
+
 # misc
 .DS_Store
 *.pem

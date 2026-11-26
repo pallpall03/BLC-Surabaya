@@ -9,14 +9,26 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Migrasi ini berbagi timestamp dengan add_nik_and_lockout_to_users_table, jadi sebagian
+        // kolom bisa sudah dibuat lebih dulu. Semua kolom dijaga agar urutan mana pun tetap aman.
         Schema::table('users', function (Blueprint $table) {
             // NIK 16 digit = identitas login semua role. Nullable agar akun lama tidak error,
             // tetapi akun tanpa NIK tidak bisa login sampai NIK-nya terisi.
-            $table->string('nik', 16)->nullable()->unique();
-            $table->unsignedSmallInteger('failed_login_attempts')->default(0);
-            $table->timestamp('locked_at')->nullable();
-            $table->foreignId('unlocked_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('unlocked_at')->nullable();
+            if (! Schema::hasColumn('users', 'nik')) {
+                $table->string('nik', 16)->nullable()->unique();
+            }
+            if (! Schema::hasColumn('users', 'failed_login_attempts')) {
+                $table->unsignedSmallInteger('failed_login_attempts')->default(0);
+            }
+            if (! Schema::hasColumn('users', 'locked_at')) {
+                $table->timestamp('locked_at')->nullable();
+            }
+            if (! Schema::hasColumn('users', 'unlocked_by')) {
+                $table->foreignId('unlocked_by')->nullable()->constrained('users')->nullOnDelete();
+            }
+            if (! Schema::hasColumn('users', 'unlocked_at')) {
+                $table->timestamp('unlocked_at')->nullable();
+            }
         });
 
         // Kolom ini biasanya sudah dibuat migrasi migrate_pengguna_to_users. Ditambahkan di sini hanya
@@ -51,9 +63,18 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (Schema::hasColumn('users', 'unlocked_by')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->dropConstrainedForeignId('unlocked_by');
+            });
+        }
+
         Schema::table('users', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('unlocked_by');
-            $table->dropColumn(['nik', 'failed_login_attempts', 'locked_at', 'unlocked_at']);
+            foreach (['nik', 'failed_login_attempts', 'locked_at', 'unlocked_at'] as $kolom) {
+                if (Schema::hasColumn('users', $kolom)) {
+                    $table->dropColumn($kolom);
+                }
+            }
         });
     }
 };

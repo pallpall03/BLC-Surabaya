@@ -43,7 +43,10 @@ class RoleMiddlewareTest extends TestCase
         $response = $this->jalankan(null, 'instruktur');
 
         $this->assertSame(401, $response->getStatusCode());
-        $this->assertSame(['message' => 'Unauthenticated.'], json_decode($response->getContent(), true));
+        $this->assertSame([
+            'message' => 'Unauthenticated.',
+            'redirect_to' => '/login',
+        ], json_decode($response->getContent(), true));
     }
 
     public function test_role_diambil_dari_user_bukan_dari_path(): void
