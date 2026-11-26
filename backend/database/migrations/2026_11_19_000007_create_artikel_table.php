@@ -14,7 +14,11 @@ return new class extends Migration
             $table->string('judul')->nullable();
             $table->text('keterangan')->nullable();          // keterangan (4000 chars)
             $table->string('lokasi')->nullable();            // lokasi
-            $table->foreignId('created_by')->nullable()->constrained('pengguna')->nullOnDelete();
+            // Tabel pengguna adalah warisan database lama; instalasi baru tidak punya tabel itu.
+            $table->foreignId('created_by')->nullable();
+            if (Schema::hasTable('pengguna')) {
+                $table->foreign('created_by')->references('id')->on('pengguna')->nullOnDelete();
+            }
             $table->string('sesi_id')->nullable();           // sesi_id
             $table->boolean('is_delete')->default(false);    // is_delete
             $table->timestamps();

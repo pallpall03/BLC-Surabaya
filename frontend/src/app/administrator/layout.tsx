@@ -1,12 +1,7 @@
-"use client";
-
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import "./metronic-admin.css";
-import AuthGuard from "@/components/auth/AuthGuard";
-import PanelShell from "./components/PanelShell";
-import type { KonfigPeran } from "./components/tipe";
-import { konfigAdministrator, susunMenu } from "./menu-peran";
-import { ambilMenu, EVENT_MENU } from "./menu/data";
+import DashboardGuard from "@/components/auth/DashboardGuard";
+import AdministratorShell from "./components/AdministratorShell";
 
 // atribut body yang dibutuhkan layout Metronic (Demo 1, sidebar gelap)
 const ATRIBUT_BODY: Record<string, string> = {
@@ -21,6 +16,8 @@ const ATRIBUT_BODY: Record<string, string> = {
 };
 
 export default function LayoutAdministrator({ children }: { children: ReactNode }) {
+<<<<<<< HEAD
+=======
   const [konfig, setKonfig] = useState<KonfigPeran>(konfigAdministrator);
 
   // pasang atribut Metronic di <body>, lepas lagi saat keluar dari halaman administrator
@@ -54,12 +51,15 @@ export default function LayoutAdministrator({ children }: { children: ReactNode 
     };
   }, []);
 
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   return (
-    <AuthGuard role="superadmin">
+    <>
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/metronic/assets/plugins/global/plugins.bundle.css" precedence="default" />
       <link rel="stylesheet" href="/metronic/assets/css/style.bundle.css" precedence="default" />
-      <PanelShell konfig={konfig}>{children}</PanelShell>
-    </AuthGuard>
+      <DashboardGuard path="/administrator">
+        <AdministratorShell>{children}</AdministratorShell>
+      </DashboardGuard>
+    </>
   );
 }

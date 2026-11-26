@@ -36,7 +36,7 @@ final class SimpanPesertaRequest extends FormRequest
         return [
             'nik' => [
                 $wajib, 'string', 'digits:16',
-                Rule::unique('peserta', 'nik')->ignore($id)->whereNull('deleted_at'),
+                Rule::unique('peserta', 'nik')->ignore($id)->where('is_delete', false),
             ],
             'nama' => [$wajib, 'string', 'max:255'],
             'jk' => [$wajib, 'string', Rule::in(['L', 'P'])],
@@ -45,9 +45,22 @@ final class SimpanPesertaRequest extends FormRequest
             'alamat' => ['nullable', 'string', 'max:1000'],
             'lokasi_blc_id' => [
                 $wajib, 'integer',
-                Rule::exists('lokasi_blc', 'id')->where('is_delete', false),
+                Rule::exists('lokasi_blc', 'id')
+                    ->where('is_delete', false)
+                    ->where('aktif', true),
             ],
-            'kategori_peserta_id' => ['nullable', 'integer', Rule::exists('kategori_peserta', 'id')],
+            'kategori_peserta_id' => [
+                'nullable', 'integer',
+                Rule::exists('kategori_artikel', 'id')
+                    ->where('is_delete', false)
+                    ->where('jenis_kategori', 'Peserta'),
+            ],
+            'email' => ['nullable', 'string', 'email', 'max:255'],
+            'kecamatan' => ['nullable', 'string', 'max:255'],
+            'kelurahan' => ['nullable', 'string', 'max:255'],
+            'kecamatan_lain' => ['nullable', 'string', 'max:255'],
+            'kelurahan_lain' => ['nullable', 'string', 'max:255'],
+            'is_surabaya' => ['nullable', 'boolean'],
         ];
     }
 
@@ -68,7 +81,10 @@ final class SimpanPesertaRequest extends FormRequest
             'telepon.regex' => 'Nomor telepon hanya boleh berisi angka dan tanda + - ( ).',
             'lokasi_blc_id.required' => 'BLC wajib dipilih.',
             'lokasi_blc_id.exists' => 'BLC tidak ditemukan.',
-            'kategori_peserta_id.exists' => 'Kategori peserta tidak ditemukan.',
+            'kategori_peserta_id.exists' => 'Kategori peserta aktif tidak ditemukan.',
+            'email.email' => 'Email tidak valid.',
+            'email.max' => 'Email maksimal 255 karakter.',
+            'is_surabaya.boolean' => 'Status Surabaya harus boolean.',
         ];
     }
 }

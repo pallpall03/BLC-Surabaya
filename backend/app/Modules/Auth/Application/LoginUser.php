@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 /**
- * Login untuk semua role (satu pintu) memakai NIK atau username dan password.
+ * Login untuk semua role (satu pintu) memakai NIK, username, atau email dan password.
  *
  * Aturan salah password:
  *   - salah ke-1: tanpa captcha
@@ -51,6 +51,11 @@ final class LoginUser
         $user = $this->users->findByLogin($login);
         $jumlahSalah = $user !== null ? (int) $user->failed_login_attempts : $this->salahLoginTakDikenal($login);
 
+        // Data lama bisa saja sudah mencapai batas tanpa kolom locked_at terisi.
+        if ($user !== null && $jumlahSalah >= self::BATAS_KUNCI && ! $user->terkunci()) {
+            $user->forceFill(['locked_at' => now()])->save();
+        }
+
         if (($user !== null && $user->terkunci()) || $jumlahSalah >= self::BATAS_KUNCI) {
             throw LoginDitolak::terkunci();
         }
@@ -77,13 +82,16 @@ final class LoginUser
             throw LoginDitolak::tanpaRole();
         }
 
-        if ($user->is_aktif === false) {
+        if (! $user->aktif()) {
             throw LoginDitolak::nonaktif();
         }
 
-        if ($jumlahSalah > 0) {
-            $user->forceFill(['failed_login_attempts' => 0])->save();
-        }
+        Cache::forget($this->kunciLoginTakDikenal($login));
+
+        $user->forceFill([
+            'failed_login_attempts' => 0,
+            'last_login_at' => now(),
+        ])->save();
 
         return [
             'user' => $user,
@@ -92,10 +100,12 @@ final class LoginUser
         ];
     }
 
-    /** Masa berlaku token dalam detik (dari JWT_TTL di .env, satuan menit). */
+    /** Masa berlaku token dalam detik (dari JWT_TTL di .env, satuan menit). Null = tanpa kedaluwarsa. */
     public static function detikBerlaku(): int
     {
-        return JWTAuth::factory()->getTTL() * 60;
+        $ttl = config('jwt.ttl');
+
+        return $ttl === null ? 0 : max(0, (int) $ttl * 60);
     }
 
     private function passwordBenar(?User $user, string $password): bool
@@ -138,6 +148,6 @@ final class LoginUser
 
     private function kunciLoginTakDikenal(string $login): string
     {
-        return 'login_salah:'.hash('sha256', $login);
+        return 'login_salah:'.hash('sha256', mb_strtolower(trim($login)));
     }
 }

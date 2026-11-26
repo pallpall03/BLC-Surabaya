@@ -6,7 +6,7 @@ use App\Models\User;
 
 interface UserRepository
 {
-    /** Login memakai NIK atau username. */
+    /** Login memakai NIK, username, atau email. */
     public function findByLogin(string $login): ?User;
 
     /** Pencarian email tidak peka huruf besar/kecil. */

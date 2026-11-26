@@ -37,6 +37,8 @@ final class ModuleRegistry
             \App\Modules\Instruktur\DaftarPeserta\DaftarPesertaServiceProvider::class,
             \App\Modules\Instruktur\DaftarHadir\DaftarHadirServiceProvider::class,
             \App\Modules\Instruktur\Laporan\LaporanServiceProvider::class,
+            \App\Modules\Instruktur\Pengunjung\PengunjungServiceProvider::class,
+            \App\Modules\Instruktur\FotoKegiatan\FotoKegiatanServiceProvider::class,
             \App\Modules\Instruktur\Ujian\UjianServiceProvider::class,
             // Koordinator
             \App\Modules\Koordinator\KoordinatorProfile\Infrastructure\KoordinatorProfileServiceProvider::class,

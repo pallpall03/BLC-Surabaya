@@ -1,3 +1,13 @@
+<<<<<<< HEAD
+import DashboardGuard from "@/components/auth/DashboardGuard";
+import InstrukturShell from "@/components/instruktur/InstrukturShell";
+
+export default function InstrukturLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <DashboardGuard path="/instruktur">
+      <InstrukturShell>{children}</InstrukturShell>
+    </DashboardGuard>
+=======
 import MetronicShell from "@/components/instruktur/metronic/MetronicShell";
 import "./instruktur.css";
 
@@ -10,5 +20,6 @@ export default function InstrukturLayout({ children }: { children: React.ReactNo
       <link rel="stylesheet" href="/custom/orange.css" />
       <MetronicShell>{children}</MetronicShell>
     </>
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   );
 }

@@ -18,11 +18,14 @@ final class KategoriArtikelServiceProvider extends ServiceProvider
     {
         Route::prefix('kategori-artikel')->group(function (): void {
             Route::get('/', [Http\KategoriArtikelController::class, 'index']);
-            Route::post('/', [Http\KategoriArtikelController::class, 'store']);
             Route::get('/{id}', [Http\KategoriArtikelController::class, 'show']);
-            Route::put('/{id}', [Http\KategoriArtikelController::class, 'update']);
-            Route::patch('/{id}', [Http\KategoriArtikelController::class, 'update']);
-            Route::delete('/{id}', [Http\KategoriArtikelController::class, 'destroy']);
+
+            Route::middleware(['auth:api', 'role:superadmin'])->group(function (): void {
+                Route::post('/', [Http\KategoriArtikelController::class, 'store']);
+                Route::put('/{id}', [Http\KategoriArtikelController::class, 'update']);
+                Route::patch('/{id}', [Http\KategoriArtikelController::class, 'update']);
+                Route::delete('/{id}', [Http\KategoriArtikelController::class, 'destroy']);
+            });
         });
     }
 }

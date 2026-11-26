@@ -37,6 +37,8 @@ frontend/build/
 frontend/coverage/
 frontend/.vercel/
 frontend/next-env.d.ts
+# Template Metronic HTML (referensi desain, bukan bagian aplikasi); aset yang dipakai ada di public/metronic.
+frontend/demo1/
 *.tsbuildinfo
 .pnp
 .pnp.js

@@ -12,13 +12,16 @@ class PenggunaSeeder extends Seeder
 {
     public function run(): void
     {
-        $superAdminRole = Role::where('slug', 'superadmin')->first();
-        $adminRole = Role::where('slug', 'admin')->first();
+        $superAdminRole = Role::where('slug', Role::SUPERADMIN)->first();
+
+        // Role model hanya mengenal superadmin/koordinator/instruktur/operator/peserta.
+        // Akun "Admin" lama dipetakan ke superadmin agar tetap bisa masuk /administrator.
+        $adminRole = $superAdminRole;
 
         $users = [
             [
                 'role_id' => $superAdminRole?->id,
-                'nik' => '3578000000000001', // NIK contoh untuk dev, ganti di produksi
+                'nik' => '3578000000000011', // NIK contoh untuk dev, ganti di produksi
                 'username' => 'superadmin',
                 'name' => 'Super Administrator',
                 'email' => 'superadmin@blc.surabaya.go.id',
@@ -27,10 +30,12 @@ class PenggunaSeeder extends Seeder
                 'status' => 'aktif',
                 'tipe' => 'superadmin',
                 'is_aktif' => true,
+                'email_verified_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'role_id' => $adminRole?->id,
-                'nik' => '3578000000000002', // NIK contoh untuk dev, ganti di produksi
+                'nik' => '3578000000000012', // NIK contoh untuk dev, ganti di produksi
                 'username' => 'admin',
                 'name' => 'Administrator',
                 'email' => 'admin@blc.surabaya.go.id',
@@ -39,6 +44,8 @@ class PenggunaSeeder extends Seeder
                 'status' => 'aktif',
                 'tipe' => 'admin',
                 'is_aktif' => true,
+                'email_verified_at' => now(),
+                'updated_at' => now(),
             ],
         ];
 

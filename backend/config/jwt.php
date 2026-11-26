@@ -93,8 +93,9 @@ return [
     */
 
     'persistent_claims' => [
-        // 'foo',
-        // 'bar',
+        // Ikut dipertahankan saat token di-refresh. Otorisasi tetap dibaca dari database,
+        // klaim ini hanya memudahkan klien membaca role tanpa request tambahan.
+        'role',
     ],
 
     /*

@@ -19,7 +19,7 @@ final class LoginRequest extends FormRequest
     }
 
     /**
-     * Login semua role memakai NIK atau username. captcha_id dan captcha hanya wajib setelah
+     * Login semua role memakai NIK, username, atau email. captcha_id dan captcha hanya wajib setelah
      * dua kali salah password (dicek di LoginUser, bukan di sini).
      *
      * @return array<string, mixed>
@@ -40,7 +40,7 @@ final class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'login.required' => 'NIK atau username wajib diisi.',
+            'login.required' => 'NIK, username, atau email wajib diisi.',
             'password.required' => 'Password wajib diisi.',
         ];
     }

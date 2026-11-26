@@ -18,11 +18,14 @@ final class FotoSliderServiceProvider extends ServiceProvider
     {
         Route::prefix('foto-slider')->group(function (): void {
             Route::get('/', [Http\FotoSliderController::class, 'index']);
-            Route::post('/', [Http\FotoSliderController::class, 'store']);
             Route::get('/{id}', [Http\FotoSliderController::class, 'show']);
-            Route::put('/{id}', [Http\FotoSliderController::class, 'update']);
-            Route::patch('/{id}', [Http\FotoSliderController::class, 'update']);
-            Route::delete('/{id}', [Http\FotoSliderController::class, 'destroy']);
+
+            Route::middleware(['auth:api', 'role:superadmin'])->group(function (): void {
+                Route::post('/', [Http\FotoSliderController::class, 'store']);
+                Route::put('/{id}', [Http\FotoSliderController::class, 'update']);
+                Route::patch('/{id}', [Http\FotoSliderController::class, 'update']);
+                Route::delete('/{id}', [Http\FotoSliderController::class, 'destroy']);
+            });
         });
     }
 }

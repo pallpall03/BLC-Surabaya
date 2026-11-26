@@ -18,11 +18,14 @@ final class ModulServiceProvider extends ServiceProvider
     {
         Route::prefix('modul')->group(function (): void {
             Route::get('/', [Http\ModulController::class, 'index']);
-            Route::post('/', [Http\ModulController::class, 'store']);
             Route::get('/{id}', [Http\ModulController::class, 'show']);
-            Route::put('/{id}', [Http\ModulController::class, 'update']);
-            Route::patch('/{id}', [Http\ModulController::class, 'update']);
-            Route::delete('/{id}', [Http\ModulController::class, 'destroy']);
+
+            Route::middleware(['auth:api', 'role:superadmin'])->group(function (): void {
+                Route::post('/', [Http\ModulController::class, 'store']);
+                Route::put('/{id}', [Http\ModulController::class, 'update']);
+                Route::patch('/{id}', [Http\ModulController::class, 'update']);
+                Route::delete('/{id}', [Http\ModulController::class, 'destroy']);
+            });
         });
     }
 }

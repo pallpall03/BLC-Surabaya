@@ -13,7 +13,6 @@ export default function AkunTerkunciPage() {
   const header = useCallback(
     (): HeadersInit => ({
       Accept: "application/json",
-      Authorization: `Bearer ${localStorage.getItem("auth_token") ?? ""}`,
     }),
     [],
   );

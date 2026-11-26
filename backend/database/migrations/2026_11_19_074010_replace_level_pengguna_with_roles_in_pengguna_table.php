@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Tabel legacy (pengguna/hak_akses/level_pengguna) hanya ada di database lama.
+        if (! Schema::hasTable('pengguna') || ! Schema::hasTable('hak_akses') || ! Schema::hasTable('level_pengguna')) {
+            return;
+        }
+
         // Drop foreign key on hak_akses.level_pengguna_id first
         Schema::table('hak_akses', function (Blueprint $table) {
             $table->dropForeign(['level_pengguna_id']);

@@ -20,11 +20,14 @@ final class FaqServiceProvider extends ServiceProvider
             Route::get('/aktif', [Http\FaqController::class, 'aktif']);
             Route::get('/', [Http\FaqController::class, 'index']);
             Route::get('/kategori/{kategori}', [Http\FaqController::class, 'byKategori']);
-            Route::post('/', [Http\FaqController::class, 'store']);
             Route::get('/{id}', [Http\FaqController::class, 'show']);
-            Route::put('/{id}', [Http\FaqController::class, 'update']);
-            Route::patch('/{id}', [Http\FaqController::class, 'update']);
-            Route::delete('/{id}', [Http\FaqController::class, 'destroy']);
+
+            Route::middleware(['auth:api', 'role:superadmin'])->group(function (): void {
+                Route::post('/', [Http\FaqController::class, 'store']);
+                Route::put('/{id}', [Http\FaqController::class, 'update']);
+                Route::patch('/{id}', [Http\FaqController::class, 'update']);
+                Route::delete('/{id}', [Http\FaqController::class, 'destroy']);
+            });
         });
     }
 }

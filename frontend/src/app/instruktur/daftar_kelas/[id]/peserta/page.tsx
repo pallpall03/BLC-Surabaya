@@ -1,5 +1,11 @@
+<<<<<<< HEAD
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+=======
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+>>>>>>> 1bfeee7fe687e718303a5d3c1c117410b8748945
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { User } from "lucide-react";
@@ -17,27 +23,57 @@ const JK = ({ jk }: { jk: "L" | "P" }) =>
 
 const THEAD = "text-start text-muted fw-bold fs-7 text-uppercase gs-0";
 
-type CalonPeserta = Peserta & { noDaftar: string };
-
 export default function PesertaKelasPage() {
   const { id } = useParams<{ id: string }>();
   const kelasId = Number(id);
   const { showNotification } = useCrudNotification();
 
   const [kelas, setKelas] = useState<Kelas | null>(null);
-  const [tersedia, setTersedia] = useState<CalonPeserta[]>([]);
-  const [terdaftar, setTerdaftar] = useState<CalonPeserta[]>([]);
+  const [tersedia, setTersedia] = useState<Peserta[]>([]);
+  const [terdaftar, setTerdaftar] = useState<Peserta[]>([]);
   const [dipilih, setDipilih] = useState<number[]>([]);
   const [cari, setCari] = useState("");
   const [area, setArea] = useState("");
   const [loading, setLoading] = useState(true);
 
+<<<<<<< HEAD
+  const toast = useCallback((t: string) => {
+    setPesan(t);
+    setTimeout(() => setPesan(""), 3000);
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [kelasRes, calonRes, terdaftarRes] = await Promise.all([
+        getKelasDetail(kelasId),
+        getCalonPeserta(kelasId),
+        getKelasPeserta(kelasId),
+      ]);
+      setKelas(kelasRes.data);
+      setTersedia(calonRes.data);
+      setTerdaftar(terdaftarRes.data);
+    } catch (e) {
+      console.error(e);
+      toast("Gagal memuat data");
+    } finally {
+      setLoading(false);
+    }
+  }, [kelasId, toast]);
+=======
   const toast = (t: string, type: "success" | "error" = "success") => {
     showNotification({ type, title: type === "success" ? "Berhasil" : "Operasi gagal", message: t });
   };
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
-  // Fetch data
   useEffect(() => {
+<<<<<<< HEAD
+    void Promise.resolve().then(() => {
+      setLoading(true);
+      return fetchData();
+    });
+  }, [fetchData]);
+=======
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -52,6 +88,7 @@ export default function PesertaKelasPage() {
     };
     fetchData();
   }, [kelasId, showNotification]);
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
   const daftarArea = useMemo(() => Array.from(new Set(tersedia.map((p) => p.blc))).sort(), [tersedia]);
   const tampil = useMemo(() => {
@@ -93,7 +130,7 @@ export default function PesertaKelasPage() {
     }
   };
 
-  const keluarkan = async (p: CalonPeserta) => {
+  const keluarkan = async (p: Peserta) => {
     try {
       await removePesertaFromKelas(kelasId, p.id);
       setTerdaftar((t) => t.filter((x) => x.id !== p.id));
@@ -106,6 +143,38 @@ export default function PesertaKelasPage() {
   };
 
   return (
+<<<<<<< HEAD
+    <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
+      <div className="mx-auto max-w-6xl">
+        <HeaderHalaman icon={ClipboardList} judul="Pendaftaran peserta" kembali="/instruktur/daftar_kelas"
+          deskripsi={
+            <span className="flex flex-wrap items-center gap-2">
+              Kelas <b>{kelas.nama}</b>
+              {kelas.hari.map((h) => <span key={h} className="rounded-full bg-white/25 px-2.5 py-0.5 text-xs font-medium">{h}</span>)}
+              <span className="text-orange-100">Sesi {kelas.sesi} · {kelas.waktuSesi ?? jamSesi(kelas.sesi)}</span>
+            </span>
+          } />
+
+        {/* Belum terdaftar */}
+        <section className={`${kartu} mb-6`}>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-orange-100 p-4">
+            <h2 className="flex items-center gap-2 font-semibold text-slate-900">
+              <UserPlus size={20} className="text-orange-500" /> Peserta belum terdaftar
+              <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-xs text-orange-700">{tersedia.length}</span>
+            </h2>
+            <div className="flex flex-wrap gap-3">
+              <div className="relative">
+                <Search size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-orange-400" />
+                <input type="search" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama atau NIK" aria-label="Cari peserta"
+                  className="w-64 rounded-xl border border-orange-100 bg-orange-50/40 py-2 pl-9 pr-3 text-sm outline-none transition hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60" />
+              </div>
+              <select value={area} onChange={(e) => setArea(e.target.value)} aria-label="Filter area BLC"
+                className="rounded-xl border border-orange-100 bg-orange-50/40 px-3 py-2 text-sm outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-200/60">
+                <option value="">Semua area BLC</option>
+                {daftarArea.map((a) => <option key={a}>{a}</option>)}
+              </select>
+            </div>
+=======
     <>
       <HeaderHalaman icon={ClipboardList} judul="Pendaftaran peserta" kembali="/instruktur/daftar_kelas"
         deskripsi={
@@ -124,6 +193,7 @@ export default function PesertaKelasPage() {
               <UserPlus size={20} className="text-primary" /> Peserta belum terdaftar
               <span className="badge badge-light-primary fs-8">{tersedia.length}</span>
             </span>
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
           </div>
           <div className="card-toolbar flex-wrap gap-3">
             <div className="d-flex align-items-center position-relative my-1">
@@ -151,6 +221,15 @@ export default function PesertaKelasPage() {
               </p>
             </div>
           ) : (
+<<<<<<< HEAD
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[800px] text-left text-sm">
+                <thead className="bg-orange-50 text-orange-900">
+                  <tr>
+                    <th className={`${th} w-12`}><input type="checkbox" checked={semua} onChange={toggleSemua} aria-label="Pilih semua" className="h-4 w-4 accent-orange-500" /></th>
+                    <th className={th}>ID Peserta</th><th className={th}>NIK</th><th className={th}>Nama lengkap</th>
+                    <th className={th}>L/P</th><th className={th}>Kategori</th><th className={th}>BLC</th>
+=======
             <div className="table-responsive">
               <table className="table align-middle table-row-dashed fs-6 gy-5">
                 <thead>
@@ -161,10 +240,21 @@ export default function PesertaKelasPage() {
                       </div>
                     </th>
                     <th>NIK</th><th>No. pendaftaran</th><th>Nama lengkap</th><th>L/P</th><th>Kategori</th><th>BLC</th>
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
                   </tr>
                 </thead>
                 <tbody className="text-gray-600 fw-semibold">
                   {tampil.map((p) => (
+<<<<<<< HEAD
+                    <tr key={p.id} onClick={() => toggle(p.id)} className={`cursor-pointer transition ${dipilih.includes(p.id) ? "bg-orange-50" : "hover:bg-orange-50/50"}`}>
+                      <td className="px-4 py-3"><input type="checkbox" checked={dipilih.includes(p.id)} onChange={() => toggle(p.id)} onClick={(e) => e.stopPropagation()} aria-label={`Pilih ${p.nama}`} className="h-4 w-4 accent-orange-500" /></td>
+                      <td className="px-4 py-3 tabular-nums text-slate-600">{p.id}</td>
+                      <td className="px-4 py-3 tabular-nums text-slate-600">{p.nik}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900">{p.nama}</td>
+                      <td className="px-4 py-3"><JK jk={p.jk} /></td>
+                      <td className="px-4 py-3"><span className="rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-medium text-violet-700">{p.kategori}</span></td>
+                      <td className="px-4 py-3 text-slate-700">{p.blc}</td>
+=======
                     <tr key={p.id} className={dipilih.includes(p.id) ? "table-active" : ""}>
                       <td>
                         <div className="form-check form-check-sm form-check-custom form-check-solid">
@@ -178,6 +268,7 @@ export default function PesertaKelasPage() {
                       <td><JK jk={p.jk} /></td>
                       <td><span className="badge badge-light-primary fs-8 py-2 px-3">{p.kategori}</span></td>
                       <td>{p.blc}</td>
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
                     </tr>
                   ))}
                 </tbody>
@@ -199,15 +290,32 @@ export default function PesertaKelasPage() {
           {terdaftar.length === 0 ? (
             <p className="text-center fs-7 text-gray-500 py-10 mb-0">Belum ada peserta. Centang peserta di atas lalu klik &quot;Daftarkan&quot;.</p>
           ) : (
+<<<<<<< HEAD
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[800px] text-left text-sm">
+                <thead className="bg-emerald-50 text-emerald-900">
+                  <tr><th className={th}>ID Peserta</th><th className={th}>NIK</th><th className={th}>Nama lengkap</th><th className={th}>L/P</th><th className={th}>Kategori</th><th className={`${th} text-right`}>Aksi</th></tr>
+=======
             <div className="table-responsive">
               <table className="table align-middle table-row-dashed fs-6 gy-5">
                 <thead>
                   <tr className={THEAD}>
                     <th>NIK</th><th>No. pendaftaran</th><th>Nama lengkap</th><th>L/P</th><th>Kategori</th><th className="text-end">Aksi</th>
                   </tr>
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
                 </thead>
                 <tbody className="text-gray-600 fw-semibold">
                   {terdaftar.map((p) => (
+<<<<<<< HEAD
+                    <tr key={p.id} className="transition hover:bg-emerald-50/40">
+                      <td className="px-4 py-3 tabular-nums text-slate-600">{p.id}</td>
+                      <td className="px-4 py-3 tabular-nums text-slate-600">{p.nik}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900">{p.nama}</td>
+                      <td className="px-4 py-3"><JK jk={p.jk} /></td>
+                      <td className="px-4 py-3"><span className="rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-medium text-violet-700">{p.kategori}</span></td>
+                      <td className="px-4 py-3 text-right">
+                        <button type="button" onClick={() => keluarkan(p)} className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">
+=======
                     <tr key={p.id}>
                       <td>{p.nik}</td>
                       <td>{p.noDaftar}</td>
@@ -216,6 +324,7 @@ export default function PesertaKelasPage() {
                       <td><span className="badge badge-light-primary fs-8 py-2 px-3">{p.kategori}</span></td>
                       <td className="text-end">
                         <button type="button" onClick={() => keluarkan(p)} className="btn btn-sm btn-light-danger d-inline-flex align-items-center gap-2">
+>>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
                           <UserMinus size={15} /> Keluarkan
                         </button>
                       </td>

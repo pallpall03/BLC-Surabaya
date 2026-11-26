@@ -12,6 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Tabel legacy hanya ada di database lama; instalasi baru tidak melewati blok ini.
+        if (! Schema::hasTable('pengguna')) {
+            return;
+        }
+
         Schema::table('pengguna', function (Blueprint $table) {
             if (Schema::hasColumn('pengguna', 'status')) {
                 $table->string('status', 20)->default('aktif')->change();

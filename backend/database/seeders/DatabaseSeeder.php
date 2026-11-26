@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             LokasiBlcSeeder::class,
             TestimoniSeeder::class,
             TimBlcSeeder::class,
+            MasterPelatihanSeeder::class,
             FaqSeeder::class,
             ModulSeeder::class,
             UjianSeeder::class,

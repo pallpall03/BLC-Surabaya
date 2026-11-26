@@ -19,11 +19,14 @@ final class LokasiBlcServiceProvider extends ServiceProvider
         Route::prefix('lokasi-blc')->group(function (): void {
             Route::get('/', [Http\LokasiBlcController::class, 'index']);
             Route::get('/aktif', [Http\LokasiBlcController::class, 'aktif']);
-            Route::post('/', [Http\LokasiBlcController::class, 'store']);
             Route::get('/{id}', [Http\LokasiBlcController::class, 'show']);
-            Route::put('/{id}', [Http\LokasiBlcController::class, 'update']);
-            Route::patch('/{id}', [Http\LokasiBlcController::class, 'update']);
-            Route::delete('/{id}', [Http\LokasiBlcController::class, 'destroy']);
+
+            Route::middleware(['auth:api', 'role:superadmin'])->group(function (): void {
+                Route::post('/', [Http\LokasiBlcController::class, 'store']);
+                Route::put('/{id}', [Http\LokasiBlcController::class, 'update']);
+                Route::patch('/{id}', [Http\LokasiBlcController::class, 'update']);
+                Route::delete('/{id}', [Http\LokasiBlcController::class, 'destroy']);
+            });
         });
     }
 }

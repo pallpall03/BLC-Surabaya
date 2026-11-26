@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Shared\Support\DashboardAccess;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
@@ -143,15 +144,17 @@ class AuthTest extends TestCase
         }
     }
 
-    public function test_login_dengan_nik_atau_username_mengembalikan_user_yang_sama(): void
+    public function test_login_dengan_nik_username_atau_email_mengembalikan_user_yang_sama(): void
     {
         $user = $this->buatUser('instruktur', 'instruktur@blc.test');
         $user->forceFill(['username' => 'instruktur.demo'])->save();
 
         $withNik = $this->postJson('/api/v1/auth/login', ['login' => self::NIK, 'password' => 'rahasia123'])->assertOk();
         $withUsername = $this->postJson('/api/v1/auth/login', ['login' => 'instruktur.demo', 'password' => 'rahasia123'])->assertOk();
+        $withEmail = $this->postJson('/api/v1/auth/login', ['login' => 'INSTRUKTUR@BLC.TEST', 'password' => 'rahasia123'])->assertOk();
 
         $this->assertSame($withNik->json('user.id'), $withUsername->json('user.id'));
+        $this->assertSame($withNik->json('user.id'), $withEmail->json('user.id'));
     }
 
     public function test_peserta_hasil_register_bisa_login(): void
@@ -242,5 +245,60 @@ class AuthTest extends TestCase
     public function test_token_palsu_ditolak(): void
     {
         $this->withToken('bukan.token.jwt')->getJson('/api/v1/auth/me')->assertStatus(401);
+    }
+
+    public function test_cookie_dashboard_bisa_dipakai_tanpa_header_bearer(): void
+    {
+        // Cookie dashboard berisi JWT mentah; request JSON tes perlu withCredentials().
+        $this->buatUser('instruktur');
+
+        $token = $this->postJson('/api/v1/auth/login', [
+            'login' => self::NIK,
+            'password' => 'rahasia123',
+        ])->assertOk()->json('token');
+
+        $this->withCredentials()
+            ->withUnencryptedCookie(DashboardAccess::COOKIE, $token)
+            ->getJson('/api/v1/auth/akses-dashboard/instruktur')
+            ->assertOk()
+            ->assertJsonPath('allowed', true)
+            ->assertJsonPath('redirect_to', '/instruktur');
+    }
+
+    public function test_dashboard_gate_mengambil_role_dari_database(): void
+    {
+        $this->buatUser('instruktur');
+
+        $token = $this->postJson('/api/v1/auth/login', [
+            'login' => self::NIK,
+            'password' => 'rahasia123',
+        ])->assertOk()->json('token');
+
+        $this->withUnencryptedCookie(DashboardAccess::COOKIE, $token)
+            ->get('/api/v1/auth/dashboard-gate?path=/instruktur/daftar_peserta')
+            ->assertNoContent();
+
+        $this->withUnencryptedCookie(DashboardAccess::COOKIE, $token)
+            ->get('/api/v1/auth/dashboard-gate?path=/operator')
+            ->assertRedirect('/login');
+
+        $this->get('/api/v1/auth/dashboard-gate?path=/administrator')
+            ->assertRedirect('/login');
+    }
+
+    public function test_akses_dashboard_menolak_role_yang_berbeda(): void
+    {
+        $this->buatUser('instruktur');
+
+        $token = $this->postJson('/api/v1/auth/login', [
+            'login' => self::NIK,
+            'password' => 'rahasia123',
+        ])->assertOk()->json('token');
+
+        $this->withCredentials()
+            ->withUnencryptedCookie(DashboardAccess::COOKIE, $token)
+            ->getJson('/api/v1/auth/akses-dashboard/operator')
+            ->assertForbidden()
+            ->assertJsonPath('redirect_to', '/login');
     }
 }

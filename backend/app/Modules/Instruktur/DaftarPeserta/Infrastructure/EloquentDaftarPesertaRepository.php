@@ -17,7 +17,7 @@ final class EloquentDaftarPesertaRepository implements DaftarPesertaRepository
     public function all(): array
     {
         return PesertaModel::with(self::RELASI)
-            ->orderBy('nama')
+            ->orderBy('nama_lengkap')
             ->orderBy('id')
             ->get()
             ->map(fn (PesertaModel $p) => $this->toArray($p))
@@ -28,7 +28,7 @@ final class EloquentDaftarPesertaRepository implements DaftarPesertaRepository
     {
         $hasil = $this->query($filter, denganStatus: true)
             ->with(self::RELASI)
-            ->orderBy('nama')
+            ->orderBy('nama_lengkap')
             ->orderBy('id')
             ->paginate($perPage, ['*'], 'page', $page);
 
@@ -48,9 +48,10 @@ final class EloquentDaftarPesertaRepository implements DaftarPesertaRepository
         $dasar = $this->query($filter, denganStatus: false);
 
         $semua = (clone $dasar)->count();
-        $valid = (clone $dasar)->where('tervalidasi', true)->count();
+        $valid = (clone $dasar)->where('is_validated', true)->count();
+        $belum = (clone $dasar)->where('is_validated', false)->count();
 
-        return ['semua' => $semua, 'tervalidasi' => $valid, 'belum' => $semua - $valid];
+        return ['semua' => $semua, 'tervalidasi' => $valid, 'belum' => $belum];
     }
 
     public function find(int $id): mixed
@@ -62,7 +63,11 @@ final class EloquentDaftarPesertaRepository implements DaftarPesertaRepository
 
     public function create(array $data): mixed
     {
-        $peserta = PesertaModel::create($data);
+        $peserta = new PesertaModel($this->toDatabase($data));
+        $peserta->forceFill([
+            'is_delete' => false,
+            'is_validated' => false,
+        ])->save();
 
         return $this->toArray($peserta->load(self::RELASI));
     }
@@ -70,24 +75,26 @@ final class EloquentDaftarPesertaRepository implements DaftarPesertaRepository
     public function update(int $id, array $data): mixed
     {
         $peserta = PesertaModel::findOrFail($id);
-        $peserta->update($data);
+        $attributes = $this->toDatabase($data);
+
+        if ($attributes !== []) {
+            $peserta->update($attributes);
+        }
 
         return $this->toArray($peserta->load(self::RELASI));
     }
 
     public function delete(int $id): void
     {
-        PesertaModel::findOrFail($id)->delete();
+        PesertaModel::findOrFail($id)->forceFill(['is_delete' => true])->save();
     }
 
     public function setValidasi(int $id, bool $valid, ?int $oleh): mixed
     {
+        // Skema aktif tidak menyimpan waktu atau pelaku validasi; $oleh dipertahankan
+        // agar signature kontrak dan pemanggil yang sudah ada tetap kompatibel.
         $peserta = PesertaModel::findOrFail($id);
-        $peserta->forceFill([
-            'tervalidasi' => $valid,
-            'tanggal_validasi' => $valid ? now() : null,
-            'divalidasi_oleh' => $valid ? $oleh : null,
-        ])->save();
+        $peserta->forceFill(['is_validated' => $valid])->save();
 
         return $this->toArray($peserta->load(self::RELASI));
     }
@@ -100,10 +107,12 @@ final class EloquentDaftarPesertaRepository implements DaftarPesertaRepository
                 ->get(['id', 'nama_blc'])
                 ->map(fn ($l) => ['id' => $l->id, 'nama' => $l->nama_blc])
                 ->all(),
-            'kategori_peserta' => KategoriPesertaModel::where('is_aktif', true)
-                ->orderBy('nama')
-                ->get(['id', 'nama'])
-                ->map(fn ($k) => ['id' => $k->id, 'nama' => $k->nama])
+            'kategori_peserta' => KategoriPesertaModel::where('jenis_kategori', 'Peserta')
+                ->where('is_delete', false)
+                ->orderBy('urutan')
+                ->orderBy('nama_kelompok')
+                ->get(['id', 'nama_kelompok'])
+                ->map(fn ($k) => ['id' => $k->id, 'nama' => $k->nama_kelompok])
                 ->all(),
         ];
     }
@@ -117,7 +126,7 @@ final class EloquentDaftarPesertaRepository implements DaftarPesertaRepository
         if ($kata !== '') {
             $pola = '%'.mb_strtolower($kata).'%';
             $query->where(function (Builder $w) use ($pola): void {
-                $w->whereRaw('LOWER(nama) LIKE ?', [$pola])->orWhere('nik', 'like', $pola);
+                $w->whereRaw('LOWER(nama_lengkap) LIKE ?', [$pola])->orWhere('nik', 'like', $pola);
             });
         }
 
@@ -126,12 +135,12 @@ final class EloquentDaftarPesertaRepository implements DaftarPesertaRepository
         }
 
         if (! empty($filter['kategori_peserta_id'])) {
-            $query->where('kategori_peserta_id', (int) $filter['kategori_peserta_id']);
+            $query->where('kategori_id', (int) $filter['kategori_peserta_id']);
         }
 
         $status = $filter['status'] ?? 'semua';
         if ($denganStatus && in_array($status, ['valid', 'non'], true)) {
-            $query->where('tervalidasi', $status === 'valid');
+            $query->where('is_validated', $status === 'valid');
         }
 
         return $query;
@@ -143,17 +152,58 @@ final class EloquentDaftarPesertaRepository implements DaftarPesertaRepository
         return [
             'id' => $p->id,
             'nik' => $p->nik,
-            'nama' => $p->nama,
-            'jk' => $p->jk,
+            'nama' => $p->nama_lengkap,
+            'jk' => $p->gender,
             'tanggal_lahir' => $p->tanggal_lahir?->format('Y-m-d'),
-            'telepon' => $p->telepon,
+            'telepon' => $p->phone,
             'alamat' => $p->alamat,
             'lokasi_blc_id' => $p->lokasi_blc_id,
             'blc' => $p->lokasiBlc?->nama_blc ?? '-',
-            'kategori_peserta_id' => $p->kategori_peserta_id,
-            'kategori' => $p->kategoriPeserta?->nama ?? '-',
-            'tervalidasi' => (bool) $p->tervalidasi,
-            'tanggal_validasi' => $p->tanggal_validasi?->toIso8601String(),
+            'kategori_peserta_id' => $p->kategori_id,
+            'kategori' => $p->kategoriPeserta?->nama_kelompok ?? '-',
+            'tervalidasi' => (bool) $p->is_validated,
+            'email' => $p->email,
+            'kecamatan' => $p->kecamatan,
+            'kelurahan' => $p->kelurahan,
+            'kecamatan_lain' => $p->kecamatan_lain,
+            'kelurahan_lain' => $p->kelurahan_lain,
+            'is_surabaya' => (bool) $p->is_surabaya,
         ];
+    }
+
+    /**
+     * Memetakan field API lama ke kolom peserta aktif. Field status tidak diterima
+     * dari form agar validasi hanya dapat diubah melalui endpoint validasi.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function toDatabase(array $data): array
+    {
+        $pemetaan = [
+            'nik' => 'nik',
+            'nama' => 'nama_lengkap',
+            'jk' => 'gender',
+            'tanggal_lahir' => 'tanggal_lahir',
+            'telepon' => 'phone',
+            'alamat' => 'alamat',
+            'lokasi_blc_id' => 'lokasi_blc_id',
+            'kategori_peserta_id' => 'kategori_id',
+            'email' => 'email',
+            'kecamatan' => 'kecamatan',
+            'kelurahan' => 'kelurahan',
+            'kecamatan_lain' => 'kecamatan_lain',
+            'kelurahan_lain' => 'kelurahan_lain',
+            'is_surabaya' => 'is_surabaya',
+        ];
+
+        $attributes = [];
+        foreach ($pemetaan as $api => $kolom) {
+            if (array_key_exists($api, $data)) {
+                $attributes[$kolom] = $data[$api];
+            }
+        }
+
+        return $attributes;
     }
 }
