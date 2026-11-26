@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { LogOut, Menu, UserRound } from "lucide-react";
 import { logout } from "@/lib/api";
 import { useShell } from "./shell-context";
 
 export default function Header() {
+  const pathname = usePathname();
   const { mobileOpen, setMobileOpen } = useShell();
   const [loggingOut, setLoggingOut] = useState(false);
+  const pageTitle = pathname.includes("/kategori_peserta") ? "Master Data Kategori Peserta" : "Master Data Materi";
 
   return (
     <div id="kt_app_header" className="app-header">
@@ -25,7 +28,7 @@ export default function Header() {
         </div>
 
         <div className="d-flex flex-column justify-content-center flex-grow-1 min-w-0">
-          <h2 className="text-dark fw-bold fs-3 my-0 text-truncate">Master Data Materi</h2>
+          <h2 className="text-dark fw-bold fs-3 my-0 text-truncate">{pageTitle}</h2>
           <span className="text-muted fs-7 mt-1 d-none d-sm-block">Panel Koordinator · BLC Surabaya</span>
         </div>
 

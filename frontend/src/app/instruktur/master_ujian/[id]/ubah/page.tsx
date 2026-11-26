@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, PencilLine } from "lucide-react";
 import HeaderHalaman from "../../components/headerhalaman";
 import FormUjian, { namaUjian, type NilaiUjian } from "../../components/formujian";
-import PopupSukses from "../../components/popupsukses";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 const APK = "APLIKASI PERKANTORAN";
 const u = (jenis: NilaiUjian["jenis"], pertemuan: number, mulai: string, sampai: string, acak: NilaiUjian["acak"] = "acak"): NilaiUjian => ({
@@ -27,9 +27,9 @@ const UJIAN: Record<string, NilaiUjian> = {
 export default function UbahUjianPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { showNotification } = useCrudNotification();
   const awal = UJIAN[id];
   const [saving, setSaving] = useState(false);
-  const [sukses, setSukses] = useState<string | null>(null);
 
   if (!awal) {
     return (
@@ -47,7 +47,8 @@ export default function UbahUjianPage() {
     setSaving(true);
     try {
       // TODO: PUT /api/ujian/{id} dengan body `n`
-      setSukses(namaUjian(n.jenis, n.materi, n.pertemuan));
+      showNotification({ type: "success", title: "Ujian diperbarui", message: namaUjian(n.jenis, n.materi, n.pertemuan) });
+      router.push("/instruktur/master_ujian");
     } finally {
       setSaving(false);
     }
@@ -59,7 +60,6 @@ export default function UbahUjianPage() {
         <HeaderHalaman icon={PencilLine} judul="Ubah profil ujian" deskripsi={namaUjian(awal.jenis, awal.materi, awal.pertemuan)} kembali="/instruktur/master_ujian" />
         <FormUjian awal={awal} kembali="/instruktur/master_ujian" labelSimpan="Perbarui" saving={saving} onSimpan={simpan} />
       </div>
-      {sukses && <PopupSukses judul="Ujian diperbarui" detail={sukses} onTutup={() => router.push("/instruktur/master_ujian")} />}
     </main>
   );
 }

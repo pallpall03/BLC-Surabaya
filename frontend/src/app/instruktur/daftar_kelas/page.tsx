@@ -10,14 +10,15 @@ import HeaderHalaman from "./components/headerhalaman";
 import JadwalKelas from "./components/jadwalkelas";
 import { jamSesi } from "./data";
 import { getKelas, createKelas, updateKelas, deleteKelas, type Kelas } from "@/lib/api";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 type Filter = "Semua" | "Aktif" | "Selesai";
 
 export default function DaftarKelasPage() {
+  const { showNotification } = useCrudNotification();
   const [kelas, setKelas] = useState<Kelas[]>([]);
   const [filter, setFilter] = useState<Filter>("Semua");
   const [cari, setCari] = useState("");
-  const [pesan, setPesan] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
@@ -48,8 +49,6 @@ export default function DaftarKelasPage() {
       );
     }, [kelas, filter, cari]);
 
-    const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
-
     const handleCreate = async (data: Omit<Kelas, "id" | "totalPeserta">) => {
       try {
         setSubmitting(true);
@@ -61,11 +60,11 @@ export default function DaftarKelasPage() {
           lokasi_blc_id: 1, // TODO: get from user context
         });
         setKelas((prev) => [...prev, res.data]);
-        toast("Kelas berhasil dibuat");
+        showNotification({ type: "success", title: "Kelas dibuat", message: "Kelas berhasil dibuat." });
         return true;
       } catch (e) {
         console.error(e);
-        toast("Gagal membuat kelas");
+        showNotification({ type: "error", title: "Kelas gagal dibuat", message: e instanceof Error ? e.message : "Gagal membuat kelas." });
         return false;
       } finally {
         setSubmitting(false);
@@ -83,11 +82,11 @@ export default function DaftarKelasPage() {
         if (data.status !== undefined) payload.status = data.status === "Aktif" ? 1 : 0;
         const res = await updateKelas(id, payload);
         setKelas((prev) => prev.map((k) => (k.id === id ? res.data : k)));
-        toast("Kelas berhasil diperbarui");
+        showNotification({ type: "success", title: "Kelas diperbarui", message: "Kelas berhasil diperbarui." });
         return true;
       } catch (e) {
         console.error(e);
-        toast("Gagal memperbarui kelas");
+        showNotification({ type: "error", title: "Kelas gagal diperbarui", message: e instanceof Error ? e.message : "Gagal memperbarui kelas." });
         return false;
       } finally {
         setSubmitting(false);
@@ -99,10 +98,10 @@ export default function DaftarKelasPage() {
       try {
         await deleteKelas(id);
         setKelas((prev) => prev.filter((k) => k.id !== id));
-        toast("Kelas dihapus");
+        showNotification({ type: "success", title: "Kelas dihapus", message: "Kelas berhasil dihapus." });
       } catch (e) {
         console.error(e);
-        toast("Gagal menghapus kelas");
+        showNotification({ type: "error", title: "Kelas gagal dihapus", message: e instanceof Error ? e.message : "Gagal menghapus kelas." });
       }
     };
 
@@ -277,12 +276,6 @@ export default function DaftarKelasPage() {
           )}
         </div>
       </div>
-
-      {pesan && (
-        <div role="status" className="position-fixed bottom-0 end-0 m-6 rounded px-5 py-3 bg-dark text-white shadow fs-7" style={{ zIndex: 1090 }}>
-          {pesan}
-        </div>
-      )}
     </>
   );
 }

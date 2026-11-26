@@ -6,6 +6,7 @@ import { CheckCircle2, ClipboardList, Mars, Search, SearchX, UserCheck, UserMinu
 import HeaderHalaman from "../../components/headerhalaman";
 import { jamSesi, type Kelas } from "../../data";
 import { getKelasDetail, getCalonPeserta, getKelasPeserta, addPesertaToKelas, removePesertaFromKelas, type Peserta } from "@/lib/api";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 const JK = ({ jk }: { jk: "L" | "P" }) =>
   jk === "L" ? (
@@ -21,6 +22,7 @@ type CalonPeserta = Peserta & { noDaftar: string };
 export default function PesertaKelasPage() {
   const { id } = useParams<{ id: string }>();
   const kelasId = Number(id);
+  const { showNotification } = useCrudNotification();
 
   const [kelas, setKelas] = useState<Kelas | null>(null);
   const [tersedia, setTersedia] = useState<CalonPeserta[]>([]);
@@ -28,10 +30,11 @@ export default function PesertaKelasPage() {
   const [dipilih, setDipilih] = useState<number[]>([]);
   const [cari, setCari] = useState("");
   const [area, setArea] = useState("");
-  const [pesan, setPesan] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
+  const toast = (t: string, type: "success" | "error" = "success") => {
+    showNotification({ type, title: type === "success" ? "Berhasil" : "Operasi gagal", message: t });
+  };
 
   // Fetch data
   useEffect(() => {
@@ -48,13 +51,13 @@ export default function PesertaKelasPage() {
         setTerdaftar(terdaftarRes.data.map(p => ({ ...p, noDaftar: `-` })));
       } catch (e) {
         console.error(e);
-        toast("Gagal memuat data");
+        showNotification({ type: "error", title: "Operasi gagal", message: "Gagal memuat data" });
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, [kelasId]);
+  }, [kelasId, showNotification]);
 
   const daftarArea = useMemo(() => Array.from(new Set(tersedia.map((p) => p.blc))).sort(), [tersedia]);
   const tampil = useMemo(() => {
@@ -80,7 +83,10 @@ export default function PesertaKelasPage() {
 
   const daftarkan = async () => {
     const pindah = tersedia.filter((p) => dipilih.includes(p.id));
-    if (pindah.length === 0) return;
+    if (pindah.length === 0) {
+      toast("Pilih minimal satu peserta untuk didaftarkan.", "error");
+      return;
+    }
     try {
       await addPesertaToKelas(kelasId, pindah.map(p => p.id));
       setTerdaftar((t) => [...t, ...pindah]);
@@ -89,7 +95,7 @@ export default function PesertaKelasPage() {
       toast(`${pindah.length} peserta didaftarkan.`);
     } catch (e) {
       console.error(e);
-      toast("Gagal mendaftarkan peserta");
+      toast("Gagal mendaftarkan peserta", "error");
     }
   };
 
@@ -101,7 +107,7 @@ export default function PesertaKelasPage() {
       toast("Peserta dikeluarkan dari kelas.");
     } catch (e) {
       console.error(e);
-      toast("Gagal mengeluarkan peserta");
+      toast("Gagal mengeluarkan peserta", "error");
     }
   };
 
@@ -240,11 +246,6 @@ export default function PesertaKelasPage() {
               </button>
             </div>
           </div>
-        </div>
-      )}
-      {pesan && (
-        <div role="status" className="position-fixed top-0 end-0 m-6 rounded px-5 py-3 bg-dark text-white shadow fs-7" style={{ zIndex: 1090 }}>
-          {pesan}
         </div>
       )}
     </>

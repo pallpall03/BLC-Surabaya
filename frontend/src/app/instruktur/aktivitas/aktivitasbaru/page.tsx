@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { CalendarPlus } from "lucide-react";
 import HeaderHalaman from "../components/headerhalaman";
 import FormAktivitas, { hariIni, NILAI_KOSONG, validasiAktivitas, type NilaiAktivitas } from "../components/formaktivitas";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 export default function EntryAktivitasPage() {
   const router = useRouter();
+  const { showNotification } = useCrudNotification();
   const [nilai, setNilai] = useState<NilaiAktivitas>(NILAI_KOSONG);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -32,6 +34,7 @@ export default function EntryAktivitasPage() {
       // body.append("keterangan", nilai.keterangan);
       // nilai.fotoBaru.forEach((f) => body.append("foto[]", f));         // file foto (boleh banyak)
       // await fetch(`${process.env.NEXT_PUBLIC_API_URL}/aktivitas`, { method: "POST", body });
+      showNotification({ type: "success", title: "Aktivitas tersimpan", message: "Aktivitas baru berhasil dicatat." });
       router.push("/instruktur/aktivitas");
     } finally {
       setSaving(false);

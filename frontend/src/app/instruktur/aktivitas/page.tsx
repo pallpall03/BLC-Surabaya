@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, ClipboardList, MapPin, Pencil, Plus, Search,
 import HeaderHalaman from "./components/headerhalaman";
 import FotoKotak from "./components/fotokotak";
 import type { Aktivitas } from "./components/formaktivitas";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 // ===== DATA HARDCODE SEMENTARA =====
 // TODO (backend): ganti DATA_AWAL dengan data dari API, mis. GET /aktivitas
@@ -24,6 +25,7 @@ const kartu = "rounded-2xl border border-orange-200 bg-white shadow-xl shadow-or
 const inp = "rounded-xl border border-orange-100 bg-orange-50/40 px-3 py-2 text-sm outline-none transition hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60";
 
 export default function AktivitasPage() {
+  const { showNotification } = useCrudNotification();
   const [data, setData] = useState<Aktivitas[]>(DATA_AWAL);
   const [mulai, setMulai] = useState("");
   const [sampai, setSampai] = useState("");
@@ -32,7 +34,6 @@ export default function AktivitasPage() {
   const [page, setPage] = useState(1);
   const [terbuka, setTerbuka] = useState<number[]>([]);
   const [lihat, setLihat] = useState<{ id: number; i: number } | null>(null);
-  const [pesan, setPesan] = useState("");
 
   const hasil = useMemo(() => {
     const q = cari.trim().toLowerCase();
@@ -50,12 +51,11 @@ export default function AktivitasPage() {
   const reset = () => { setMulai(""); setSampai(""); setCari(""); setPage(1); };
   const ubah = <T,>(setter: (v: T) => void) => (v: T) => { setter(v); setPage(1); };
 
-  const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
   const hapus = (a: Aktivitas) => {
     if (!window.confirm(`Hapus aktivitas tanggal ${fmt(a.tanggal)}?`)) return;
     // TODO (backend): DELETE /aktivitas/{id}, lalu perbarui daftar
     setData((d) => d.filter((x) => x.id !== a.id));
-    toast("Aktivitas dihapus.");
+    showNotification({ type: "success", title: "Aktivitas dihapus", message: `Aktivitas tanggal ${fmt(a.tanggal)} berhasil dihapus.` });
   };
 
   // Penampil foto besar
@@ -213,8 +213,6 @@ export default function AktivitasPage() {
           </div>
         </div>
       )}
-
-      {pesan && <div role="status" className="fixed bottom-6 right-6 z-[60] rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-lg">{pesan}</div>}
     </main>
   );
 }

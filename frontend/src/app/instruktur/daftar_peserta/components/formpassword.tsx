@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, KeyRound, Lock, Save } from "lucide-react";
+import { AlertCircle, Check, Eye, EyeOff, KeyRound, Lock, Save } from "lucide-react";
 import { Card, Field, inp } from "./elemenform";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 // Kekuatan password: 0 sampai 4 (panjang, huruf besar+kecil, angka, simbol)
 function kekuatan(p: string) {
@@ -18,12 +19,12 @@ const WARNA = ["bg-red-500", "bg-red-500", "bg-amber-500", "bg-emerald-500", "bg
 const inpSandi = inp.replace("pr-3", "pr-11");
 
 export default function FormPassword({ pesertaId, nama }: { pesertaId: string; nama: string }) {
+  const { showNotification } = useCrudNotification();
   const [baru, setBaru] = useState("");
   const [konfirmasi, setKonfirmasi] = useState("");
   const [lihat, setLihat] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [sukses, setSukses] = useState(false);
 
   const skor = kekuatan(baru);
   const cocok = konfirmasi.length > 0 && baru === konfirmasi;
@@ -31,14 +32,26 @@ export default function FormPassword({ pesertaId, nama }: { pesertaId: string; n
 
   const simpan = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (baru.length < 8) return setError("Password minimal 8 karakter.");
-    if (baru !== konfirmasi) return setError("Konfirmasi password tidak sama.");
+    if (baru.length < 8) {
+      setError("Password minimal 8 karakter.");
+      showNotification({ type: "error", title: "Password belum valid", message: "Password minimal 8 karakter." });
+      return;
+    }
+    if (baru !== konfirmasi) {
+      setError("Konfirmasi password tidak sama.");
+      showNotification({ type: "error", title: "Konfirmasi tidak cocok", message: "Konfirmasi password tidak sama." });
+      return;
+    }
     setSaving(true);
     try {
       // TODO (backend): ubah password peserta, mis. PUT /peserta/{pesertaId}/password dengan { password, password_confirmation }
       void pesertaId;
-      setBaru(""); setKonfirmasi(""); setError(""); setSukses(true);
-      setTimeout(() => setSukses(false), 4000);
+      setBaru(""); setKonfirmasi(""); setError("");
+      showNotification({ type: "success", title: "Password diperbarui", message: `Password ${nama} berhasil diubah.` });
+    } catch (error) {
+      const pesan = error instanceof Error ? error.message : "Password belum berhasil diubah.";
+      setError(pesan);
+      showNotification({ type: "error", title: "Password gagal diperbarui", message: pesan });
     } finally {
       setSaving(false);
     }
@@ -82,7 +95,6 @@ export default function FormPassword({ pesertaId, nama }: { pesertaId: string; n
         )}
 
         {error && <p className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"><AlertCircle size={16} /> {error}</p>}
-        {sukses && <p role="status" className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"><CheckCircle2 size={16} /> Password berhasil diubah.</p>}
 
         <div className="mt-5 flex justify-end border-t border-orange-100 pt-5">
           <button type="submit" disabled={saving || !siap}

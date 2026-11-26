@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  BadgeCheck, CalendarDays, CheckCheck, CheckCircle2, ClipboardCheck, FilePlus2, ImagePlus, Info,
+  BadgeCheck, CalendarDays, CheckCheck, ClipboardCheck, FilePlus2, ImagePlus, Info,
   Pencil, Phone, Save, Search, SearchX, Trash2, UserCheck, UserX, Users, X,
 } from "lucide-react";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 type Peserta = { id: number; nama: string; jk: "L" | "P"; phone: string; alamat: string; kategori: string };
 type Status = "hadir" | "tidak";
@@ -46,6 +47,7 @@ function Avatar({ nama }: { nama: string }) {
 }
 
 export default function DaftarHadirPage() {
+  const { showNotification } = useCrudNotification();
   const [kelasId, setKelasId] = useState("");
   const [kelasCari, setKelasCari] = useState("");
   const [bukaKelas, setBukaKelas] = useState(false);
@@ -54,16 +56,6 @@ export default function DaftarHadirPage() {
   const [hadir, setHadir] = useState<Record<number, Status>>({});
   const [cari, setCari] = useState("");
   const [foto, setFoto] = useState<{ file: File; url: string }[]>([]);
-  const [pesan, setPesan] = useState("");
-  const [sukses, setSukses] = useState<{ judul: string; detail: string } | null>(null);
-
-  useEffect(() => {
-    if (!sukses) return;
-    const t = setTimeout(() => setSukses(null), 4000);
-    return () => clearTimeout(t);
-  }, [sukses]);
-
-  const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
 
   const saranKelas = useMemo(() => {
     const q = kelasCari.trim().toLowerCase();
@@ -89,7 +81,14 @@ export default function DaftarHadirPage() {
   }, [peserta, cari]);
 
   const cariDaftar = () => {
-    if (!kelasId) return toast("Pilih kelas dari daftar dulu.");
+    if (!kelasId) {
+      showNotification({ type: "error", title: "Pencarian gagal", message: "Pilih kelas dari daftar dulu." });
+      return;
+    }
+    if (!tanggal) {
+      showNotification({ type: "error", title: "Pencarian gagal", message: "Isi tanggal absensi." });
+      return;
+    }
     const id = Number(kelasId);
     const tersimpan = ABSENSI_TERSIMPAN[`${id}|${tanggal}`];
     const awal: Record<number, Status> = {};
@@ -112,9 +111,10 @@ export default function DaftarHadirPage() {
   const simpan = () => {
     // TODO: kirim ke API Laravel (FormData: kelas_id, tanggal, kehadiran, foto[])
     // dicari.update ? PUT /api/absensi : POST /api/absensi
-    setSukses({
-      judul: dicari?.update ? "Daftar hadir diperbarui" : "Daftar hadir tersimpan",
-      detail: `${jumlahHadir} hadir dari ${peserta.length} peserta · ${foto.length} foto`,
+    showNotification({
+      type: "success",
+      title: dicari!.update ? "Daftar hadir diperbarui" : "Daftar hadir tersimpan",
+      message: `${jumlahHadir} hadir dari ${peserta.length} peserta · ${foto.length} foto berhasil disimpan.`,
     });
   };
 
@@ -334,37 +334,6 @@ export default function DaftarHadirPage() {
         )}
       </div>
 
-      {/* Popup sukses */}
-      {sukses && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
-          onClick={() => setSukses(null)} role="alertdialog" aria-live="polite">
-          <style>{`
-            @keyframes pop { 0% { transform: scale(.6); opacity: 0 } 60% { transform: scale(1.05); opacity: 1 } 100% { transform: scale(1) } }
-            @keyframes bar { from { width: 100% } to { width: 0% } }
-          `}</style>
-          <div onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-white p-8 text-center shadow-2xl shadow-orange-300/50"
-            style={{ animation: "pop .35s ease-out" }}>
-            <button type="button" onClick={() => setSukses(null)} aria-label="Tutup"
-              className="absolute right-3 top-3 rounded-full p-1.5 text-slate-400 hover:bg-orange-50 hover:text-orange-600"><X size={16} /></button>
-            <span className="relative mx-auto flex h-20 w-20 items-center justify-center">
-              <span className="absolute inset-0 animate-ping rounded-full bg-emerald-200/70" />
-              <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                <CheckCircle2 size={44} />
-              </span>
-            </span>
-            <h3 className="mt-5 text-xl font-semibold text-slate-900">{sukses.judul}</h3>
-            <p className="mt-1 text-sm text-slate-500">{sukses.detail}</p>
-            <button type="button" onClick={() => setSukses(null)}
-              className="mt-6 w-full rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-orange-300/50 transition hover:-translate-y-0.5 hover:bg-orange-600">
-              Oke
-            </button>
-            <span className="absolute bottom-0 left-0 h-1 bg-orange-400" style={{ animation: "bar 4s linear forwards" }} />
-          </div>
-        </div>
-      )}
-
-      {pesan && <div role="status" className="fixed bottom-6 right-6 z-[60] rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-lg">{pesan}</div>}
     </main>
   );
 }

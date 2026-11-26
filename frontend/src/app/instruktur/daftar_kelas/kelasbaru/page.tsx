@@ -8,9 +8,11 @@ import JadwalKelas from "../components/jadwalkelas";
 import FormKelas, { type NilaiKelas } from "../components/formkelas";
 import { cariBentrok, validasiKelas, type Kelas } from "../data";
 import { getKelas, createKelas } from "@/lib/api";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 export default function BuatKelasPage() {
   const router = useRouter();
+  const { showNotification } = useCrudNotification();
   const [nilai, setNilai] = useState<NilaiKelas>({ sesi: 1, hari: [], materi: "" });
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
@@ -56,13 +58,20 @@ export default function BuatKelasPage() {
   const simpan = async (e: React.FormEvent) => {
     e.preventDefault();
     const pesan = validasiKelas(nilai.hari, nilai.materi, bentrok);
-    if (pesan) return setError(pesan);
+    if (pesan) {
+      setError(pesan);
+      showNotification({ type: "error", title: "Kelas gagal dibuat", message: pesan });
+      return;
+    }
     setSaving(true);
     try {
       await createKelas({ nama_kelas: "", materi_id: nilai.materi, sesi_id: nilai.sesi, hari: nilai.hari, lokasi_blc_id: 1 });
+      showNotification({ type: "success", title: "Kelas dibuat", message: "Kelas baru berhasil disimpan." });
       router.push("/instruktur/daftar_kelas");
-    } catch {
-      setError("Kelas belum berhasil disimpan. Coba lagi.");
+    } catch (e) {
+      const pesan = e instanceof Error ? e.message : "Kelas belum berhasil disimpan. Coba lagi.";
+      setError(pesan);
+      showNotification({ type: "error", title: "Kelas gagal dibuat", message: pesan });
     } finally {
       setSaving(false);
     }

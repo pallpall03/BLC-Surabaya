@@ -8,10 +8,12 @@ import JadwalKelas from "../../components/jadwalkelas";
 import FormKelas, { type NilaiKelas } from "../../components/formkelas";
 import { cariBentrok, validasiKelas, type Kelas } from "../../data";
 import { getKelas, getKelasDetail, updateKelas } from "@/lib/api";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 export default function UbahKelasPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { showNotification } = useCrudNotification();
   const kelasId = Number(id);
 
   const [kelas, setKelas] = useState<Kelas | null>(null);
@@ -57,14 +59,21 @@ export default function UbahKelasPage() {
   const simpan = async (e: React.FormEvent) => {
     e.preventDefault();
     const pesan = validasiKelas(nilai.hari, nilai.materi, bentrok);
-    if (pesan) return setError(pesan);
+    if (pesan) {
+      setError(pesan);
+      showNotification({ type: "error", title: "Data kelas belum valid", message: pesan });
+      return;
+    }
     setSaving(true);
     try {
       await updateKelas(kelasId, { sesi_id: nilai.sesi, hari: nilai.hari, materi_id: nilai.materi });
+      showNotification({ type: "success", title: "Kelas berhasil diperbarui", message: "Perubahan kelas berhasil disimpan." });
       router.push("/instruktur/daftar_kelas");
     } catch (e) {
       console.error(e);
-      setError("Gagal menyimpan perubahan");
+      const pesan = e instanceof Error ? e.message : "Gagal menyimpan perubahan";
+      setError(pesan);
+      showNotification({ type: "error", title: "Kelas gagal diperbarui", message: pesan });
     } finally {
       setSaving(false);
     }

@@ -6,6 +6,7 @@ import {
   Briefcase, Building2, CalendarDays, ChevronLeft, ChevronRight, FileDown, GraduationCap,
   HeartHandshake, Plus, Search, SearchX, Trash2, Users, UsersRound, type LucideIcon,
 } from "lucide-react";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 type Pengunjung = {
   id: number; tanggal: string; sesi: number; nama: string; jk: "L" | "P";
@@ -53,6 +54,7 @@ const hitung = (rows: Pengunjung[]) => ({
 });
 
 export default function PengunjungPage() {
+  const { showNotification } = useCrudNotification();
   const [data, setData] = useState<Pengunjung[]>(DATA_AWAL);
   const [mulai, setMulai] = useState(awalBulan());
   const [sampai, setSampai] = useState(hariIni());
@@ -63,9 +65,6 @@ export default function PengunjungPage() {
   const [perPage, setPerPage] = useState(10);
   const [page, setPage] = useState(1);
   const [dipilih, setDipilih] = useState<Set<number>>(new Set());
-  const [pesan, setPesan] = useState("");
-
-  const toast = (t: string) => { setPesan(t); setTimeout(() => setPesan(""), 3000); };
 
   const dalamRentang = useMemo(
     () => (dicari ? data.filter((d) => d.tanggal >= dicari.mulai && d.tanggal <= dicari.sampai) : []),
@@ -94,8 +93,14 @@ export default function PengunjungPage() {
   const baris = hasil.slice(mulaiIdx, mulaiIdx + perPage);
 
   const cariData = () => {
-    if (!mulai || !sampai) return toast("Isi tanggal mulai dan sampai.");
-    if (mulai > sampai) return toast("Tanggal mulai tidak boleh melewati tanggal sampai.");
+    if (!mulai || !sampai) {
+      showNotification({ type: "error", title: "Pencarian gagal", message: "Isi tanggal mulai dan sampai." });
+      return;
+    }
+    if (mulai > sampai) {
+      showNotification({ type: "error", title: "Pencarian gagal", message: "Tanggal mulai tidak boleh melewati tanggal sampai." });
+      return;
+    }
     setDicari({ mulai, sampai });
     setGrup("semua"); setSub(""); setCari(""); setPage(1); setDipilih(new Set());
   };
@@ -117,9 +122,14 @@ export default function PengunjungPage() {
   const hapusTerpilih = () => {
     if (!window.confirm(`Hapus ${dipilih.size} pengunjung terpilih?`)) return;
     // TODO: DELETE ke API Laravel
+    const jumlah = dipilih.size;
     setData((d) => d.filter((x) => !dipilih.has(x.id)));
     setDipilih(new Set());
-    toast("Pengunjung terpilih dihapus.");
+    showNotification({
+      type: "success",
+      title: "Pengunjung dihapus",
+      message: `${jumlah} pengunjung terpilih berhasil dihapus.`,
+    });
   };
 
   const inputCls = "w-full rounded-xl border border-orange-100 bg-orange-50/40 px-3 py-2.5 text-sm outline-none transition hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60";
@@ -326,7 +336,6 @@ export default function PengunjungPage() {
         )}
       </div>
 
-      {pesan && <div role="status" className="fixed bottom-6 right-6 z-[60] rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-lg print:hidden">{pesan}</div>}
     </main>
   );
 }

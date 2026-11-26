@@ -14,6 +14,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 type Tab = "materi" | "pertemuan";
 
@@ -52,6 +53,7 @@ function newId(prefix: string) {
 }
 
 export default function MateriPage() {
+  const { showNotification } = useCrudNotification();
   const [tab, setTab] = useState<Tab>("materi");
   const [materiList, setMateriList] = useState<MateriItem[]>(INITIAL_MATERI);
   const [pertemuanList, setPertemuanList] = useState<PertemuanItem[]>(INITIAL_PERTEMUAN);
@@ -63,7 +65,6 @@ export default function MateriPage() {
   const [materiId, setMateriId] = useState("");
   const [nomorPertemuan, setNomorPertemuan] = useState("1");
   const [formError, setFormError] = useState("");
-  const [notice, setNotice] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{ tab: Tab; id: string } | null>(null);
 
   useEffect(() => {
@@ -137,19 +138,21 @@ export default function MateriPage() {
     const namaBersih = nama.trim();
     if (!namaBersih) {
       setFormError("Nama materi wajib diisi.");
+      showNotification({ type: "error", title: "Materi gagal disimpan", message: "Nama materi wajib diisi." });
       return;
     }
     const duplikat = materiList.some((item) => item.nama.toLocaleLowerCase("id") === namaBersih.toLocaleLowerCase("id") && item.id !== editingId);
     if (duplikat) {
       setFormError("Nama materi sudah digunakan. Pilih nama lain.");
+      showNotification({ type: "error", title: "Materi gagal disimpan", message: "Nama materi sudah digunakan. Pilih nama lain." });
       return;
     }
     if (editingId) {
       setMateriList((items) => items.map((item) => item.id === editingId ? { ...item, nama: namaBersih, deskripsi: deskripsi.trim() } : item));
-      setNotice("Materi pelatihan berhasil diperbarui.");
+      showNotification({ type: "success", title: "Materi diperbarui", message: "Materi pelatihan berhasil diperbarui." });
     } else {
       setMateriList((items) => [...items, { id: newId("materi"), nama: namaBersih, deskripsi: deskripsi.trim() }]);
-      setNotice("Materi pelatihan berhasil ditambahkan.");
+      showNotification({ type: "success", title: "Materi ditambahkan", message: "Materi pelatihan berhasil ditambahkan." });
     }
     setFormOpen(false);
   };
@@ -159,23 +162,26 @@ export default function MateriPage() {
     const nomor = Number(nomorPertemuan);
     if (!materiId) {
       setFormError("Pilih materi terlebih dahulu.");
+      showNotification({ type: "error", title: "Materi per pertemuan gagal disimpan", message: "Pilih materi terlebih dahulu." });
       return;
     }
     if (!Number.isInteger(nomor) || nomor < 1 || nomor > 999) {
       setFormError("Nomor pertemuan harus berupa angka 1 sampai 999.");
+      showNotification({ type: "error", title: "Materi per pertemuan gagal disimpan", message: "Nomor pertemuan harus berupa angka 1 sampai 999." });
       return;
     }
     const duplikat = pertemuanList.some((item) => item.materiId === materiId && item.nomor === nomor && item.id !== editingId);
     if (duplikat) {
       setFormError("Materi ini sudah dipetakan ke pertemuan tersebut.");
+      showNotification({ type: "error", title: "Materi per pertemuan gagal disimpan", message: "Materi ini sudah dipetakan ke pertemuan tersebut." });
       return;
     }
     if (editingId) {
       setPertemuanList((items) => items.map((item) => item.id === editingId ? { ...item, materiId, nomor } : item));
-      setNotice("Materi per pertemuan berhasil diperbarui.");
+      showNotification({ type: "success", title: "Materi per pertemuan diperbarui", message: "Materi per pertemuan berhasil diperbarui." });
     } else {
       setPertemuanList((items) => [...items, { id: newId("pertemuan"), materiId, nomor }]);
-      setNotice("Materi per pertemuan berhasil ditambahkan.");
+      showNotification({ type: "success", title: "Materi per pertemuan ditambahkan", message: "Materi per pertemuan berhasil ditambahkan." });
     }
     setFormOpen(false);
   };
@@ -185,10 +191,10 @@ export default function MateriPage() {
     if (deleteTarget.tab === "materi") {
       setMateriList((items) => items.filter((item) => item.id !== deleteTarget.id));
       setPertemuanList((items) => items.filter((item) => item.materiId !== deleteTarget.id));
-      setNotice("Materi dan pemetaan pertemuannya berhasil dihapus.");
+      showNotification({ type: "success", title: "Materi dihapus", message: "Materi dan pemetaan pertemuannya berhasil dihapus." });
     } else {
       setPertemuanList((items) => items.filter((item) => item.id !== deleteTarget.id));
-      setNotice("Materi per pertemuan berhasil dihapus.");
+      showNotification({ type: "success", title: "Materi per pertemuan dihapus", message: "Materi per pertemuan berhasil dihapus." });
     }
     setDeleteTarget(null);
   };
@@ -200,7 +206,7 @@ export default function MateriPage() {
       <section className="materi-page-header text-white" aria-labelledby="materi-title">
         <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-4">
           <div>
-            <div className="d-flex align-items-center gap-2 text-white text-opacity-75 fs-7 fw-semibold mb-2">
+            <div className="materi-breadcrumb d-flex align-items-center gap-2 text-white fs-7 fw-semibold mb-2">
               <span>Master Data</span><ChevronRight size={14} /><span>Materi</span>
             </div>
             <h1 id="materi-title" className="fs-2 fw-bolder mb-2">Kelola Materi Pelatihan</h1>
@@ -217,7 +223,7 @@ export default function MateriPage() {
           <div className="card materi-stat-card">
             <div className="card-body d-flex align-items-center gap-4 p-4">
               <span className="symbol symbol-45px flex-shrink-0">
-                <span className="symbol-label bg-orange-100 text-orange-600"><BookOpen size={22} /></span>
+                <span className="symbol-label bg-blue-100 text-blue-600"><BookOpen size={22} /></span>
               </span>
               <div>
                 <span className="text-muted fs-7 fw-semibold d-block mb-1">Total materi pelatihan</span>
@@ -250,7 +256,7 @@ export default function MateriPage() {
                   <button
                     type="button"
                     id="tab-materi"
-                    className="nav-link d-flex align-items-center justify-content-center gap-2"
+                    className={`nav-link d-flex align-items-center justify-content-center gap-2${tab === "materi" ? " active" : ""}`}
                     role="tab"
                     aria-selected={tab === "materi"}
                     aria-controls="panel-materi"
@@ -263,7 +269,7 @@ export default function MateriPage() {
                   <button
                     type="button"
                     id="tab-pertemuan"
-                    className="nav-link d-flex align-items-center justify-content-center gap-2"
+                    className={`nav-link d-flex align-items-center justify-content-center gap-2${tab === "pertemuan" ? " active" : ""}`}
                     role="tab"
                     aria-selected={tab === "pertemuan"}
                     aria-controls="panel-pertemuan"
@@ -358,7 +364,7 @@ export default function MateriPage() {
             {activeList.length === 0 && (
               <div className="d-flex flex-column align-items-center text-center px-4 py-8">
                 <span className="symbol symbol-55px mb-4">
-                  <span className="symbol-label bg-orange-100 text-orange-600">{tab === "materi" ? <BookOpen size={25} /> : <CalendarDays size={25} />}</span>
+                  <span className="symbol-label bg-blue-100 text-blue-600">{tab === "materi" ? <BookOpen size={25} /> : <CalendarDays size={25} />}</span>
                 </span>
                 <h3 className="fs-6 fw-bold text-gray-900 mb-2">{query ? "Data tidak ditemukan" : "Belum ada data"}</h3>
                 <p className="text-muted mb-0">{query ? "Coba gunakan kata kunci lain." : tab === "materi" ? "Tambahkan materi pelatihan pertama." : "Tambahkan pemetaan materi ke pertemuan."}</p>
@@ -367,8 +373,8 @@ export default function MateriPage() {
           </div>
         </div>
 
-        <div className="card-footer bg-orange-50 border-0 px-4 px-lg-5 py-3">
-          <div className="d-flex align-items-start gap-2 text-orange-800 fs-7">
+        <div className="card-footer bg-blue-50 border-0 px-4 px-lg-5 py-3">
+          <div className="d-flex align-items-start gap-2 text-blue-800 fs-7">
             <Info size={16} className="flex-shrink-0 mt-1" />
             <p className="mb-0">Satu navigasi, dua logika data: materi pelatihan mengelola daftar materi, sedangkan materi per pertemuan mengelola relasinya.</p>
           </div>
@@ -448,14 +454,6 @@ export default function MateriPage() {
               <button type="button" className="btn btn-danger d-flex align-items-center gap-2" onClick={hapusData}><Trash2 size={17} /> Hapus</button>
             </div>
           </section>
-        </div>
-      )}
-
-      {notice && (
-        <div className="materi-toast" role="status">
-          <CheckCircle2 size={20} className="flex-shrink-0" />
-          <span className="flex-grow-1 fs-7 fw-semibold">{notice}</span>
-          <button type="button" className="btn btn-sm p-0 text-green-700" aria-label="Tutup notifikasi" onClick={() => setNotice("")}><X size={17} /></button>
         </div>
       )}
     </main>

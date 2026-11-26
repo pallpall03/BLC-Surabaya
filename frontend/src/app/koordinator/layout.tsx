@@ -1,5 +1,5 @@
 import MetronicShell from "@/components/koordinator/metronic/MetronicShell";
-import "./koordinator-theme.css";
+import "./koordinator.css";
 
 export default function KoordinatorLayout({ children }: { children: React.ReactNode }) {
   return (

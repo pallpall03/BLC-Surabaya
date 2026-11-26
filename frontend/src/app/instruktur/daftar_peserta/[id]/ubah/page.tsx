@@ -8,9 +8,10 @@ import {
   Monitor, Palette, PencilLine, Phone, RotateCcw, Save, Trash2, UploadCloud, User, Venus, AlertCircle,
   type LucideIcon,
 } from "lucide-react";
-import { Card, Field, inp, PopupSukses } from "../../components/elemenform";
+import { Card, Field, inp } from "../../components/elemenform";
 import FormPassword from "../../components/formpassword";
 import { getPeserta, updatePeserta, type PesertaDetail } from "@/lib/api";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 type Nilai = {
   nik: string; nama: string; tanggalLahir: string; jenisKelamin: "L" | "P";
@@ -33,6 +34,7 @@ const KEMBALI = "/instruktur/daftar_peserta";
 export default function UbahPesertaPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { showNotification } = useCrudNotification();
 
   const [form, setForm] = useState<Nilai>({
     nik: "", nama: "", tanggalLahir: "", jenisKelamin: "L",
@@ -131,20 +133,35 @@ export default function UbahPesertaPage() {
     if (!form.kategori) e.kategori = "Pilih kategori.";
     if (!form.materi) e.materi = "Pilih materi.";
     setErrors(e);
+    if (Object.keys(e).length > 0) {
+      showNotification({ type: "error", title: "Data peserta belum valid", message: Object.values(e)[0] ?? "Periksa kembali isian formulir." });
+    }
     return Object.keys(e).length === 0;
   };
 
   const pilihFoto = (file?: File) => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) return setErrors((e) => ({ ...e, foto: "File harus berupa gambar (JPG/PNG)." }));
-    if (file.size > 2 * 1024 * 1024) return setErrors((e) => ({ ...e, foto: "Ukuran foto maksimal 2 MB." }));
+    if (!file.type.startsWith("image/")) {
+      setErrors((e) => ({ ...e, foto: "File harus berupa gambar (JPG/PNG)." }));
+      showNotification({ type: "error", title: "Foto tidak valid", message: "File harus berupa gambar (JPG/PNG)." });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setErrors((e) => ({ ...e, foto: "Ukuran foto maksimal 2 MB." }));
+      showNotification({ type: "error", title: "Foto tidak valid", message: "Ukuran foto maksimal 2 MB." });
+      return;
+    }
     setErrors((e) => ({ ...e, foto: undefined }));
     setFotoBaru(file);
   };
 
   const simpan = async (ev: React.FormEvent) => {
     ev.preventDefault();
-    if (jumlah === 0 || !validasi()) return;
+    if (jumlah === 0) {
+      showNotification({ type: "error", title: "Belum ada perubahan", message: "Ubah data peserta sebelum menyimpan." });
+      return;
+    }
+    if (!validasi()) return;
     setSaving(true);
     try {
       const payload = {
@@ -163,9 +180,17 @@ export default function UbahPesertaPage() {
       };
       await updatePeserta(Number(id!), payload);
       setSukses(form.nama);
+      showNotification({
+        type: "success",
+        title: "Peserta diperbarui",
+        message: `Data ${form.nama} berhasil diperbarui.`,
+        action: { label: "Lihat daftar peserta", onClick: () => router.push(KEMBALI) },
+      });
       if (initialForm) setInitialForm({ ...form });
-    } catch {
-      setErrors({ general: "Gagal menyimpan perubahan. Coba lagi." });
+    } catch (e) {
+      const pesan = e instanceof Error ? e.message : "Gagal menyimpan perubahan. Coba lagi.";
+      setErrors({ general: pesan });
+      showNotification({ type: "error", title: "Peserta gagal diperbarui", message: pesan });
     } finally {
           setSaving(false);
         }
@@ -381,8 +406,6 @@ export default function UbahPesertaPage() {
           <FormPassword pesertaId={String(id)} nama={form.nama} />
         </div>
       </div>
-
-      {sukses && <PopupSukses judul="Perubahan tersimpan" pesan={<><b className="text-slate-700">{sukses}</b> berhasil diperbarui. Mengalihkan ke daftar peserta...</>} tombol="Lihat daftar peserta" onLanjut={() => router.push(KEMBALI)} />}
     </main>
   );
 }

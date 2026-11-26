@@ -114,8 +114,8 @@ export default function Sidebar() {
                   <span className="symbol-label koordinator-brand-mark bg-primary text-white fw-extrabold">blc</span>
                 </span>
                 <span className="d-flex flex-column lh-1">
-                  <span className="koordinator-sidebar-title text-orange-600 fw-bold fs-6">BLC Surabaya</span>
-                  <span className="koordinator-sidebar-subtitle text-orange-500 fs-8 mt-1">Panel koordinator</span>
+                  <span className="koordinator-sidebar-title text-blue-700 fw-bold fs-6">BLC Surabaya</span>
+                  <span className="koordinator-sidebar-subtitle text-blue-500 fs-8 mt-1">Panel koordinator</span>
                 </span>
               </span>
             </span>
