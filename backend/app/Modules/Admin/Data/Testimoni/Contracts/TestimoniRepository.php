@@ -11,7 +11,7 @@ use App\Modules\Admin\Data\Testimoni\Domain\Testimoni;
 interface TestimoniRepository extends Repository
 {
     public function getByLokasi(int $lokasiBlcId): array;
-    public function getSurabaya(): array;
+    public function getByStatus(string $status): array;
+    public function getTampil(): array;
     public function getLatest(int $limit = 10): array;
-    public function getAktif(): array;
 }

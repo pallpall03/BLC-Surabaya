@@ -106,7 +106,7 @@ final class PenggunaController extends Controller
                 'role_id' => $hasRole && $backendRole
                     ? 'nullable'
                     : ($ignoreId ? 'sometimes|exists:roles,id' : 'required|exists:roles,id'),
-                'role' => 'sometimes|string|in:administrator,operator,instruktur,koordinator',
+                'role' => 'sometimes|string|in:administrator,operator,instruktur,koordinator,peserta',
                 'nama_lengkap' => 'required|string|max:255',
                 'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($ignoreId)],
                 'nik' => ['nullable', 'digits:16', Rule::unique('users', 'nik')->ignore($ignoreId)],

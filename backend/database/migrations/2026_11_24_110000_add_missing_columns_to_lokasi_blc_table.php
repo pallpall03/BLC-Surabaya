@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::table('lokasi_blc', function (Blueprint $table) {
             $table->integer('jumlah_slot_computer')->nullable();
             $table->string('jadwal_blc')->nullable();
-            // Kolom opsional: wilayah bisa di-enum di frontend, jadi kita tambah string plain
+           
             $table->string('wilayah_surabaya')->nullable();
         });
     }

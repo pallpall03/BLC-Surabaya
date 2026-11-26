@@ -1,8 +1,8 @@
-"use client";
-
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useParams } from "next/navigation";
-import { CheckCircle2, ClipboardList, Mars, Search, SearchX, UserCheck, UserMinus, UserPlus, Venus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { User } from "lucide-react";
 import HeaderHalaman from "../../components/headerhalaman";
 import { jamSesi, type Kelas } from "../../data";
 import { getKelasDetail, getCalonPeserta, getKelasPeserta, addPesertaToKelas, removePesertaFromKelas, type Peserta } from "@/lib/api";
@@ -41,14 +41,8 @@ export default function PesertaKelasPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [kelasRes, calonRes, terdaftarRes] = await Promise.all([
-          getKelasDetail(kelasId),
-          getCalonPeserta(kelasId),
-          getKelasPeserta(kelasId),
-        ]);
-        setKelas(kelasRes.data);
-        setTersedia(calonRes.data.map(p => ({ ...p, noDaftar: `-` })));
-        setTerdaftar(terdaftarRes.data.map(p => ({ ...p, noDaftar: `-` })));
+        const res = await getCalonPeserta(Number(kelasId));
+        setPeserta(res.data);
       } catch (e) {
         console.error(e);
         showNotification({ type: "error", title: "Operasi gagal", message: "Gagal memuat data" });

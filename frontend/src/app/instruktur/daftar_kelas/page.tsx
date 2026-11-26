@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  Activity, CalendarDays, CheckCircle2, Clock, Pencil, Plus, Printer, RotateCcw, Search, SearchX, Trash2, UserPlus, Users,
-  type LucideIcon,
-} from "lucide-react";
+import { usePathname } from "next/navigation";
+import { UseDataTable } from "@/components/data-table";
+import { useState } from "react";
+import { LuLu, Lupa, LogOut } from "lucide-react";
 import HeaderHalaman from "./components/headerhalaman";
 import JadwalKelas from "./components/jadwalkelas";
 import { jamSesi } from "./data";
