@@ -13,7 +13,7 @@ import { useCrudNotification } from "@/components/CrudNotification";
 export default function BuatKelasPage() {
   const router = useRouter();
   const { showNotification } = useCrudNotification();
-  const [nilai, setNilai] = useState<NilaiKelas>({ nama: "", sesi: 0, hari: [], materi: "", lokasiBlcId: 0 });
+  const [nilai, setNilai] = useState<NilaiKelas>({ nama: "", sesi: 0, hari: [] as string[], materi: "", lokasiBlcId: 0 });
   const [opsi, setOpsi] = useState<OpsiKelas>({ sesi: [], materi: [], blc: [] });
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ChevronRight, Clock3, Home, Save } from "lucide-react";
 import { useCrudNotification } from "@/components/CrudNotification";
-import { bacaSesi, simpanSesi, type SesiPelatihan } from "../data";
+import { bacaSesi, simpanSesi, type SesiPelatihan } from "../../data";
 
 const LIST_PATH = "/koordinator/master_data/sesi";
 

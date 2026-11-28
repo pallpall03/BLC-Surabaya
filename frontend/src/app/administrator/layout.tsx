@@ -1,7 +1,13 @@
+"use client";
+
 import type { ReactNode } from "react";
 import "./metronic-admin.css";
 import DashboardGuard from "@/components/auth/DashboardGuard";
 import AdministratorShell from "./components/AdministratorShell";
+import { KonfigPeran } from "./components/tipe";
+import { konfigAdministrator, susunMenu } from "./menu-peran";
+import { EVENT_MENU, ambilMenu } from "./menu/data";
+import { useState, useEffect } from "react";
 
 // atribut body yang dibutuhkan layout Metronic (Demo 1, sidebar gelap)
 const ATRIBUT_BODY: Record<string, string> = {
