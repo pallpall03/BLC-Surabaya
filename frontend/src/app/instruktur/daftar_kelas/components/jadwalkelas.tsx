@@ -10,13 +10,9 @@ const WARNA = [
   { bg: "bg-light-warning", border: "border-warning", teks: "text-warning" },
 ];
 
-<<<<<<< HEAD
-export default function JadwalKelas({ kelas, dipilih, onKlikKosong, sesi: sesiApi }: {
-=======
 const SEL = { minHeight: 76 };
 
-export default function JadwalKelas({ kelas, dipilih, onKlikKosong }: {
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
+export default function JadwalKelas({ kelas, dipilih, onKlikKosong, sesi: sesiApi }: {
   kelas: Kelas[];
   dipilih?: { sesi: number; hari: string[] };
   onKlikKosong?: (hari: string, sesi: number) => void;
@@ -33,7 +29,6 @@ export default function JadwalKelas({ kelas, dipilih, onKlikKosong }: {
               <th style={{ width: 130 }}>
                 <span className="d-flex align-items-center gap-2"><CalendarDays size={18} className="text-primary" /> Hari</span>
               </th>
-<<<<<<< HEAD
               {sesi.map((s) => (
                 <th key={s.id} className="border-l border-white/40 px-3 py-3 text-left font-medium">
                   <span className="flex items-center gap-2">
@@ -41,17 +36,6 @@ export default function JadwalKelas({ kelas, dipilih, onKlikKosong }: {
                     <span>
                       <span className="block text-sm font-semibold">Sesi {s.no}</span>
                       <span className="flex items-center gap-1 text-xs font-normal text-orange-50"><Clock size={12} />{s.jam}</span>
-=======
-              {SESI.map((s) => (
-                <th key={s.no}>
-                  <span className="d-flex align-items-center gap-3">
-                    <span className="symbol symbol-circle symbol-30px">
-                      <span className="symbol-label bg-primary text-white fw-bold fs-7">{s.no}</span>
-                    </span>
-                    <span className="d-flex flex-column">
-                      <span className="fs-7 fw-bold text-gray-900">Sesi {s.no}</span>
-                      <span className="d-flex align-items-center gap-1 fs-8 fw-normal text-gray-500"><Clock size={12} />{s.jam}</span>
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
                     </span>
                   </span>
                 </th>
@@ -69,7 +53,7 @@ export default function JadwalKelas({ kelas, dipilih, onKlikKosong }: {
                   </th>
                   {sesi.map((s) => {
                     const k = aktif.find((x) => x.sesi_id === s.id && x.hari.includes(h));
-                    const pilih = !!dipilih && dipilih.sesi === s.no && dipilih.hari.includes(h);
+                    const pilih = !!dipilih && dipilih.sesi === s.id && dipilih.hari.includes(h);
                     let isi: React.ReactNode;
                     if (k && pilih) {
                       isi = (
@@ -87,34 +71,20 @@ export default function JadwalKelas({ kelas, dipilih, onKlikKosong }: {
                       );
                     } else if (pilih) {
                       isi = (
-<<<<<<< HEAD
-                        <button type="button" onClick={() => onKlikKosong?.(h, s.id)}
+                        <button type="button" style={SEL} onClick={() => onKlikKosong?.(h, s.id)}
                           className="flex h-14 w-full items-center justify-center gap-1 rounded-lg border border-green-400 bg-green-100 text-xs font-semibold text-green-800">
-=======
-                        <button type="button" style={SEL} onClick={() => onKlikKosong?.(h, s.no)}
-                          className="btn btn-sm btn-light-success border border-success w-100 d-flex align-items-center justify-content-center gap-1 fs-8">
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
                           <Check size={14} /> Dipilih
                         </button>
                       );
                     } else {
                       isi = (
-<<<<<<< HEAD
-                        <button type="button" disabled={!onKlikKosong} onClick={() => onKlikKosong?.(h, s.id)}
+                        <button type="button" style={SEL} disabled={!onKlikKosong} onClick={() => onKlikKosong?.(h, s.id)}
                           className="flex h-14 w-full items-center justify-center gap-1 rounded-lg border border-dashed border-slate-300 bg-white/70 text-xs font-medium text-slate-500 transition enabled:hover:border-green-500 enabled:hover:bg-green-50 enabled:hover:text-green-700">
-=======
-                        <button type="button" style={SEL} disabled={!onKlikKosong} onClick={() => onKlikKosong?.(h, s.no)}
-                          className="btn btn-sm btn-outline btn-outline-dashed btn-outline-default btn-active-light-success w-100 d-flex align-items-center justify-content-center gap-1 fs-8 text-gray-500">
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
                           {onKlikKosong && <Plus size={14} />} Kosong
                         </button>
                       );
                     }
-<<<<<<< HEAD
                     return <td key={s.id} className="border-l border-orange-100 p-1.5 align-middle">{isi}</td>;
-=======
-                    return <td key={s.no} className="p-2">{isi}</td>;
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
                   })}
                 </tr>
               );
