@@ -4,11 +4,8 @@ namespace App\Modules\Admin\Data\Testimoni\Http;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Admin\Data\Testimoni\Contracts\TestimoniRepository;
-<<<<<<< HEAD
 use App\Modules\Admin\Data\Testimoni\Domain\Testimoni;
-=======
 use App\Modules\Admin\Data\Testimoni\Infrastructure\TestimoniModel;
->>>>>>> 1bfeee7fe687e718303a5d3c1c117410b8748945
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -27,18 +24,17 @@ final class TestimoniController extends Controller
             'status' => ['nullable', Rule::in(TestimoniModel::STATUS)],
         ]);
 
-<<<<<<< HEAD
-    public function aktif(): JsonResponse
-    {
-        $testimoni = $this->repository->getAktif();
-        return response()->json(['data' => array_map(fn (Testimoni $item) => $this->publik($item), $testimoni)]);
-=======
         $data = !empty($filter['status'])
             ? $this->repository->getByStatus($filter['status'])
             : $this->repository->all();
 
         return response()->json(['data' => $data]);
->>>>>>> 1bfeee7fe687e718303a5d3c1c117410b8748945
+    }
+
+    public function aktif(): JsonResponse
+    {
+        $testimoni = $this->repository->getAktif();
+        return response()->json(['data' => array_map(fn (Testimoni $item) => $this->publik($item), $testimoni)]);
     }
 
     public function store(Request $request): JsonResponse
@@ -91,7 +87,6 @@ final class TestimoniController extends Controller
     }
 
     /** @return array<string, mixed> */
-<<<<<<< HEAD
     private function publik(Testimoni $testimoni): array
     {
         return [
@@ -101,8 +96,7 @@ final class TestimoniController extends Controller
             'isSurabaya' => $testimoni->isSurabaya,
         ];
     }
-}
-=======
+
     private function rules(bool $partial): array
     {
         $kadang = $partial ? ['sometimes'] : [];
@@ -130,4 +124,3 @@ final class TestimoniController extends Controller
         }
     }
 }
->>>>>>> 1bfeee7fe687e718303a5d3c1c117410b8748945
