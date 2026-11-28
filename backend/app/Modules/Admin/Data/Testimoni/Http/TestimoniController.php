@@ -3,12 +3,10 @@
 namespace App\Modules\Admin\Data\Testimoni\Http;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Modules\Admin\Data\Testimoni\Contracts\TestimoniRepository;
-<<<<<<< HEAD
 use App\Modules\Admin\Data\Testimoni\Domain\Testimoni;
-=======
 use App\Modules\Admin\Data\Testimoni\Infrastructure\TestimoniModel;
->>>>>>> 1bfeee7fe687e718303a5d3c1c117410b8748945
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -27,18 +25,20 @@ final class TestimoniController extends Controller
             'status' => ['nullable', Rule::in(TestimoniModel::STATUS)],
         ]);
 
-<<<<<<< HEAD
-    public function aktif(): JsonResponse
-    {
-        $testimoni = $this->repository->getAktif();
-        return response()->json(['data' => array_map(fn (Testimoni $item) => $this->publik($item), $testimoni)]);
-=======
         $data = !empty($filter['status'])
             ? $this->repository->getByStatus($filter['status'])
             : $this->repository->all();
 
-        return response()->json(['data' => $data]);
->>>>>>> 1bfeee7fe687e718303a5d3c1c117410b8748945
+        if (! $this->admin($request)) {
+            $data = $this->repository->getTampil();
+        }
+
+        return response()->json(['data' => array_map(fn (Testimoni $item) => $this->responseData($request, $item), $data)]);
+    }
+
+    public function aktif(): JsonResponse
+    {
+        return response()->json(['data' => array_map(fn (Testimoni $item) => $this->publik($item), $this->repository->getTampil())]);
     }
 
     public function store(Request $request): JsonResponse
@@ -46,20 +46,24 @@ final class TestimoniController extends Controller
         $this->normalisasiStatus($request);
         $validated = $request->validate($this->rules(partial: false));
 
-        // Kiriman baru selalu menunggu moderasi kalau status tidak dikirim.
-        $validated['status'] = $validated['status'] ?? TestimoniModel::PENDING;
+        $validated['status'] = $this->admin($request)
+            ? ($validated['status'] ?? TestimoniModel::PENDING)
+            : TestimoniModel::PENDING;
 
         $testimoni = $this->repository->create($validated);
-        return response()->json(['data' => $testimoni], 201);
+        return response()->json(['data' => $this->responseData($request, $testimoni)], 201);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $testimoni = $this->repository->find($id);
         if (!$testimoni) {
             return response()->json(['message' => 'Testimoni not found'], 404);
         }
-        return response()->json(['data' => $this->publik($testimoni)]);
+        if (! $this->admin($request) && $testimoni->status !== TestimoniModel::TAMPIL) {
+            return response()->json(['message' => 'Testimoni not found'], 404);
+        }
+        return response()->json(['data' => $this->responseData($request, $testimoni)]);
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -91,18 +95,36 @@ final class TestimoniController extends Controller
     }
 
     /** @return array<string, mixed> */
-<<<<<<< HEAD
     private function publik(Testimoni $testimoni): array
     {
         return [
             'id' => $testimoni->id,
             'nama' => $testimoni->nama,
+            'isiTestimoni' => $testimoni->isiTestimoni,
+            'rating' => $testimoni->rating,
+            'kategoriId' => $testimoni->kategoriId,
             'lokasiBlcId' => $testimoni->lokasiBlcId,
-            'isSurabaya' => $testimoni->isSurabaya,
+            'status' => $testimoni->status,
+            'createdAt' => $testimoni->createdAt,
+            'updatedAt' => $testimoni->updatedAt,
         ];
     }
-}
-=======
+
+    private function responseData(Request $request, Testimoni $testimoni): array|Testimoni
+    {
+        return $this->admin($request) ? $testimoni : $this->publik($testimoni);
+    }
+
+    private function admin(Request $request): bool
+    {
+        try {
+            return $request->user('api')?->hasRole(Role::SUPERADMIN) ?? false;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /** @return array<string, mixed> */
     private function rules(bool $partial): array
     {
         $kadang = $partial ? ['sometimes'] : [];
@@ -130,4 +152,3 @@ final class TestimoniController extends Controller
         }
     }
 }
->>>>>>> 1bfeee7fe687e718303a5d3c1c117410b8748945

@@ -23,4 +23,9 @@ interface LaporanRepository extends Repository
     public function deleteForInstruktur(int $instrukturId, int $id): bool;
 
     public function opsiKelas(int $instrukturId): array;
+
+    /**
+     * @return array{per_sesi: list<array<string, mixed>>, per_kegiatan: list<array<string, mixed>>, ringkasan: array<string, int|float>}
+     */
+    public function rekapPeserta(int $instrukturId, string $mulai, string $sampai): array;
 }

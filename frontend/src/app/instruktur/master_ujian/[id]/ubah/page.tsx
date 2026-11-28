@@ -5,43 +5,18 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, PencilLine } from "lucide-react";
 import HeaderHalaman from "../../components/headerhalaman";
-<<<<<<< HEAD
 import FormUjian, { type NilaiUjian } from "../../components/formujian";
 import { getUjianDetail, saveUjian, type Ujian } from "@/lib/api";
-=======
-import FormUjian, { namaUjian, type NilaiUjian } from "../../components/formujian";
 import { useCrudNotification } from "@/components/CrudNotification";
-
-const APK = "APLIKASI PERKANTORAN";
-const u = (jenis: NilaiUjian["jenis"], pertemuan: number, mulai: string, sampai: string, acak: NilaiUjian["acak"] = "acak"): NilaiUjian => ({
-  materi: APK, pertemuan: String(pertemuan), jenis, jumlahSoal: "5", mulai, sampai, waktu: "60", acak,
-});
-
-// TODO: ganti dengan GET /api/ujian/{id}
-const UJIAN: Record<string, NilaiUjian> = {
-  "1": u("Pre Test", 1, "2026-06-03T09:24", "2026-06-04T11:24"),
-  "2": u("Post Test", 1, "2026-06-09T11:35", "2026-06-10T11:35"),
-  "3": u("Post Test", 2, "2026-06-09T11:39", "2026-06-10T11:39"),
-  "4": u("Post Test", 2, "2026-06-25T08:29", "2026-06-26T08:29", "urut"),
-  "5": u("Post Test", 3, "2026-07-03T08:35", "2026-07-04T08:35"),
-  "6": u("Pre Test", 4, "2026-07-24T09:57", "2026-07-25T09:57"),
-  "7": u("Post Test", 5, "2026-07-24T10:01", "2026-07-25T10:01"),
-};
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
 export default function UbahUjianPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-<<<<<<< HEAD
+  const { showNotification } = useCrudNotification();
   const [ujian, setUjian] = useState<Ujian | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-=======
-  const { showNotification } = useCrudNotification();
-  const awal = UJIAN[id];
-  const [saving, setSaving] = useState(false);
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
   useEffect(() => {
     let aktif = true;
@@ -61,17 +36,14 @@ export default function UbahUjianPage() {
   const simpan = async (nilai: NilaiUjian) => {
     setSaving(true); setError("");
     try {
-<<<<<<< HEAD
       await saveUjian(Number(id), nilai);
+      showNotification({ type: "success", title: "Ujian diperbarui", message: nilai.judul });
       router.push("/instruktur/master_ujian");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Gagal memperbarui ujian.");
-=======
-      // TODO: PUT /api/ujian/{id} dengan body `n`
-      showNotification({ type: "success", title: "Ujian diperbarui", message: namaUjian(n.jenis, n.materi, n.pertemuan) });
-      router.push("/instruktur/master_ujian");
+      const teks = e instanceof Error ? e.message : "Gagal memperbarui ujian.";
+      setError(teks);
+      showNotification({ type: "error", title: "Ujian gagal diperbarui", message: teks });
     } finally {
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
       setSaving(false);
     }
   };

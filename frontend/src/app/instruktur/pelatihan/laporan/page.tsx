@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
-  CalendarDays, ChevronLeft, ChevronRight, ImagePlus, Plus, Printer, Save, Trash2, X,
+  CalendarDays, ChevronLeft, ChevronRight, FileText, ImagePlus, Plus, Printer, Save, Trash2, X,
 } from "lucide-react";
 import {
   deleteLaporan, getLaporan, getLaporanOpsi, saveLaporan,
@@ -241,20 +241,15 @@ export default function LaporanKegiatanPelatihanPage() {
   };
 
   return (
-<<<<<<< HEAD
     <main className="min-h-screen bg-orange-50/60 px-4 py-6 sm:px-8 sm:py-8 print:bg-white print:p-0">
       <div className="mx-auto max-w-6xl space-y-6">
-        <header className="flex flex-wrap items-center justify-between gap-4 print:hidden">
-=======
-    <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
-      <div className="mx-auto max-w-6xl">
-        {/* Banner */}
-        <div className="instruktur-page-header mb-6 flex items-center gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50 print:hidden">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/25"><FileText size={28} /></span>
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Laporan Kegiatan Pelatihan</h1>
-            <p className="mt-1 max-w-2xl text-sm text-slate-500">Catat kegiatan mengajar yang telah dilaksanakan. Pilih kelas milikmu, isi tanggal dan aktivitas; kehadiran peserta dihitung otomatis dari absensi kelas.</p>
+        <header className="instruktur-page-header flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50 print:hidden">
+          <div className="flex items-center gap-4">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/25"><FileText size={28} /></span>
+            <div>
+              <h1 className="text-2xl font-semibold">Laporan Kegiatan Pelatihan</h1>
+              <p className="mt-1 max-w-2xl text-sm text-orange-50">Catat kegiatan mengajar yang telah dilaksanakan. Pilih kelas milikmu, isi tanggal dan aktivitas; kehadiran peserta dihitung otomatis dari absensi kelas.</p>
+            </div>
           </div>
           <span className="rounded-full border border-orange-200 bg-white px-4 py-2 text-sm text-slate-600 shadow-sm"><span className="text-slate-400">Instruktur: </span><span className="font-medium text-slate-800">{namaInstruktur}</span></span>
         </header>

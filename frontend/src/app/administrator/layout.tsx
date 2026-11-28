@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useEffect, type ReactNode } from "react";
 import "./metronic-admin.css";
 import DashboardGuard from "@/components/auth/DashboardGuard";
 import AdministratorShell from "./components/AdministratorShell";
@@ -16,11 +18,8 @@ const ATRIBUT_BODY: Record<string, string> = {
 };
 
 export default function LayoutAdministrator({ children }: { children: ReactNode }) {
-<<<<<<< HEAD
-=======
-  const [konfig, setKonfig] = useState<KonfigPeran>(konfigAdministrator);
-
-  // pasang atribut Metronic di <body>, lepas lagi saat keluar dari halaman administrator
+  // Pasang atribut Metronic di <body>, lepas lagi saat keluar dari halaman administrator.
+  // Pemuatan menu ditangani AdministratorShell agar tidak menduplikasi state menu.
   useEffect(() => {
     const body = document.body;
     Object.entries(ATRIBUT_BODY).forEach(([k, v]) => body.setAttribute(k, v));
@@ -31,31 +30,11 @@ export default function LayoutAdministrator({ children }: { children: ReactNode 
     };
   }, []);
 
-  useEffect(() => {
-    let batal = false;
-
-    function muat() {
-      ambilMenu().then((data) => {
-        if (batal) return;
-        const menu = susunMenu(data, "administrator");
-        // kalau hasilnya kosong, tetap pakai menu bawaan
-        if (menu.length > 0) setKonfig({ ...konfigAdministrator, menu });
-      });
-    }
-
-    muat();
-    window.addEventListener(EVENT_MENU, muat);
-    return () => {
-      batal = true;
-      window.removeEventListener(EVENT_MENU, muat);
-    };
-  }, []);
-
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   return (
     <>
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/metronic/assets/plugins/global/plugins.bundle.css" precedence="default" />
+      {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/metronic/assets/css/style.bundle.css" precedence="default" />
       <DashboardGuard path="/administrator">
         <AdministratorShell>{children}</AdministratorShell>

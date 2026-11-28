@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-<<<<<<< HEAD
 import {
   AlertCircle, BookOpen, CheckCircle2, Clock, Download, FileQuestion,
   FileUp, Plus, Save, Shuffle, Trash2, UploadCloud,
@@ -11,14 +10,11 @@ import {
   getUjianOpsi, type SoalUjian, type Ujian, type UjianInput, type UjianOpsi,
 } from "@/lib/api";
 import { bacaFileSoal, MAX_SOAL, validasiSoal, type HasilImporSoal } from "./imporSoal";
-=======
-import { AlertCircle, CalendarClock, CheckCircle2, Clock, Hash, Save, Shuffle } from "lucide-react";
 import { useCrudNotification } from "@/components/CrudNotification";
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
 export type NilaiUjian = UjianInput;
 
-const inputCls = "w-full rounded-xl border border-orange-100 bg-orange-50/40 px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60";
+const inputCls = "w-full rounded-xl border border-orange-100 bg-orange-50/40 px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60 disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-red-400 aria-[invalid=true]:bg-red-50/50";
 const labelCls = "mb-1.5 block text-sm font-medium text-slate-700";
 
 export const nilaiAwal = (): NilaiUjian => ({
@@ -67,7 +63,7 @@ export default function FormUjian({ awal, kembali, labelSimpan = "Simpan ujian",
   saving?: boolean;
   onSimpan: (nilai: NilaiUjian) => void | Promise<void>;
 }) {
-<<<<<<< HEAD
+  const { showNotification } = useCrudNotification();
   const [f, setF] = useState<NilaiUjian>(() => awal ? {
     judul: awal.judul, materi_id: awal.materi_id, tipe: awal.tipe,
     durasi_menit: awal.durasi_menit, nilai_minimum: awal.nilai_minimum,
@@ -89,11 +85,6 @@ export default function FormUjian({ awal, kembali, labelSimpan = "Simpan ujian",
       setPesan(e instanceof Error ? e.message : "Gagal memuat pilihan materi.");
     });
   }, []);
-=======
-  const { showNotification } = useCrudNotification();
-  const [f, setF] = useState<NilaiUjian>(awal ?? nilaiAwal());
-  const [errors, setErrors] = useState<Partial<Record<keyof NilaiUjian, string>>>({});
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
   const set = <K extends keyof NilaiUjian>(k: K, v: NilaiUjian[K]) => {
     setF((x) => ({ ...x, [k]: v }));
@@ -152,15 +143,11 @@ export default function FormUjian({ awal, kembali, labelSimpan = "Simpan ujian",
     if (f.soal.length < 1 || f.soal.length > MAX_SOAL) e.soal = `Jumlah soal harus 1–${MAX_SOAL}.`;
     try { validasiSoal(f.soal); } catch (err) { e.soal = err instanceof Error ? err.message : "Soal belum lengkap."; }
     setErrors(e);
-<<<<<<< HEAD
-    if (Object.keys(e).length === 0) void onSimpan({ ...f, judul: f.judul.trim() });
-=======
     if (Object.keys(e).length > 0) {
       showNotification({ type: "error", title: "Data ujian belum valid", message: Object.values(e).join(" ") });
       return;
     }
-    onSimpan(f);
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
+    void onSimpan({ ...f, judul: f.judul.trim() });
   };
 
   return (
@@ -187,7 +174,7 @@ export default function FormUjian({ awal, kembali, labelSimpan = "Simpan ujian",
               {([["pretest", "Pre Test"], ["posttest", "Post Test"]] as const).map(([v, label]) => (
                 <label key={v} className="cursor-pointer">
                   <input type="radio" name="tipe" className="peer sr-only" checked={f.tipe === v} onChange={() => set("tipe", v)} />
-                  <span className="flex items-center justify-center rounded-xl border border-orange-100 bg-orange-50/40 py-2.5 text-sm text-slate-600 peer-checked:border-orange-500 peer-checked:bg-orange-500 peer-checked:font-medium peer-checked:text-white">{label}</span>
+                  <span className="flex items-center justify-center rounded-xl border border-orange-100 bg-orange-50/40 py-2.5 text-sm text-slate-600 transition hover:border-orange-300 peer-checked:border-orange-500 peer-checked:bg-orange-500 peer-checked:font-medium peer-checked:text-white peer-focus-visible:ring-4 peer-focus-visible:ring-orange-200/60">{label}</span>
                 </label>
               ))}
             </div>

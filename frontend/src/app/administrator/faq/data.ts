@@ -128,9 +128,8 @@ export async function simpanFaq(data: FormFaq, id?: number): Promise<Faq> {
     // Fallback ke localStorage saja
     const lama = bacaCache();
     const itemBaru: Faq = {
-      id: id ?? Date.now(),
       ...baru,
-      updated_at: new Date().toISOString(),
+      id: id ?? Date.now(),
     };
 
     const updated = id
@@ -138,7 +137,7 @@ export async function simpanFaq(data: FormFaq, id?: number): Promise<Faq> {
       : [itemBaru, ...lama.filter((x) => x.id !== itemBaru.id)];
     tulisCache(updated);
 
-    return { success: true, data: itemBaru };
+    return itemBaru;
   }
 }
 

@@ -24,6 +24,7 @@ final class DaftarHadirServiceProvider extends ServiceProvider
             ->prefix('instruktur/daftar-hadir')
             ->group(function (): void {
                 Route::get('/', [Http\DaftarHadirController::class, 'index']);
+                Route::get('/{id}', [Http\DaftarHadirController::class, 'show'])->whereNumber('id');
                 Route::post('/', [Http\DaftarHadirController::class, 'store']);
 
                 Route::prefix('kelas')->group(function (): void {

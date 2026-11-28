@@ -32,24 +32,19 @@ function mapBukuTamu(data: BukuTamuBackend): BukuTamu {
   return { ...data, dibaca: false };
 }
 
-<<<<<<< HEAD
 export async function ambilOpsiBukuTamu(): Promise<PengunjungOpsi> {
   const res = await apiGet<{ data: PengunjungOpsi }>("/buku-tamu/opsi");
-  return res.data;
-=======
-function tulis(data: BukuTamu[]) {
-  try {
-    window.localStorage.setItem(KUNCI, JSON.stringify(data));
-    window.dispatchEvent(new Event("buku-tamu-berubah"));
-  } catch {
-    // abaikan kalau penyimpanan penuh atau diblokir
-  }
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
+  const data = res.data;
+  return {
+    blc: Array.isArray(data?.blc) ? data.blc : [],
+    sesi: Array.isArray(data?.sesi) ? data.sesi : [],
+    kategori: Array.isArray(data?.kategori) ? data.kategori : [],
+  };
 }
 
 export async function ambilBukuTamu(): Promise<BukuTamu[]> {
   const res = await apiGet<{ data: BukuTamuBackend[] }>("/buku-tamu/aktif");
-  return (res.data ?? []).map(mapBukuTamu);
+  return (Array.isArray(res.data) ? res.data : []).map(mapBukuTamu);
 }
 
 export async function kirimBukuTamu(form: FormTamu): Promise<BukuTamu> {
@@ -75,5 +70,9 @@ export async function kirimBukuTamu(form: FormTamu): Promise<BukuTamu> {
     alamat: form.alamat || null,
     kategori: form.kategori || null,
   });
-  return mapBukuTamu(res.data);
+  const baru = mapBukuTamu(res.data);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("buku-tamu-berubah"));
+  }
+  return baru;
 }

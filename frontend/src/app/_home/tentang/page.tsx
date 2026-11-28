@@ -1,14 +1,10 @@
 
 import Image from "next/image";
-import Navbar from "@/components/public/Navbar";
-import Footer from "@/components/public/Footer";
 
 export default function TentangPage() {
   return (
     <>
       {/* ================= NAVBAR ================= */}
-      <Navbar />
-
       <main className="w-full bg-white">
 
         {/* ================= HERO SECTION ================= */}
@@ -139,9 +135,6 @@ export default function TentangPage() {
         </section>
 
       </main>
-
-      {/* ================= FOOTER ================= */}
-      <Footer />
     </>
   );
 }

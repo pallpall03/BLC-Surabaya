@@ -49,6 +49,22 @@ final class LaporanController extends Controller
         ]);
     }
 
+    public function rekap(Request $request): JsonResponse
+    {
+        $filters = $request->validate([
+            'mulai' => ['required', 'date'],
+            'sampai' => ['required', 'date', 'after_or_equal:mulai'],
+        ]);
+
+        return response()->json([
+            'data' => $this->repository->rekapPeserta(
+                $this->instrukturId($request),
+                Carbon::parse($filters['mulai'])->toDateString(),
+                Carbon::parse($filters['sampai'])->toDateString(),
+            ),
+        ]);
+    }
+
     public function opsi(Request $request): JsonResponse
     {
         return response()->json([

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Check, Copy, Eye, EyeOff, KeyRound, RefreshCw, X } from "lucide-react";
-import { resetPasswordUser, type User } from "@/lib/user";
-import { daftarRole } from "@/lib/password";
+import { resetPasswordUser, type User } from "@/app/administrator/user_manager/data";
+import { daftarRole } from "@/app/administrator/_shared/role";
 
 // membuat password acak 12 karakter, minimal satu huruf besar, kecil, angka, dan simbol
 function buatPassword(panjang = 12) {

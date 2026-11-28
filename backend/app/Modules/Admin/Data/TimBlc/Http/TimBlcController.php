@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Data\TimBlc\Http;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Modules\Admin\Data\TimBlc\Contracts\TimBlcRepository;
 use App\Modules\Admin\Data\TimBlc\Domain\TimBlc;
 use Illuminate\Http\JsonResponse;
@@ -16,20 +17,16 @@ final class TimBlcController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-<<<<<<< HEAD
-        $tim = $this->repository->getAktif();
-        return response()->json(['data' => array_map(fn (TimBlc $item) => $this->publik($item), $tim)]);
-=======
-        if ($request->query('status') === 'aktif') {
-            return response()->json(['data' => $this->repository->getAktif()]);
+        if ($request->query('status') === 'aktif' || ! $this->admin($request)) {
+            return response()->json(['data' => array_map(fn (TimBlc $item) => $this->publik($item), $this->repository->getAktif())]);
         }
+
         return response()->json(['data' => $this->repository->all()]);
     }
 
     public function aktif(): JsonResponse
     {
-        return response()->json(['data' => $this->repository->getAktif()]);
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
+        return response()->json(['data' => array_map(fn (TimBlc $item) => $this->publik($item), $this->repository->getAktif())]);
     }
 
     public function store(Request $request): JsonResponse
@@ -53,10 +50,13 @@ final class TimBlcController extends Controller
         return response()->json(['data' => $tim], 201);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $tim = $this->repository->find($id);
         if (!$tim) {
+            return response()->json(['message' => 'Tim BLC not found'], 404);
+        }
+        if (! $this->admin($request) && $tim->isDelete) {
             return response()->json(['message' => 'Tim BLC not found'], 404);
         }
         return response()->json(['data' => $this->publik($tim)]);
@@ -85,6 +85,15 @@ final class TimBlcController extends Controller
         return response()->json(['message' => 'Deleted']);
     }
 
+    private function admin(Request $request): bool
+    {
+        try {
+            return $request->user('api')?->hasRole(Role::SUPERADMIN) ?? false;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     /** @return array<string, mixed> */
     private function publik(TimBlc $tim): array
     {
@@ -94,7 +103,7 @@ final class TimBlcController extends Controller
             'role' => $tim->role,
             'avatar' => $tim->avatar,
             'lokasiBlcId' => $tim->lokasiBlcId,
-            'isSurabaya' => $tim->isSurabaya,
+            'namaLokasi' => $tim->namaLokasi,
         ];
     }
 }

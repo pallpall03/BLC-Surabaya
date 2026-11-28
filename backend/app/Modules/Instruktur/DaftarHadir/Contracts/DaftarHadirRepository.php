@@ -69,9 +69,25 @@ interface DaftarHadirRepository
     public function keluarkanPeserta(int $instrukturId, int $kelasId, int $pesertaId): ?bool;
 
     /**
-     * Rekap absensi belum tersedia karena tabel absensi tidak ada.
+     * Rekap peserta beserta kelas yang diikuti pada kelas milik instruktur.
      *
-     * @return list<array<string, mixed>>|null
+     * @return list<array<string, mixed>>
+     */
+    public function rekapPeserta(int $instrukturId, string $search = ''): array;
+
+    /**
+     * @return array{data: list<array<string, mixed>>, meta: array{tanggal: string, sudah_dicatat: bool}}|null
+     */
+    public function absensiKelas(int $instrukturId, int $kelasId, string $tanggal): ?array;
+
+    /**
+     * @param  list<array{peserta_id: int, hadir: bool}>  $peserta
+     * @return array{data: list<array<string, mixed>>, meta: array{tanggal: string, sudah_dicatat: bool}}|null
+     */
+    public function simpanAbsensi(int $instrukturId, int $kelasId, string $tanggal, array $peserta): ?array;
+
+    /**
+     * @return list<array{peserta_id: int, nama: string, hadir: int, tidak_hadir: int, total_pertemuan: int}>|null
      */
     public function rekapKelas(int $instrukturId, int $kelasId): ?array;
 }

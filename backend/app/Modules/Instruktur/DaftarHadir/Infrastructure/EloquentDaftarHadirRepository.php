@@ -11,8 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Implementasi Eloquent untuk operasi kelas dan peserta kelas Daftar Hadir.
- * Tidak ada akses ke tabel absensi atau instruktur_profiles.
+ * Implementasi Eloquent untuk operasi kelas, peserta kelas, dan absensi Instruktur.
  */
 final class EloquentDaftarHadirRepository implements DaftarHadirRepository
 {
@@ -264,11 +263,239 @@ final class EloquentDaftarHadirRepository implements DaftarHadirRepository
         });
     }
 
+    public function rekapPeserta(int $instrukturId, string $search = ''): array
+    {
+        $query = DB::table('peserta as p')
+            ->join('kelas_peserta as kp', 'kp.peserta_id', '=', 'p.id')
+            ->join('kelas as k', 'k.id', '=', 'kp.kelas_id')
+            ->leftJoin('materi as m', 'm.id', '=', 'k.materi_id')
+            ->leftJoin('sesi as s', 's.id', '=', 'k.sesi_id')
+            ->leftJoin('lokasi_blc as blc', 'blc.id', '=', 'k.lokasi_blc_id')
+            ->leftJoin('kategori_artikel as kategori', 'kategori.id', '=', 'p.kategori_id')
+            ->where('p.is_delete', false)
+            ->where('kp.is_delete', false)
+            ->where('k.is_delete', false)
+            ->where('k.instruktur_id', $instrukturId);
+
+        $search = trim($search);
+        if ($search !== '') {
+            $pola = '%'.$search.'%';
+            $query->where(function (QueryBuilder $inner) use ($pola): void {
+                $inner->where('p.nama_lengkap', 'like', $pola)
+                    ->orWhere('p.nik', 'like', $pola)
+                    ->orWhere('k.nama_kelas', 'like', $pola);
+            });
+        }
+
+        $rows = $query
+            ->orderBy('p.nama_lengkap')
+            ->orderBy('p.id')
+            ->orderBy('k.nama_kelas')
+            ->get([
+                'p.id as peserta_id',
+                'p.nik',
+                'p.nama_lengkap as nama',
+                'p.gender as jk',
+                'p.phone',
+                'p.alamat',
+                'p.is_validated',
+                'blc.nama_blc',
+                'kategori.nama_kelompok',
+                'kp.id as kelas_peserta_id',
+                'k.id as kelas_id',
+                'k.nama_kelas',
+                'k.hari',
+                'm.nama_materi',
+                's.sesi',
+                's.jam',
+                'k.lokasi_blc_id',
+            ]);
+
+        $peserta = [];
+        foreach ($rows as $row) {
+            $key = (int) $row->peserta_id;
+            if (! isset($peserta[$key])) {
+                $peserta[$key] = [
+                    'id' => $key,
+                    'nik' => $row->nik,
+                    'nama' => $row->nama,
+                    'jk' => $row->jk,
+                    'phone' => $row->phone,
+                    'telepon' => $row->phone,
+                    'alamat' => $row->alamat,
+                    'blc' => $row->nama_blc ?? '-',
+                    'kategori' => $row->nama_kelompok ?? '-',
+                    'tervalidasi' => filter_var($row->is_validated, FILTER_VALIDATE_BOOLEAN),
+                    'kelas' => [],
+                ];
+            }
+
+            $peserta[$key]['kelas'][] = [
+                'id' => (int) $row->kelas_id,
+                'nama_kelas' => $row->nama_kelas,
+                'materi' => $row->nama_materi ?? '-',
+                'sesi' => $row->sesi === null ? null : (int) $row->sesi,
+                'waktu_sesi' => $row->jam,
+                'lokasi' => $row->nama_blc ?? '-',
+                'lokasi_blc_id' => $row->lokasi_blc_id === null ? null : (int) $row->lokasi_blc_id,
+                'hari' => preg_split('/\s+/', trim((string) $row->hari), -1, PREG_SPLIT_NO_EMPTY) ?: [],
+            ];
+        }
+
+        $kehadiran = DB::table('daftar_hadir as dh')
+            ->join('kelas_peserta as kp', 'kp.id', '=', 'dh.kelas_peserta_id')
+            ->whereIn('kp.peserta_id', array_keys($peserta))
+            ->where('kp.is_delete', false)
+            ->whereIn('kp.kelas_id', function (QueryBuilder $query) use ($instrukturId): void {
+                $query->select('id')
+                    ->from('kelas')
+                    ->where('instruktur_id', $instrukturId)
+                    ->where('is_delete', false);
+            })
+            ->select('kp.peserta_id', 'kp.kelas_id', DB::raw('COUNT(*) as total_pertemuan'), DB::raw('SUM(CASE WHEN dh.hadir = true THEN 1 ELSE 0 END) as total_hadir'))
+            ->groupBy('kp.peserta_id', 'kp.kelas_id')
+            ->get();
+
+        $rekap = [];
+        foreach ($kehadiran as $item) {
+            $rekap[(int) $item->peserta_id.':'.(int) $item->kelas_id] = [
+                'total_pertemuan' => (int) $item->total_pertemuan,
+                'total_hadir' => (int) $item->total_hadir,
+            ];
+        }
+
+        return array_values(array_map(function (array $item) use ($rekap): array {
+            $totalPertemuan = 0;
+            $totalHadir = 0;
+            $item['kelas'] = array_map(function (array $kelas) use (&$totalPertemuan, &$totalHadir, $rekap): array {
+                $key = $item['id'].':'.$kelas['id'];
+                $hadir = $rekap[$key] ?? ['total_pertemuan' => 0, 'total_hadir' => 0];
+                $totalPertemuan += $hadir['total_pertemuan'];
+                $totalHadir += $hadir['total_hadir'];
+
+                return [
+                    ...$kelas,
+                    'total_pertemuan' => $hadir['total_pertemuan'],
+                    'total_hadir' => $hadir['total_hadir'],
+                ];
+            }, $item['kelas']);
+            $item['total_pertemuan'] = $totalPertemuan;
+            $item['total_hadir'] = $totalHadir;
+
+            return $item;
+        }, $peserta));
+    }
+
+    public function absensiKelas(int $instrukturId, int $kelasId, string $tanggal): ?array
+    {
+        if (! $this->kelasQuery($instrukturId)->whereKey($kelasId)->exists()) {
+            return null;
+        }
+
+        $peserta = DB::table('peserta as p')
+            ->join('kelas_peserta as kp', 'kp.peserta_id', '=', 'p.id')
+            ->leftJoin('daftar_hadir as dh', function (QueryBuilder $join) use ($tanggal): void {
+                $join->on('dh.kelas_peserta_id', '=', 'kp.id')
+                    ->where('dh.tgl_hadir', $tanggal);
+            })
+            ->leftJoin('lokasi_blc as blc', 'blc.id', '=', 'p.lokasi_blc_id')
+            ->leftJoin('kategori_artikel as kategori', 'kategori.id', '=', 'p.kategori_id')
+            ->where('kp.kelas_id', $kelasId)
+            ->where('kp.is_delete', false)
+            ->where('p.is_delete', false)
+            ->orderBy('p.nama_lengkap')
+            ->orderBy('p.id')
+            ->get([
+                'p.id',
+                'p.nik',
+                'p.nama_lengkap as nama',
+                'p.gender as jk',
+                'p.phone',
+                'p.alamat',
+                'p.is_validated',
+                'blc.nama_blc',
+                'kategori.nama_kelompok',
+                'kp.id as kelas_peserta_id',
+                'dh.hadir',
+            ])
+            ->map(fn ($peserta) => [
+                ...$this->pesertaToArray($peserta),
+                'hadir' => $peserta->hadir === null ? null : filter_var($peserta->hadir, FILTER_VALIDATE_BOOLEAN),
+            ])
+            ->all();
+
+        return [
+            'data' => $peserta,
+            'meta' => [
+                'tanggal' => $tanggal,
+                'sudah_dicatat' => collect($peserta)->contains(fn (array $item) => $item['hadir'] !== null),
+            ],
+        ];
+    }
+
+    public function simpanAbsensi(int $instrukturId, int $kelasId, string $tanggal, array $peserta): ?array
+    {
+        return DB::transaction(function () use ($instrukturId, $kelasId, $tanggal, $peserta): ?array {
+            $kelas = $this->kelasQuery($instrukturId)->lockForUpdate()->find($kelasId);
+            if ($kelas === null) {
+                return null;
+            }
+
+            $pesertaIds = array_column($peserta, 'peserta_id');
+            $terdaftar = DB::table('kelas_peserta')
+                ->where('kelas_id', $kelasId)
+                ->where('is_delete', false)
+                ->whereIn('peserta_id', $pesertaIds)
+                ->lockForUpdate()
+                ->get(['id', 'peserta_id']);
+
+            if ($terdaftar->pluck('peserta_id')->map(fn ($id) => (int) $id)->unique()->count() !== count($pesertaIds)) {
+                throw ValidationException::withMessages([
+                    'peserta' => 'Salah satu peserta tidak terdaftar di kelas ini.',
+                ]);
+            }
+
+            foreach ($peserta as $item) {
+                $kelasPeserta = $terdaftar->firstWhere('peserta_id', $item['peserta_id']);
+                DB::table('daftar_hadir')->updateOrInsert(
+                    ['kelas_peserta_id' => $kelasPeserta->id, 'tgl_hadir' => $tanggal],
+                    ['hadir' => $item['hadir'], 'updated_at' => now()],
+                );
+            }
+
+            return $this->absensiKelas($instrukturId, $kelasId, $tanggal);
+        });
+    }
+
     public function rekapKelas(int $instrukturId, int $kelasId): ?array
     {
-        // Belum ada tabel absensi pada skema aktif. Endpoint tetap memeriksa
-        // kepemilikan kelas, lalu mengembalikan rekap kosong.
-        return $this->kelasQuery($instrukturId)->whereKey($kelasId)->exists() ? [] : null;
+        if (! $this->kelasQuery($instrukturId)->whereKey($kelasId)->exists()) {
+            return null;
+        }
+
+        return DB::table('peserta as p')
+            ->join('kelas_peserta as kp', 'kp.peserta_id', '=', 'p.id')
+            ->leftJoin('daftar_hadir as dh', 'dh.kelas_peserta_id', '=', 'kp.id')
+            ->where('kp.kelas_id', $kelasId)
+            ->where('kp.is_delete', false)
+            ->where('p.is_delete', false)
+            ->groupBy('p.id', 'p.nama_lengkap')
+            ->orderBy('p.nama_lengkap')
+            ->get([
+                'p.id as peserta_id',
+                'p.nama_lengkap as nama',
+                DB::raw('COUNT(dh.id) as total_pertemuan'),
+                DB::raw('SUM(CASE WHEN dh.hadir = true THEN 1 ELSE 0 END) as hadir'),
+                DB::raw('SUM(CASE WHEN dh.hadir = false THEN 1 ELSE 0 END) as tidak_hadir'),
+            ])
+            ->map(fn ($item) => [
+                'peserta_id' => (int) $item->peserta_id,
+                'nama' => $item->nama,
+                'hadir' => (int) $item->hadir,
+                'tidak_hadir' => (int) $item->tidak_hadir,
+                'total_pertemuan' => (int) $item->total_pertemuan,
+            ])
+            ->all();
     }
 
     private function kelasQuery(int $instrukturId): EloquentBuilder

@@ -18,11 +18,7 @@ final class TimBlcServiceProvider extends ServiceProvider
     {
         Route::prefix('tim-blc')->group(function (): void {
             Route::get('/', [Http\TimBlcController::class, 'index']);
-<<<<<<< HEAD
-=======
-            Route::post('/', [Http\TimBlcController::class, 'store']);
             Route::get('/aktif', [Http\TimBlcController::class, 'aktif']);
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
             Route::get('/{id}', [Http\TimBlcController::class, 'show']);
 
             Route::middleware(['auth:api', 'role:superadmin'])->group(function (): void {

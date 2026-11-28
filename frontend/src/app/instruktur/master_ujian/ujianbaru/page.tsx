@@ -4,42 +4,32 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FilePlus2 } from "lucide-react";
 import HeaderHalaman from "../components/headerhalaman";
-<<<<<<< HEAD
 import FormUjian, { type NilaiUjian } from "../components/formujian";
 import { saveUjian } from "@/lib/api";
-=======
-import FormUjian, { namaUjian, type NilaiUjian } from "../components/formujian";
 import { useCrudNotification } from "@/components/CrudNotification";
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
 export default function UjianBaruPage() {
   const router = useRouter();
   const { showNotification } = useCrudNotification();
   const [saving, setSaving] = useState(false);
-<<<<<<< HEAD
   const [error, setError] = useState("");
-=======
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
   const simpan = async (nilai: NilaiUjian) => {
     setSaving(true); setError("");
     try {
-<<<<<<< HEAD
-      await saveUjian(null, nilai);
-      router.push("/instruktur/master_ujian");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Gagal menyimpan ujian.");
-=======
-      // TODO: POST /api/ujian dengan body `n`, lalu ambil id ujian baru dari respons.
-      const idBaru = 1; // sementara hardcode. Ganti dengan id dari respons API.
+      const res = await saveUjian(null, nilai);
       showNotification({
         type: "success",
         title: "Ujian dibuat",
-        message: namaUjian(n.jenis, n.materi, n.pertemuan),
-        action: { label: "Isi peserta sekarang", onClick: () => router.push(`/instruktur/master_ujian/${idBaru}/peserta`) },
+        message: res.data.judul,
+        action: { label: "Atur peserta", onClick: () => router.push(`/instruktur/master_ujian/${res.data.id}/peserta`) },
       });
+      router.push("/instruktur/master_ujian");
+    } catch (e) {
+      const teks = e instanceof Error ? e.message : "Gagal menyimpan ujian.";
+      setError(teks);
+      showNotification({ type: "error", title: "Ujian gagal dibuat", message: teks });
     } finally {
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
       setSaving(false);
     }
   };

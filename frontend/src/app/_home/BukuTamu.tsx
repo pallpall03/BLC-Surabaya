@@ -24,24 +24,30 @@ export default function BukuTamu() {
   const [sukses, setSukses] = useState<boolean>(false);
 
   useEffect(() => {
-<<<<<<< HEAD
+    let aktif = true;
+
     void Promise.allSettled([ambilBukuTamu(), ambilOpsiBukuTamu()]).then(([pesan, pilihan]) => {
-      if (pesan.status === "fulfilled") setDaftar(pesan.value);
+      if (!aktif) return;
+      if (pesan.status === "fulfilled") {
+        setDaftar(Array.isArray(pesan.value) ? pesan.value : []);
+      }
       if (pilihan.status === "fulfilled") {
         const data = pilihan.value;
-        setOpsi(data);
+        const blc = Array.isArray(data?.blc) ? data.blc : [];
+        const sesi = Array.isArray(data?.sesi) ? data.sesi : [];
+        const kategori = Array.isArray(data?.kategori) ? data.kategori : [];
+        setOpsi({ blc, sesi, kategori });
         setForm((f) => ({
           ...f,
-          lokasi_blc_id: f.lokasi_blc_id ?? data.blc[0]?.id,
-          sesi_id: f.sesi_id ?? data.sesi[0]?.id,
+          lokasi_blc_id: f.lokasi_blc_id ?? blc[0]?.id,
+          sesi_id: f.sesi_id ?? sesi[0]?.id,
         }));
       }
     });
-=======
-    ambilBukuTamu()
-      .then((data) => setDaftar(Array.isArray(data) ? data : []))
-      .catch(() => setDaftar([]));
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
+
+    return () => {
+      aktif = false;
+    };
   }, []);
 
   function ubah(kolom: keyof FormTamu, nilai: string) {
