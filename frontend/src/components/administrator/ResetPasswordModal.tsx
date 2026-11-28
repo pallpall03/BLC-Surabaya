@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check, Copy, Eye, EyeOff, KeyRound, RefreshCw, X } from "lucide-react";
-import { resetPasswordUser, type User } from "@/app/administrator/user_manager/data";
-import { daftarRole } from "@/app/administrator/_shared/role";
+import { resetPasswordUser, type User } from "@/lib/user";
+import { daftarRole, type RoleUser } from "@/lib/password";
 
 // membuat password acak 12 karakter, minimal satu huruf besar, kecil, angka, dan simbol
 function buatPassword(panjang = 12) {
@@ -42,7 +42,13 @@ export default function ResetPasswordModal({
   const [hasil, setHasil] = useState<string | null>(null); // diisi setelah berhasil
   const [tersalin, setTersalin] = useState<boolean>(false);
 
-  const namaRole = daftarRole.find((r) => r.kode === user.role)?.label ?? user.role;
+    const [daftarRoleList, setDaftarRoleList] = useState<RoleUser[]>([]);
+
+    useEffect(() => {
+      daftarRole().then((roles) => setDaftarRoleList(roles));
+    }, []);
+
+    const namaRole = user.role;
 
   // kekuatan password: 4 syarat sederhana
   const skor = [

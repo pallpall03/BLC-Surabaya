@@ -1,5 +1,7 @@
 
 import Image from "next/image";
+import Navbar from "@/home/Navbar";
+import Footer from "@/home/Footer";
 
 export default function TentangPage() {
   return (

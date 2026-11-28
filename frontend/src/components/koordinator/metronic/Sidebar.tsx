@@ -28,6 +28,23 @@ function Group({ item, pathname, close }: { item: MenuItem; pathname: string; cl
   const Icon = item.icon;
   const submenuId = `submenu-${item.title.toLowerCase().replace(/\s+/g, "-")}`;
 
+  if (item.href) {
+    const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+    return (
+      <div className="menu-item">
+        <Link
+          href={item.href}
+          className={`menu-link${active ? " active" : ""}`}
+          aria-current={active ? "page" : undefined}
+          onClick={close}
+        >
+          <span className="menu-icon"><Icon size={18} /></span>
+          <span className="menu-title">{item.title}</span>
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className={`menu-item menu-accordion${open ? " show" : ""} here`}>
       <button

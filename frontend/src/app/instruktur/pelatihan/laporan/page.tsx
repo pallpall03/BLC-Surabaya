@@ -269,13 +269,10 @@ export default function LaporanKegiatanPelatihanPage() {
   return (
     <main className="min-h-screen bg-orange-50/60 px-4 py-6 sm:px-8 sm:py-8 print:bg-white print:p-0">
       <div className="mx-auto max-w-6xl space-y-6">
-        <header className="instruktur-page-header flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50 print:hidden">
-          <div className="flex items-center gap-4">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/25"><FileText size={28} /></span>
-            <div>
-              <h1 className="text-2xl font-semibold">Laporan Peserta Pelatihan</h1>
-              <p className="mt-1 max-w-2xl text-sm text-orange-50">Lihat rekap kehadiran per sesi dan per kegiatan, atau catat laporan kegiatan mengajar beserta dokumentasinya.</p>
-            </div>
+        <header className="flex flex-wrap items-center justify-between gap-4 print:hidden">
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">Laporan Kegiatan Pelatihan</h1>
+            <p className="mt-1 max-w-2xl text-sm text-slate-500">Catat kegiatan mengajar yang telah dilaksanakan. Pilih kelas milikmu, isi tanggal dan aktivitas; kehadiran peserta dihitung otomatis dari absensi kelas.</p>
           </div>
           <span className="rounded-full border border-orange-200 bg-white px-4 py-2 text-sm text-slate-600 shadow-sm"><span className="text-slate-400">Instruktur: </span><span className="font-medium text-slate-800">{namaInstruktur}</span></span>
         </header>

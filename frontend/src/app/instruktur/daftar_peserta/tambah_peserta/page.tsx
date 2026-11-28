@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { createPeserta, getPesertaOpsi, type PesertaOpsi } from "@/lib/api";
 import { useCrudNotification } from "@/components/CrudNotification";
-import { PopupSukses } from "../components/elemenform";
 
 type FormPeserta = {
   nik: string; nama: string; tanggalLahir: string; jenisKelamin: "L" | "P" | "";
@@ -58,6 +57,7 @@ function Field({ label, id, icon: Icon, error, top, children, className = "" }: 
 export default function TambahPesertaPage() {
   const router = useRouter();
   const { showNotification } = useCrudNotification();
+
   const [form, setForm] = useState<FormPeserta>(AWAL);
   const [opsi, setOpsi] = useState<PesertaOpsi | null>(null);
   const [errors, setErrors] = useState<Partial<Record<keyof FormPeserta, string>>>({});
@@ -112,14 +112,9 @@ export default function TambahPesertaPage() {
     if (!form.isSurabaya && !form.kecamatanLain.trim()) next.kecamatanLain = "Kecamatan luar Surabaya wajib diisi.";
     if (!form.isSurabaya && !form.kelurahanLain.trim()) next.kelurahanLain = "Kelurahan luar Surabaya wajib diisi.";
     setErrors(next);
-    if (Object.keys(next).length === 0) return true;
-    showNotification({ type: "error", title: "Peserta gagal disimpan", message: "Periksa kembali isian formulir." });
-    return false;
-  };
+    if (Object.keys(next).length) return;
 
-  const simpan = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.jenisKelamin || !validasi()) return;
+    if (!form.jenisKelamin) return;
     setSaving(true);
     setError("");
     try {
@@ -130,15 +125,15 @@ export default function TambahPesertaPage() {
         email: form.email, telepon: form.telepon, kategori_peserta_id: Number(form.kategoriId),
         lokasi_blc_id: Number(form.lokasiBlcId), is_surabaya: form.isSurabaya,
       });
-      setSukses(form.nama);
       showNotification({
         type: "success",
         title: "Peserta tersimpan",
         message: `${form.nama} berhasil ditambahkan.`,
         action: { label: "Lihat daftar peserta", onClick: () => router.push(KEMBALI) },
       });
+      router.push("/instruktur/daftar_peserta");
     } catch (e) {
-      const pesan = e instanceof Error ? e.message : "Gagal menyimpan peserta";
+      const pesan = e instanceof Error ? e.message : "Peserta belum berhasil disimpan. Coba lagi.";
       setError(pesan);
       showNotification({ type: "error", title: "Peserta gagal disimpan", message: pesan });
     } finally {
@@ -149,19 +144,10 @@ export default function TambahPesertaPage() {
   return (
     <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-3xl">
-        <Link href={KEMBALI} className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-orange-700"><ArrowLeft size={16} /> Kembali ke daftar peserta</Link>
-        <div className="instruktur-page-header mb-6 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50">
-          <div className="flex items-center gap-4"><span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/25"><UserPlus size={28} /></span>
+        <Link href="/instruktur/daftar_peserta" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-orange-700"><ArrowLeft size={16} /> Kembali ke daftar peserta</Link>
+        <div className="mb-6 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50">
+          <div className="flex items-center gap-4"><span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/25"><UserPlus size={28} /></span>
             <div><h1 className="text-2xl font-semibold">Tambah peserta</h1><p className="text-sm text-orange-50">Lengkapi data peserta pelatihan BLC.</p></div></div>
-          <div className="mt-5">
-            <div className="mb-1.5 flex justify-between text-xs font-medium text-orange-50">
-              <span>{terisi} dari {wajib.length} data terisi</span>
-              <span>{persen}%</span>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full bg-white/30">
-              <div className="h-full rounded-full bg-white transition-all duration-500" style={{ width: `${persen}%` }} />
-            </div>
-          </div>
         </div>
 
         {loading ? <div className="flex justify-center py-16"><div className="h-10 w-10 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" aria-label="Memuat pilihan data" /></div> : (
@@ -216,7 +202,6 @@ export default function TambahPesertaPage() {
         )}
       </div>
       {!loading && !opsi?.kategori.length && <p className="mx-auto mt-4 flex max-w-3xl items-center gap-2 text-sm text-amber-700"><AlertCircle size={16} /> Belum ada kategori peserta; hubungi admin untuk melengkapi data master.</p>}
-      {sukses && <PopupSukses judul="Peserta tersimpan" pesan={`Data ${sukses} berhasil ditambahkan.`} tombol="Lihat daftar peserta" onLanjut={() => router.push(KEMBALI)} />}
     </main>
   );
 }

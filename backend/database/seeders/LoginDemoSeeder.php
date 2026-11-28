@@ -29,9 +29,8 @@ class LoginDemoSeeder extends Seeder
 
         foreach ($akun as $a) {
             $role = Role::firstOrCreate(['slug' => $a['role']], ['name' => Role::daftar()[$a['role']]]);
-            $user = User::query()->where('email', $a['email'])->first()
-                ?? User::query()->where('nik', $a['nik'])->first()
-                ?? new User(['email' => $a['email'], 'name' => $a['name']]);
+
+            $user = User::query()->firstOrNew(['email' => $a['email']], ['name' => $a['name'], 'username' => $a['username']]);
             $user->username = $a['username'];
             $user->role_id = $role->id;
             $user->password = 'Password123';

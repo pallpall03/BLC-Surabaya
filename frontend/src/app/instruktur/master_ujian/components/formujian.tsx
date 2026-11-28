@@ -10,7 +10,6 @@ import {
   getUjianOpsi, type SoalUjian, type Ujian, type UjianInput, type UjianOpsi,
 } from "@/lib/api";
 import { bacaFileSoal, MAX_SOAL, validasiSoal, type HasilImporSoal } from "./imporSoal";
-import { useCrudNotification } from "@/components/CrudNotification";
 
 export type NilaiUjian = UjianInput;
 
@@ -63,7 +62,6 @@ export default function FormUjian({ awal, kembali, labelSimpan = "Simpan ujian",
   saving?: boolean;
   onSimpan: (nilai: NilaiUjian) => void | Promise<void>;
 }) {
-  const { showNotification } = useCrudNotification();
   const [f, setF] = useState<NilaiUjian>(() => awal ? {
     judul: awal.judul, materi_id: awal.materi_id, tipe: awal.tipe,
     durasi_menit: awal.durasi_menit, nilai_minimum: awal.nilai_minimum,
@@ -143,11 +141,7 @@ export default function FormUjian({ awal, kembali, labelSimpan = "Simpan ujian",
     if (f.soal.length < 1 || f.soal.length > MAX_SOAL) e.soal = `Jumlah soal harus 1–${MAX_SOAL}.`;
     try { validasiSoal(f.soal); } catch (err) { e.soal = err instanceof Error ? err.message : "Soal belum lengkap."; }
     setErrors(e);
-    if (Object.keys(e).length > 0) {
-      showNotification({ type: "error", title: "Data ujian belum valid", message: Object.values(e).join(" ") });
-      return;
-    }
-    void onSimpan({ ...f, judul: f.judul.trim() });
+    if (Object.keys(e).length === 0) void onSimpan({ ...f, judul: f.judul.trim() });
   };
 
   return (

@@ -34,12 +34,7 @@ function mapBukuTamu(data: BukuTamuBackend): BukuTamu {
 
 export async function ambilOpsiBukuTamu(): Promise<PengunjungOpsi> {
   const res = await apiGet<{ data: PengunjungOpsi }>("/buku-tamu/opsi");
-  const data = res.data;
-  return {
-    blc: Array.isArray(data?.blc) ? data.blc : [],
-    sesi: Array.isArray(data?.sesi) ? data.sesi : [],
-    kategori: Array.isArray(data?.kategori) ? data.kategori : [],
-  };
+  return res.data;
 }
 
 export async function ambilBukuTamu(): Promise<BukuTamu[]> {

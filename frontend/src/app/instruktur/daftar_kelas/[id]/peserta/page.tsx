@@ -2,26 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import {
-  CheckCircle2,
-  ClipboardList,
-  Mars,
-  Search,
-  SearchX,
-  UserCheck,
-  UserMinus,
-  UserPlus,
-  Venus,
-} from "lucide-react";
-import { useCrudNotification } from "@/components/CrudNotification";
-import {
-  addPesertaToKelas,
-  getCalonPeserta,
-  getKelasDetail,
-  getKelasPeserta,
-  removePesertaFromKelas,
-  type Peserta,
-} from "@/lib/api";
+import { CheckCircle2, ClipboardList, Mars, Search, SearchX, UserCheck, UserMinus, UserPlus, Venus } from "lucide-react";
 import HeaderHalaman from "../../components/headerhalaman";
 import { jamSesi, type Kelas } from "../../data";
 
@@ -52,8 +33,8 @@ export default function PesertaKelasPage() {
   }, [showNotification]);
 
   const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const [kelasRes, calonRes, terdaftarRes] = await Promise.all([
         getKelasDetail(kelasId),
         getCalonPeserta(kelasId),
@@ -71,7 +52,7 @@ export default function PesertaKelasPage() {
   }, [kelasId, toast]);
 
   useEffect(() => {
-    void Promise.resolve().then(fetchData);
+    void fetchData();
   }, [fetchData]);
 
   const daftarArea = useMemo(() => Array.from(new Set(tersedia.map((p) => p.blc))).sort(), [tersedia]);

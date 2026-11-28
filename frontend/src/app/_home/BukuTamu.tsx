@@ -24,8 +24,6 @@ export default function BukuTamu() {
   const [sukses, setSukses] = useState<boolean>(false);
 
   useEffect(() => {
-    let aktif = true;
-
     void Promise.allSettled([ambilBukuTamu(), ambilOpsiBukuTamu()]).then(([pesan, pilihan]) => {
       if (!aktif) return;
       if (pesan.status === "fulfilled") {
@@ -44,10 +42,6 @@ export default function BukuTamu() {
         }));
       }
     });
-
-    return () => {
-      aktif = false;
-    };
   }, []);
 
   function ubah(kolom: keyof FormTamu, nilai: string) {

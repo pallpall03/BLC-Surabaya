@@ -7,12 +7,10 @@ import { ArrowLeft, PencilLine } from "lucide-react";
 import HeaderHalaman from "../../components/headerhalaman";
 import FormUjian, { type NilaiUjian } from "../../components/formujian";
 import { getUjianDetail, saveUjian, type Ujian } from "@/lib/api";
-import { useCrudNotification } from "@/components/CrudNotification";
 
 export default function UbahUjianPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { showNotification } = useCrudNotification();
   const [ujian, setUjian] = useState<Ujian | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -40,9 +38,7 @@ export default function UbahUjianPage() {
       showNotification({ type: "success", title: "Ujian diperbarui", message: nilai.judul });
       router.push("/instruktur/master_ujian");
     } catch (e) {
-      const teks = e instanceof Error ? e.message : "Gagal memperbarui ujian.";
-      setError(teks);
-      showNotification({ type: "error", title: "Ujian gagal diperbarui", message: teks });
+      setError(e instanceof Error ? e.message : "Gagal memperbarui ujian.");
     } finally {
       setSaving(false);
     }

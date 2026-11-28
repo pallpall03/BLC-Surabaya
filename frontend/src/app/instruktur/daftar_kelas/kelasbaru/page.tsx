@@ -9,11 +9,13 @@ import HeaderHalaman from "../components/headerhalaman";
 import JadwalKelas from "../components/jadwalkelas";
 import FormKelas, { type NilaiKelas, type OpsiKelas } from "../components/formkelas";
 import { cariBentrok, validasiKelas, type Kelas } from "../data";
+import { getKelas, getKelasOpsi, createKelas } from "@/lib/api";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 export default function BuatKelasPage() {
   const router = useRouter();
   const { showNotification } = useCrudNotification();
-  const [nilai, setNilai] = useState<NilaiKelas>({ nama: "", sesi: 0, hari: [], materi: "", lokasiBlcId: 0 });
+  const [nilai, setNilai] = useState<NilaiKelas>({ nama: "", sesi: 0, hari: [] as string[], materi: "", lokasiBlcId: 0 });
   const [opsi, setOpsi] = useState<OpsiKelas>({ sesi: [], materi: [], blc: [] });
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
@@ -25,6 +27,8 @@ export default function BuatKelasPage() {
   useEffect(() => {
     let aktif = true;
     const fetchData = async () => {
+      setLoading(true);
+      setLoadError("");
       try {
         const [kelasRes, opsiRes] = await Promise.all([getKelas(), getKelasOpsi()]);
         if (!aktif) return;
@@ -36,7 +40,10 @@ export default function BuatKelasPage() {
           lokasiBlcId: opsiRes.data.blc.length === 1 ? opsiRes.data.blc[0].id : 0,
         }));
       } catch (e) {
-        if (aktif) setLoadError(e instanceof Error ? e.message : "Gagal memuat data kelas");
+        if (!aktif) return;
+        const pesan = e instanceof Error ? e.message : "Gagal memuat data kelas";
+        setError(pesan);
+        setLoadError(pesan);
       } finally {
         if (aktif) setLoading(false);
       }
@@ -48,7 +55,7 @@ export default function BuatKelasPage() {
   }, [reloadKey]);
 
   const muatUlang = () => {
-    setLoading(true);
+    setError("");
     setLoadError("");
     setReloadKey((value) => value + 1);
   };

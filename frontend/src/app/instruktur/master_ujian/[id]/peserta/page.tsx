@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { getUjianDetail, getUjianOpsi, type KelasUjianOpsi, type Ujian } from "@/lib/api";
 import HeaderHalaman from "../../components/headerhalaman";
-import TokenUjian from "../../components/tokenujian";
 
 function formatTanggal(nilai: string) {
   const tanggal = new Date(nilai);

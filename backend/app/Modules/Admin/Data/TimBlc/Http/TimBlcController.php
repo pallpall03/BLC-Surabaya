@@ -15,10 +15,10 @@ final class TimBlcController extends Controller
         private readonly TimBlcRepository $repository
     ) {}
 
-    public function index(Request $request): JsonResponse
+        public function index(Request $request): JsonResponse
     {
-        if ($request->query('status') === 'aktif' || ! $this->admin($request)) {
-            return response()->json(['data' => array_map(fn (TimBlc $item) => $this->publik($item), $this->repository->getAktif())]);
+        if ($request->query('status') === 'aktif') {
+            return $this->aktif();
         }
 
         return response()->json(['data' => $this->repository->all()]);
@@ -26,7 +26,8 @@ final class TimBlcController extends Controller
 
     public function aktif(): JsonResponse
     {
-        return response()->json(['data' => array_map(fn (TimBlc $item) => $this->publik($item), $this->repository->getAktif())]);
+        $tim = $this->repository->getAktif();
+        return response()->json(['data' => array_map(fn (TimBlc $item) => $this->publik($item), $tim)]);
     }
 
     public function store(Request $request): JsonResponse

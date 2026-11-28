@@ -57,9 +57,8 @@ export default function TabelRekap({ data, loading, error, onTambah, onEdit, onH
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-orange-200 bg-white shadow-xl shadow-orange-300/40 print:shadow-none">
-      <table className="instruktur-report-table w-full min-w-[980px] border-collapse text-left text-sm" aria-label="Rekap laporan bulanan instruktur">
-        <caption className="sr-only">Rekap kelas, kehadiran, dan aktivitas instruktur per tanggal</caption>
+    <div className="overflow-x-auto rounded-2xl border border-orange-200 bg-white shadow-lg shadow-orange-200/40 print:shadow-none">
+      <table className="w-full min-w-[880px] border-collapse text-left text-sm">
         <thead className="bg-orange-50 text-orange-900">
           <tr>
             <th scope="col" className="w-40 px-4 py-3 font-medium">Tanggal</th>

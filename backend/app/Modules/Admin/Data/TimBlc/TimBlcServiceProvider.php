@@ -14,14 +14,14 @@ final class TimBlcServiceProvider extends ServiceProvider
         $this->app->bind(TimBlcRepository::class, EloquentTimBlcRepository::class);
     }
 
-    public static function routes(): void
+            public static function routes(): void
     {
         Route::prefix('tim-blc')->group(function (): void {
-            Route::get('/', [Http\TimBlcController::class, 'index']);
             Route::get('/aktif', [Http\TimBlcController::class, 'aktif']);
             Route::get('/{id}', [Http\TimBlcController::class, 'show']);
 
             Route::middleware(['auth:api', 'role:superadmin'])->group(function (): void {
+                Route::get('/', [Http\TimBlcController::class, 'index']);
                 Route::post('/', [Http\TimBlcController::class, 'store']);
                 Route::put('/{id}', [Http\TimBlcController::class, 'update']);
                 Route::patch('/{id}', [Http\TimBlcController::class, 'update']);

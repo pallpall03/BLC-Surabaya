@@ -3,26 +3,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  Activity,
-  CalendarDays,
-  CheckCircle2,
-  Clock,
-  Pencil,
-  Plus,
-  Printer,
-  RotateCcw,
-  Search,
-  SearchX,
-  Trash2,
-  UserPlus,
-  Users,
-  type LucideIcon,
+  Activity, CalendarDays, CheckCircle2, Clock, Pencil, Plus, Printer, RotateCcw,
+  Search, SearchX, Trash2, Users, UserPlus, type LucideIcon,
 } from "lucide-react";
-import { useCrudNotification } from "@/components/CrudNotification";
-import { deleteKelas, getKelas, getKelasOpsi, updateKelas, type Kelas, type Sesi } from "@/lib/api";
 import HeaderHalaman from "./components/headerhalaman";
 import JadwalKelas from "./components/jadwalkelas";
 import { jamSesi } from "./data";
+import { getKelas, getKelasOpsi, updateKelas, deleteKelas, type Kelas, type Sesi } from "@/lib/api";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 type Filter = "Semua" | "Aktif" | "Selesai";
 
@@ -31,10 +19,10 @@ export default function DaftarKelasPage() {
   const [kelas, setKelas] = useState<Kelas[]>([]);
   const [filter, setFilter] = useState<Filter>("Semua");
   const [cari, setCari] = useState("");
+  const [sesi, setSesi] = useState<Sesi[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
-  const [sesi, setSesi] = useState<Sesi[]>([]);
 
   const fetchKelas = useCallback(async () => {
     setLoading(true);
@@ -43,12 +31,14 @@ export default function DaftarKelasPage() {
       const [res, opsiRes] = await Promise.all([getKelas(), getKelasOpsi()]);
       setKelas(res.data ?? []);
       setSesi(opsiRes.data.sesi);
-    } catch {
-      setLoadError("Data kelas belum berhasil dimuat. Coba lagi beberapa saat.");
+    } catch (e) {
+      const pesan = e instanceof Error ? e.message : "Gagal memuat data kelas";
+      setLoadError(pesan);
+      showNotification({ type: "error", title: "Kelas gagal dimuat", message: pesan });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showNotification]);
 
   useEffect(() => {
     void Promise.resolve().then(fetchKelas);
@@ -62,25 +52,24 @@ export default function DaftarKelasPage() {
     );
   }, [kelas, filter, cari]);
 
-  const handleUpdate = async (id: number, data: Partial<Kelas>) => {
-    try {
-      const payload: Record<string, unknown> = {};
-      if (data.nama !== undefined) payload.nama_kelas = data.nama;
-      if (data.materi_id !== undefined) payload.materi_id = data.materi_id;
-      if (data.sesi_id !== undefined) payload.sesi_id = data.sesi_id;
-      if (data.lokasi_blc_id !== undefined) payload.lokasi_blc_id = data.lokasi_blc_id;
-      if (data.hari !== undefined) payload.hari = data.hari;
-      if (data.status !== undefined) payload.status = data.status === "Aktif" ? 1 : 0;
-      const res = await updateKelas(id, payload);
-      setKelas((prev) => prev.map((k) => (k.id === id ? res.data : k)));
-      showNotification({ type: "success", title: "Kelas diperbarui", message: "Kelas berhasil diperbarui." });
-      return true;
-    } catch (e) {
-      console.error(e);
-      showNotification({ type: "error", title: "Kelas gagal diperbarui", message: e instanceof Error ? e.message : "Gagal memperbarui kelas." });
-      return false;
-    }
-  };
+    const handleUpdate = async (id: number, data: Partial<Kelas>) => {
+      try {
+        const payload: Record<string, unknown> = {};
+        if (data.nama !== undefined) payload.nama_kelas = data.nama;
+        if (data.materi_id !== undefined) payload.materi_id = data.materi_id;
+        if (data.sesi_id !== undefined) payload.sesi_id = data.sesi_id;
+        if (data.lokasi_blc_id !== undefined) payload.lokasi_blc_id = data.lokasi_blc_id;
+        if (data.hari !== undefined) payload.hari = data.hari;
+        if (data.status !== undefined) payload.status = data.status === "Aktif" ? 1 : 0;
+        const res = await updateKelas(id, payload);
+        setKelas((prev) => prev.map((k) => (k.id === id ? res.data : k)));
+        showNotification({ type: "success", title: "Kelas diperbarui", message: "Kelas berhasil diperbarui." });
+        return true;
+      } catch (e) {
+        showNotification({ type: "error", title: "Kelas gagal diperbarui", message: e instanceof Error ? e.message : "Gagal memperbarui kelas." });
+        return false;
+      }
+    };
 
   const handleDelete = async (id: number) => {
     if (!window.confirm("Hapus kelas ini?")) return;
@@ -216,12 +205,12 @@ export default function DaftarKelasPage() {
                   {tampil.map((k) => (
                     <tr key={k.id} className="transition hover:bg-orange-50/60">
                       <td className="px-4 py-3">
-                        <span className="d-block fw-bold text-gray-900">{k.nama}</span>
-                        <span className="fs-8 text-gray-500">{k.tanggal || "Jadwal mingguan"}</span>
+                        <span className="block font-medium text-slate-900">{k.nama}</span>
+                        <span className="text-xs text-slate-500">{k.tanggal || "Jadwal mingguan"}</span>
                       </td>
-                      <td className="px-4 py-3">
-                        <span className="d-block">Sesi {k.sesi}</span>
-                        <span className="fs-8 text-gray-500">{k.waktuSesi ?? jamSesi(k.sesi)}</span>
+                      <td className="px-4 py-3 text-slate-700">
+                        <span className="block">Sesi {k.sesi}</span>
+                        <span className="text-xs text-slate-500">{k.waktuSesi ?? jamSesi(k.sesi)}</span>
                       </td>
                       <td>
                         <div className="d-flex flex-wrap gap-1">

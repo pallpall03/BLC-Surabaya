@@ -19,8 +19,6 @@ return new class extends Migration
         // Migrasi ini berbagi timestamp dengan add_nik_and_lockout_to_users_table, jadi sebagian
         // kolom bisa sudah dibuat lebih dulu. Semua kolom dijaga agar urutan mana pun tetap aman.
         Schema::table('users', function (Blueprint $table) {
-            // NIK 16 digit = identitas login semua role. Nullable agar akun lama tidak error,
-            // tetapi akun tanpa NIK tidak bisa login sampai NIK-nya terisi.
             if (! Schema::hasColumn('users', 'nik')) {
                 $table->string('nik', 16)->nullable()->unique();
             }
@@ -40,13 +38,13 @@ return new class extends Migration
 
         // Kolom otentikasi standar - hanya jika belum ada
         Schema::table('users', function (Blueprint $table) {
-            if (!Schema::hasColumn('users', 'is_aktif')) {
+            if (! Schema::hasColumn('users', 'is_aktif')) {
                 $table->boolean('is_aktif')->default(true);
             }
-            if (!Schema::hasColumn('users', 'status')) {
+            if (! Schema::hasColumn('users', 'status')) {
                 $table->string('status', 20)->default('aktif');
             }
-            if (!Schema::hasColumn('users', 'last_login_at')) {
+            if (! Schema::hasColumn('users', 'last_login_at')) {
                 $table->timestamp('last_login_at')->nullable();
             }
         });
@@ -76,16 +74,18 @@ return new class extends Migration
         }
 
         Schema::table('users', function (Blueprint $table) {
-            foreach (['nik', 'failed_login_attempts', 'locked_at', 'unlocked_at', 'is_aktif', 'status', 'last_login_at'] as $kolom) {
-                if (! Schema::hasColumn('users', $kolom)) {
-                    continue;
+            foreach (['nik', 'failed_login_attempts', 'locked_at', 'unlocked_at'] as $kolom) {
+                if (Schema::hasColumn('users', $kolom)) {
+                    $table->dropColumn($kolom);
                 }
+            }
+        });
 
-                if ($kolom === 'nik' && Schema::hasIndex('users', ['nik'], 'unique')) {
-                    $table->dropUnique(['nik']);
+        Schema::table('users', function (Blueprint $table) {
+            foreach (['is_aktif', 'status', 'last_login_at'] as $kolom) {
+                if (Schema::hasColumn('users', $kolom)) {
+                    $table->dropColumn($kolom);
                 }
-
-                $table->dropColumn($kolom);
             }
         });
     }

@@ -17,18 +17,10 @@ export default function UjianBaruPage() {
   const simpan = async (nilai: NilaiUjian) => {
     setSaving(true); setError("");
     try {
-      const res = await saveUjian(null, nilai);
-      showNotification({
-        type: "success",
-        title: "Ujian dibuat",
-        message: res.data.judul,
-        action: { label: "Atur peserta", onClick: () => router.push(`/instruktur/master_ujian/${res.data.id}/peserta`) },
-      });
+      await saveUjian(null, nilai);
       router.push("/instruktur/master_ujian");
     } catch (e) {
-      const teks = e instanceof Error ? e.message : "Gagal menyimpan ujian.";
-      setError(teks);
-      showNotification({ type: "error", title: "Ujian gagal dibuat", message: teks });
+      setError(e instanceof Error ? e.message : "Gagal menyimpan ujian.");
     } finally {
       setSaving(false);
     }

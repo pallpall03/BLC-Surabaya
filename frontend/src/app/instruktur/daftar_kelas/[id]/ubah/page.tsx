@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Clock, PencilLine } from "lucide-react";
-import { useCrudNotification } from "@/components/CrudNotification";
-import { getKelas, getKelasDetail, getKelasOpsi, updateKelas } from "@/lib/api";
 import HeaderHalaman from "../../components/headerhalaman";
 import JadwalKelas from "../../components/jadwalkelas";
 import FormKelas, { type NilaiKelas, type OpsiKelas } from "../../components/formkelas";
 import { cariBentrok, validasiKelas, type Kelas } from "../../data";
+import { getKelas, getKelasDetail, getKelasOpsi, updateKelas } from "@/lib/api";
+import { useCrudNotification } from "@/components/CrudNotification";
 
 export default function UbahKelasPage() {
   const { id } = useParams<{ id: string }>();
@@ -22,32 +22,23 @@ export default function UbahKelasPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let aktif = true;
-    const fetchData = async () => {
-      try {
-        const [detailRes, listRes, opsiRes] = await Promise.all([
-          getKelasDetail(kelasId),
-          getKelas(),
-          getKelasOpsi(),
-        ]);
-        if (!aktif) return;
-        const data = detailRes.data;
-        setKelas(data);
-        setKelasList(listRes.data ?? []);
-        setOpsi(opsiRes.data);
-        setNilai({ nama: data.nama, sesi: data.sesi_id, hari: data.hari, materi: data.materi_id, lokasiBlcId: data.lokasi_blc_id });
-      } catch (e) {
-        if (aktif) {
-          console.error(e);
-          setError(e instanceof Error ? e.message : "Gagal memuat data kelas");
-        }
-      } finally {
-        if (aktif) setLoading(false);
-      }
-    };
-    void fetchData();
+    setLoading(true);
+    Promise.all([getKelasDetail(kelasId), getKelas(), getKelasOpsi()]).then(([detailRes, listRes, opsiRes]) => {
+      if (!aktif) return;
+      const data = detailRes.data;
+      setKelas(data);
+      setKelasList(listRes.data ?? []);
+      setOpsi(opsiRes.data);
+      setNilai({ nama: data.nama, sesi: data.sesi_id, hari: data.hari, materi: data.materi_id, lokasiBlcId: data.lokasi_blc_id });
+    }).catch((e) => {
+      if (aktif) setError(e instanceof Error ? e.message : "Gagal memuat data kelas");
+    }).finally(() => {
+      if (aktif) setLoading(false);
+    });
     return () => {
       aktif = false;
     };
@@ -79,7 +70,6 @@ export default function UbahKelasPage() {
       showNotification({ type: "success", title: "Kelas berhasil diperbarui", message: "Perubahan kelas berhasil disimpan." });
       router.push("/instruktur/daftar_kelas");
     } catch (e) {
-      console.error(e);
       const pesan = e instanceof Error ? e.message : "Gagal menyimpan perubahan";
       setError(pesan);
       showNotification({ type: "error", title: "Kelas gagal diperbarui", message: pesan });
