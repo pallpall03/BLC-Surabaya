@@ -131,7 +131,6 @@ export default function LaporanInstrukturPage() {
   };
 
   return (
-<<<<<<< HEAD
     <main className="min-h-screen bg-orange-50/60 px-4 py-6 sm:px-8 sm:py-8 print:bg-white print:p-0">
       <div className="mx-auto max-w-6xl space-y-6">
         <header className="flex flex-wrap items-center justify-between gap-4 print:hidden">
@@ -146,13 +145,6 @@ export default function LaporanInstrukturPage() {
           {([["laporan", ClipboardList, "Laporan pengunjung"], ["foto", Camera, "Foto kegiatan"]] as const).map(([key, Icon, label], index) => (
             <button key={key} id={`pengunjung-tab-${key}`} type="button" role="tab" aria-selected={tab === key} aria-controls={`pengunjung-panel-${key}`} tabIndex={tab === key ? 0 : -1} onKeyDown={(event) => pindahTab(event, index)} onClick={() => setTab(key)} className={`inline-flex flex-1 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm transition sm:flex-none ${tab === key ? "bg-orange-500 font-medium text-white shadow-sm" : "text-slate-500 hover:text-orange-700"}`}><Icon size={17} /> {label}</button>
           ))}
-=======
-    <main className="instruktur-main print:bg-white">
-      <div className="mx-auto w-full max-w-6xl space-y-6">
-        <div className="print:hidden">
-          <h1 className="text-2xl font-semibold text-slate-900">Laporan bulanan instruktur</h1>
-          <p className="mt-1 text-sm text-slate-500">Rekap kelas yang diajar dan aktivitasmu selama satu bulan.</p>
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
         </div>
 
         <section id="pengunjung-panel-laporan" role="tabpanel" aria-labelledby="pengunjung-tab-laporan" hidden={tab !== "laporan"} className="space-y-6">

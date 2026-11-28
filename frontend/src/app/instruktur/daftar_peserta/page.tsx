@@ -1,10 +1,6 @@
 "use client";
 
-<<<<<<< HEAD
 import { useCallback, useEffect, useMemo, useState } from "react";
-=======
-import { useMemo, useState } from "react";
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 import Link from "next/link";
 import {
   BadgeCheck, ChevronLeft, ChevronRight, CircleDashed, Fingerprint, LayoutGrid, LayoutList,
@@ -14,21 +10,13 @@ import {
 
 import HeaderHalaman from "../daftar_kelas/components/headerhalaman";
 import { useCrudNotification } from "@/components/CrudNotification";
+import {
+  deletePeserta, getDaftarPeserta, getPesertaOpsi, validasiPeserta,
+  type Peserta, type PesertaMeta, type PesertaOpsi,
+} from "@/lib/api";
 
-type Peserta = { id: number; nik: string; nama: string; blc: string; jk: "L" | "P"; tervalidasi: boolean };
 type StatusFilter = "semua" | "valid" | "non";
 
-// TODO: ganti dengan fetch ke API Laravel, mis. GET /api/peserta
-const DATA_AWAL: Peserta[] = [
-  { id: 1, nik: "0", nama: "Ahmat Ilham Khoirut Difin", blc: "Gunung Anyar", jk: "L", tervalidasi: true },
-  { id: 2, nik: "00", nama: "Imelda", blc: "Gunung Anyar", jk: "P", tervalidasi: true },
-  { id: 3, nik: "000", nama: "Aurelia Azzahra", blc: "Gunung Anyar", jk: "P", tervalidasi: true },
-  { id: 4, nik: "0000", nama: "Javier Arsy Maulana", blc: "Bendul Merisi", jk: "L", tervalidasi: false },
-  { id: 5, nik: "00000", nama: "Sridah Winarsih", blc: "Bendul Merisi", jk: "P", tervalidasi: false },
-  { id: 6, nik: "000000", nama: "Roy Dwi Kusuma", blc: "Bendul Merisi", jk: "L", tervalidasi: true },
-];
-
-// Warna avatar memakai warna bawaan Metronic
 const WARNA_AVATAR = [
   "bg-light-primary text-primary", "bg-light-info text-info", "bg-light-success text-success",
   "bg-light-warning text-warning", "bg-light-danger text-danger", "bg-light-dark text-dark",
@@ -89,9 +77,8 @@ function Aksi({ p, onValidasi, onHapus }: { p: Peserta; onValidasi: () => void; 
 
 export default function DaftarPesertaPage() {
   const { showNotification } = useCrudNotification();
-  const [data, setData] = useState<Peserta[]>(DATA_AWAL);
+  const [data, setData] = useState<Peserta[]>([]);
   const [cari, setCari] = useState("");
-  const [area, setArea] = useState("");
   const [areaId, setAreaId] = useState<number | undefined>();
   const [cariArea, setCariArea] = useState("");
   const [bukaArea, setBukaArea] = useState(false);
@@ -99,18 +86,13 @@ export default function DaftarPesertaPage() {
   const [tampilan, setTampilan] = useState<"tabel" | "kartu">("tabel");
   const [perPage, setPerPage] = useState(10);
   const [page, setPage] = useState(1);
-<<<<<<< HEAD
-  const [pesan, setPesan] = useState("");
-  const [totalData, setTotalData] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [meta, setMeta] = useState<PesertaMeta | null>(null);
   const [statistikApi, setStatistikApi] = useState({ semua: 0, tervalidasi: 0, belum: 0 });
   const [opsi, setOpsi] = useState<PesertaOpsi | null>(null);
 
-  const tampilkanPesan = useCallback((teks: string) => {
-    setPesan(teks);
-    setTimeout(() => setPesan(""), 3000);
-  }, []);
-
   const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await getDaftarPeserta({
         search: cari || undefined,
@@ -119,68 +101,54 @@ export default function DaftarPesertaPage() {
         per_page: perPage,
         lokasi_blc_id: areaId,
       });
-      setData(res.data);
-      setTotalData(res.meta?.total ?? res.data.length);
+      setData(res.data ?? []);
+      setMeta(res.meta ?? null);
       if (res.statistik) setStatistikApi(res.statistik);
-    } catch {
-      tampilkanPesan("Gagal memuat data peserta");
+    } catch (e) {
+      showNotification({
+        type: "error",
+        title: "Peserta gagal dimuat",
+        message: e instanceof Error ? e.message : "Gagal memuat data peserta",
+      });
     } finally {
       setLoading(false);
     }
-  }, [cari, areaId, status, page, perPage, tampilkanPesan]);
+  }, [cari, areaId, status, page, perPage, showNotification]);
 
   const fetchOpsi = useCallback(async () => {
     try {
       const res = await getPesertaOpsi();
       setOpsi(res.data);
-    } catch {
-      tampilkanPesan("Gagal memuat pilihan BLC");
+    } catch (e) {
+      showNotification({
+        type: "error",
+        title: "Pilihan BLC gagal dimuat",
+        message: e instanceof Error ? e.message : "Gagal memuat pilihan BLC",
+      });
     }
-  }, [tampilkanPesan]);
+  }, [showNotification]);
 
   useEffect(() => {
-    void Promise.resolve().then(() => { setLoading(true); return fetchData(); });
-    void Promise.resolve().then(fetchOpsi);
-  }, [fetchData, fetchOpsi]);
+    void fetchData();
+  }, [fetchData]);
 
-  const daftarArea = useMemo(
-    () => opsi?.blc ?? [],
-    [opsi]
-  );
+  useEffect(() => {
+    void fetchOpsi();
+  }, [fetchOpsi]);
 
-  const saranArea = useMemo(
-    () =>
-      daftarArea.filter((a) =>
-        a.nama_blc.toLowerCase().includes(cariArea.trim().toLowerCase())
-      ),
-=======
-
-  const daftarArea = useMemo(() => Array.from(new Set(data.map((d) => d.blc))).sort(), [data]);
-  const jumlahValid = data.filter((d) => d.tervalidasi).length;
+  const daftarArea = useMemo(() => opsi?.blc ?? [], [opsi]);
 
   const saranArea = useMemo(
-    () => daftarArea.filter((a) => a.toLowerCase().includes(cariArea.trim().toLowerCase())),
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
+    () => daftarArea.filter((a) => a.nama_blc.toLowerCase().includes(cariArea.trim().toLowerCase())),
     [daftarArea, cariArea]
   );
 
-  const hasil = useMemo(() => {
-    const q = cari.trim().toLowerCase();
-    const qa = cariArea.trim().toLowerCase();
-    return data.filter(
-      (d) =>
-        (!q || d.nama.toLowerCase().includes(q) || d.nik.includes(q)) &&
-        (area ? d.blc === area : !qa || d.blc.toLowerCase().includes(qa)) &&
-        (status === "semua" || (status === "valid") === d.tervalidasi)
-    );
-  }, [data, cari, area, cariArea, status]);
-
-  const totalHalaman = Math.max(1, Math.ceil(hasil.length / perPage));
+  const totalData = meta?.total ?? data.length;
+  const totalHalaman = Math.max(1, meta?.last_page ?? Math.ceil(totalData / perPage));
   const halaman = Math.min(page, totalHalaman);
   const mulai = (halaman - 1) * perPage;
-<<<<<<< HEAD
   const baris = data;
-  const adaFilter = cari !== "" || area !== "" || cariArea !== "" || status !== "semua";
+  const adaFilter = cari !== "" || areaId !== undefined || status !== "semua";
 
   const ubah = <T,>(setter: (v: T) => void) => (v: T) => {
     setter(v);
@@ -188,14 +156,12 @@ export default function DaftarPesertaPage() {
   };
   const reset = () => {
     setCari("");
-    setArea("");
     setAreaId(undefined);
     setCariArea("");
     setStatus("semua");
     setPage(1);
   };
   const pilihArea = (a?: { id: number; nama_blc: string }) => {
-    setArea(a?.nama_blc ?? "");
     setAreaId(a?.id);
     setCariArea(a?.nama_blc ?? "");
     setBukaArea(false);
@@ -205,11 +171,18 @@ export default function DaftarPesertaPage() {
   const handleToggleValidasi = async (id: number, currentStatus: boolean) => {
     try {
       await validasiPeserta(id, !currentStatus);
-      setLoading(true);
       await fetchData();
-      tampilkanPesan(currentStatus ? "Validasi dibatalkan" : "Peserta tervalidasi");
-    } catch {
-      tampilkanPesan("Gagal mengubah validasi");
+      showNotification({
+        type: "success",
+        title: currentStatus ? "Validasi dibatalkan" : "Peserta tervalidasi",
+        message: currentStatus ? "Validasi peserta dibatalkan." : "Peserta berhasil divalidasi.",
+      });
+    } catch (e) {
+      showNotification({
+        type: "error",
+        title: "Validasi gagal diubah",
+        message: e instanceof Error ? e.message : "Gagal mengubah validasi",
+      });
     }
   };
 
@@ -217,11 +190,14 @@ export default function DaftarPesertaPage() {
     if (!window.confirm(`Hapus peserta ${p.nama}?`)) return;
     try {
       await deletePeserta(p.id);
-      setLoading(true);
       await fetchData();
-      tampilkanPesan("Peserta dihapus");
-    } catch {
-      tampilkanPesan("Gagal menghapus peserta");
+      showNotification({ type: "success", title: "Peserta dihapus", message: `${p.nama} berhasil dihapus.` });
+    } catch (e) {
+      showNotification({
+        type: "error",
+        title: "Peserta gagal dihapus",
+        message: e instanceof Error ? e.message : "Gagal menghapus peserta",
+      });
     }
   };
 
@@ -257,42 +233,12 @@ export default function DaftarPesertaPage() {
       warna: "bg-slate-100 text-slate-500",
       aktif: "border-slate-400 ring-4 ring-slate-200",
     },
-=======
-  const baris = hasil.slice(mulai, mulai + perPage);
-  const adaFilter = cari !== "" || area !== "" || cariArea !== "" || status !== "semua";
-
-  const ubah = <T,>(setter: (v: T) => void) => (v: T) => { setter(v); setPage(1); };
-  const reset = () => { setCari(""); setArea(""); setCariArea(""); setStatus("semua"); setPage(1); };
-  const pilihArea = (a: string) => { setArea(a); setCariArea(a); setBukaArea(false); setPage(1); };
-
-  const toggleValidasi = (id: number) => {
-    const peserta = data.find((p) => p.id === id);
-    if (!peserta) return;
-    setData((d) => d.map((p) => (p.id === id ? { ...p, tervalidasi: !p.tervalidasi } : p)));
-    showNotification({
-      type: "success",
-      title: peserta.tervalidasi ? "Validasi dibatalkan" : "Peserta divalidasi",
-      message: `${peserta.nama} ${peserta.tervalidasi ? "kembali berstatus non validasi" : "berhasil divalidasi"}.`,
-    });
-  };
-  const hapus = (p: Peserta) => {
-    if (!window.confirm(`Hapus peserta ${p.nama}?`)) return;
-    setData((d) => d.filter((x) => x.id !== p.id));
-    showNotification({ type: "success", title: "Peserta dihapus", message: `${p.nama} berhasil dihapus.` });
-  };
-
-  const statistik: { kunci: StatusFilter; label: string; nilai: number; icon: LucideIcon; warna: string; aktif: string }[] = [
-    { kunci: "semua", label: "Semua peserta", nilai: data.length, icon: Users, warna: "bg-light-primary text-primary", aktif: "border-primary" },
-    { kunci: "valid", label: "Tervalidasi", nilai: jumlahValid, icon: BadgeCheck, warna: "bg-light-success text-success", aktif: "border-success" },
-    { kunci: "non", label: "Belum validasi", nilai: data.length - jumlahValid, icon: CircleDashed, warna: "bg-light text-gray-600", aktif: "border-gray-500" },
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   ];
 
   return (
     <>
       <HeaderHalaman icon={Users} judul="Daftar peserta" deskripsi="Kelola data peserta dan pantau status validasinya." />
 
-      {/* Kartu statistik (bisa diklik untuk memfilter) */}
       <div className="row g-5 g-xl-6 mb-6">
         {statistik.map(({ kunci, label, nilai, icon: Icon, warna, aktif }) => (
           <div className="col-sm-4" key={kunci}>
@@ -311,10 +257,8 @@ export default function DaftarPesertaPage() {
       </div>
 
       <div className="card">
-        {/* Pencarian & filter */}
         <div className="card-header border-0 pt-6">
           <div className="card-title flex-wrap gap-3">
-            {/* Cari nama / NIK */}
             <div className="d-flex align-items-center position-relative my-1">
               <Search size={18} className="position-absolute ms-5 text-gray-500" style={{ pointerEvents: "none" }} />
               <input type="search" value={cari} onChange={(e) => ubah(setCari)(e.target.value)}
@@ -322,156 +266,78 @@ export default function DaftarPesertaPage() {
                 className="form-control form-control-solid w-250px ps-14" />
             </div>
 
-<<<<<<< HEAD
-              {/* Cari area BLC */}
-              <div className="relative w-full sm:w-56">
-                <MapPin
-                  className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-orange-400"
-                  size={18}
-                />
-                <input
-                  type="text"
-                  value={cariArea}
-                  onChange={(e) => {
-                    setCariArea(e.target.value);
-                    setArea("");
-                    setAreaId(undefined);
-                    setPage(1);
-                    setBukaArea(true);
-                  }}
-                  onFocus={() => setBukaArea(true)}
-                  onBlur={() => setBukaArea(false)}
-                  placeholder="Cari area BLC"
-                  aria-label="Cari area BLC"
-                  className="w-full rounded-xl border border-orange-100 bg-orange-50/40 py-2.5 pl-10 pr-9 text-sm outline-none transition placeholder:text-slate-400 hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60"
-                />
-                {cariArea && (
-                  <button
-                    type="button"
-                    aria-label="Hapus area"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      pilihArea();
-                    }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-orange-100 hover:text-orange-600"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-                {bukaArea && (
-                  <ul className="absolute z-20 mt-1.5 max-h-56 w-full overflow-auto rounded-xl border border-orange-100 bg-white py-1 shadow-xl shadow-orange-200/50">
-                    <li>
-                      <button
-                        type="button"
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          pilihArea();
-                        }}
-                        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-slate-600 hover:bg-orange-50"
-                      >
-                        Semua area
-                      </button>
-                    </li>
-                    {saranArea.map((a) => (
-                      <li key={a.id}>
-                        <button
-                          type="button"
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            pilihArea(a);
-                          }}
-                          className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-orange-50 ${
-                            areaId === a.id ? "font-medium text-orange-700" : "text-slate-700"
-                          }`}
-                        >
-                          {a.nama_blc}
-                        </button>
-                      </li>
-                    ))}
-                    {saranArea.length === 0 && (
-                      <li className="px-3 py-2 text-sm text-slate-400">Area tidak ditemukan</li>
-                    )}
-                  </ul>
-                )}
-              </div>
-
-              {/* Toggle tampilan */}
-              <div className="flex rounded-xl border border-orange-100 bg-orange-50/40 p-1" role="group" aria-label="Pilih tampilan">
-                {([
-                  ["tabel", LayoutList, "Tabel"],
-                  ["kartu", LayoutGrid, "Kartu"],
-                ] as const).map(([k, Icon, label]) => (
-                  <button
-                    key={k}
-                    type="button"
-                    onClick={() => setTampilan(k)}
-                    aria-pressed={tampilan === k}
-                    className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition ${
-                      tampilan === k
-                        ? "bg-white font-medium text-orange-700 shadow-sm"
-                        : "text-slate-500 hover:text-orange-700"
-                    }`}
-                  >
-                    <Icon size={16} /> {label}
-                  </button>
-                ))}
-              </div>
-
-              {adaFilter && (
-                <button
-                  type="button"
-                  onClick={reset}
-                  className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-orange-50"
-                >
-                  <X size={16} /> Reset
-                </button>
-=======
-            {/* Cari area BLC */}
-            <div className="d-flex align-items-center position-relative my-1">
-              <MapPin size={18} className="position-absolute ms-5 text-gray-500" style={{ pointerEvents: "none" }} />
+            <div className="relative w-full sm:w-56">
+              <MapPin
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-orange-400"
+                size={18}
+              />
               <input
                 type="text"
                 value={cariArea}
-                onChange={(e) => { setCariArea(e.target.value); setArea(""); setPage(1); setBukaArea(true); }}
+                onChange={(e) => {
+                  setCariArea(e.target.value);
+                  setAreaId(undefined);
+                  setPage(1);
+                  setBukaArea(true);
+                }}
                 onFocus={() => setBukaArea(true)}
                 onBlur={() => setBukaArea(false)}
                 placeholder="Cari area BLC"
                 aria-label="Cari area BLC"
-                className="form-control form-control-solid w-200px ps-14 pe-10"
+                className="w-full rounded-xl border border-orange-100 bg-orange-50/40 py-2.5 pl-10 pr-9 text-sm outline-none transition placeholder:text-slate-400 hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60"
               />
               {cariArea && (
-                <button type="button" aria-label="Hapus area"
-                  onMouseDown={(e) => { e.preventDefault(); pilihArea(""); }}
-                  className="btn btn-icon btn-sm btn-active-light-primary position-absolute end-0 me-1">
+                <button
+                  type="button"
+                  aria-label="Hapus area"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    pilihArea();
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-orange-100 hover:text-orange-600"
+                >
                   <X size={14} />
                 </button>
               )}
               {bukaArea && (
-                <ul className="dropdown-menu show w-100 shadow overflow-auto"
-                  style={{ top: "100%", left: 0, maxHeight: 224, zIndex: 20 }}>
+                <ul className="absolute z-20 mt-1.5 max-h-56 w-full overflow-auto rounded-xl border border-orange-100 bg-white py-1 shadow-xl shadow-orange-200/50">
                   <li>
-                    <button type="button" onMouseDown={(e) => { e.preventDefault(); pilihArea(""); }}
-                      className="dropdown-item d-flex align-items-center justify-content-between">
-                      Semua area <span className="fs-8 text-gray-500">{data.length}</span>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        pilihArea();
+                      }}
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-slate-600 hover:bg-orange-50"
+                    >
+                      Semua area
                     </button>
                   </li>
                   {saranArea.map((a) => (
-                    <li key={a}>
-                      <button type="button" onMouseDown={(e) => { e.preventDefault(); pilihArea(a); }}
-                        className={`dropdown-item d-flex align-items-center justify-content-between ${area === a ? "active" : ""}`}>
-                        {a} <span className="fs-8 text-gray-500">{data.filter((d) => d.blc === a).length}</span>
+                    <li key={a.id}>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          pilihArea(a);
+                        }}
+                        className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-orange-50 ${
+                          areaId === a.id ? "font-medium text-orange-700" : "text-slate-700"
+                        }`}
+                      >
+                        {a.nama_blc}
                       </button>
                     </li>
                   ))}
-                  {saranArea.length === 0 && <li className="px-4 py-2 fs-7 text-gray-500">Area tidak ditemukan</li>}
+                  {saranArea.length === 0 && (
+                    <li className="px-3 py-2 text-sm text-slate-400">Area tidak ditemukan</li>
+                  )}
                 </ul>
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
               )}
             </div>
           </div>
 
           <div className="card-toolbar flex-wrap gap-3">
-            {/* Toggle tampilan */}
             <div className="btn-group" role="group" aria-label="Pilih tampilan">
               {([["tabel", LayoutList, "Tabel"], ["kartu", LayoutGrid, "Kartu"]] as const).map(([k, Icon, label]) => (
                 <button key={k} type="button" onClick={() => setTampilan(k)} aria-pressed={tampilan === k}
@@ -493,9 +359,13 @@ export default function DaftarPesertaPage() {
           </div>
         </div>
 
-        {/* Isi */}
-        <div className="card-body py-4">
-          {baris.length === 0 ? (
+        <div className="card-body py-4" aria-busy={loading}>
+          {loading ? (
+            <div className="instruktur-loading" role="status">
+              <span className="instruktur-spinner" aria-hidden="true" />
+              <span className="fw-semibold text-gray-800">Memuat data peserta…</span>
+            </div>
+          ) : baris.length === 0 ? (
             <div className="d-flex flex-column align-items-center gap-3 text-center py-15">
               <span className="symbol symbol-80px symbol-circle">
                 <span className="symbol-label bg-light-primary text-primary"><SearchX size={32} /></span>
@@ -530,7 +400,7 @@ export default function DaftarPesertaPage() {
                       <td><span className="d-inline-flex align-items-center gap-2"><MapPin size={15} className="text-primary" />{p.blc}</span></td>
                       <td><JenisKelamin jk={p.jk} /></td>
                       <td><StatusBadge ok={p.tervalidasi} /></td>
-                      <td><Aksi p={p} onValidasi={() => toggleValidasi(p.id)} onHapus={() => hapus(p)} /></td>
+                      <td><Aksi p={p} onValidasi={() => handleToggleValidasi(p.id, p.tervalidasi)} onHapus={() => handleHapus(p)} /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -558,7 +428,7 @@ export default function DaftarPesertaPage() {
                       </div>
                     </div>
                     <div className="card-footer py-3">
-                      <Aksi p={p} onValidasi={() => toggleValidasi(p.id)} onHapus={() => hapus(p)} />
+                      <Aksi p={p} onValidasi={() => handleToggleValidasi(p.id, p.tervalidasi)} onHapus={() => handleHapus(p)} />
                     </div>
                   </article>
                 </div>
@@ -567,7 +437,6 @@ export default function DaftarPesertaPage() {
           )}
         </div>
 
-        {/* Paginasi */}
         <div className="card-footer d-flex flex-wrap align-items-center justify-content-between gap-3">
           <div className="d-flex align-items-center gap-2 fs-7 text-gray-600">
             <span>Tampilkan</span>
@@ -575,7 +444,7 @@ export default function DaftarPesertaPage() {
               className="form-select form-select-sm form-select-solid w-75px">
               {[10, 25, 50].map((n) => <option key={n}>{n}</option>)}
             </select>
-            <span>baris, {hasil.length === 0 ? 0 : mulai + 1}–{Math.min(mulai + perPage, hasil.length)} dari {hasil.length}</span>
+            <span>baris, {totalData === 0 ? 0 : mulai + 1}–{Math.min(mulai + perPage, totalData)} dari {totalData}</span>
           </div>
           <div className="d-flex align-items-center gap-2 fs-7 text-gray-600">
             <button type="button" onClick={() => setPage(halaman - 1)} disabled={halaman <= 1} aria-label="Halaman sebelumnya"

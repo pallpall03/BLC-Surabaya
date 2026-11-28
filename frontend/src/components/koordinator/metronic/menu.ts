@@ -1,4 +1,4 @@
-import { Database, type LucideIcon } from "lucide-react";
+import { ClipboardCheck, Database, type LucideIcon } from "lucide-react";
 
 export type MenuLeaf = { title: string; href: string };
 export type MenuItem = {
@@ -16,6 +16,12 @@ export const menuKoordinator: MenuItem[] = [
       { title: "Materi", href: "/koordinator/master_data/materi" },
       { title: "Kategori Peserta", href: "/koordinator/master_data/kategori_peserta" },
       { title: "Sesi", href: "/koordinator/master_data/sesi" },
+      { title: "Soal", href: "/koordinator/master_data/soal" },
     ],
+  },
+  {
+    title: "Absensi Instruktur",
+    icon: ClipboardCheck,
+    href: "/koordinator/absensi_instruktur",
   },
 ];

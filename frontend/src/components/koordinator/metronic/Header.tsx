@@ -10,7 +10,13 @@ export default function Header() {
   const pathname = usePathname();
   const { mobileOpen, setMobileOpen } = useShell();
   const [loggingOut, setLoggingOut] = useState(false);
-  const pageTitle = pathname.includes("/kategori_peserta") ? "Master Data Kategori Peserta" : "Master Data Materi";
+  const pageTitle = [
+    { path: "/absensi_instruktur", title: "Absensi Instruktur" },
+    { path: "/kategori_peserta", title: "Master Data Kategori Peserta" },
+    { path: "/master_data/sesi", title: "Master Data Sesi" },
+    { path: "/master_data/soal", title: "Master Data Soal" },
+    { path: "/master_data/materi", title: "Master Data Materi" },
+  ].find((item) => pathname.includes(item.path))?.title ?? "Panel Koordinator";
 
   return (
     <div id="kt_app_header" className="app-header">

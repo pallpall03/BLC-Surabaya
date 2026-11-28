@@ -24,7 +24,6 @@ export default function BukuTamu() {
   const [sukses, setSukses] = useState<boolean>(false);
 
   useEffect(() => {
-<<<<<<< HEAD
     void Promise.allSettled([ambilBukuTamu(), ambilOpsiBukuTamu()]).then(([pesan, pilihan]) => {
       if (pesan.status === "fulfilled") setDaftar(pesan.value);
       if (pilihan.status === "fulfilled") {
@@ -37,11 +36,6 @@ export default function BukuTamu() {
         }));
       }
     });
-=======
-    ambilBukuTamu()
-      .then((data) => setDaftar(Array.isArray(data) ? data : []))
-      .catch(() => setDaftar([]));
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   }, []);
 
   function ubah(kolom: keyof FormTamu, nilai: string) {

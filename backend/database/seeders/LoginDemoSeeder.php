@@ -29,13 +29,9 @@ class LoginDemoSeeder extends Seeder
 
         foreach ($akun as $a) {
             $role = Role::firstOrCreate(['slug' => $a['role']], ['name' => Role::daftar()[$a['role']]]);
-<<<<<<< HEAD
 
             $user = User::query()->firstOrNew(['email' => $a['email']], ['name' => $a['name'], 'username' => $a['username']]);
             $user->username = $a['username'];
-=======
-            $user = User::query()->where('nik', $a['nik'])->first() ?? new User(['email' => $a['email'], 'name' => $a['name']]);
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
             $user->role_id = $role->id;
             $user->password = 'Password123';
 
@@ -47,7 +43,6 @@ class LoginDemoSeeder extends Seeder
             $user->save();
         }
     }
-<<<<<<< HEAD
 
     /** NIK contoh tidak boleh bentrok dengan akun lain (mis. hasil PenggunaSeeder atau tim_blc). */
     private function nikTersedia(string $nik, User $user): string
@@ -77,6 +72,3 @@ class LoginDemoSeeder extends Seeder
             ->exists();
     }
 }
-=======
-}
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720

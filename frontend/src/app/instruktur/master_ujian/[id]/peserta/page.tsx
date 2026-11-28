@@ -9,11 +9,6 @@ import {
 } from "lucide-react";
 import { getUjianDetail, getUjianOpsi, type KelasUjianOpsi, type Ujian } from "@/lib/api";
 import HeaderHalaman from "../../components/headerhalaman";
-<<<<<<< HEAD
-=======
-import Paginasi from "../../components/paginasi";
-import { useCrudNotification } from "@/components/CrudNotification";
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
 function formatTanggal(nilai: string) {
   const tanggal = new Date(nilai);
@@ -25,7 +20,6 @@ function formatTanggal(nilai: string) {
 
 export default function KelasPesertaUjianPage() {
   const { id } = useParams<{ id: string }>();
-<<<<<<< HEAD
   const ujianId = Number(id);
   const [ujian, setUjian] = useState<Ujian | null>(null);
   const [kelas, setKelas] = useState<KelasUjianOpsi[]>([]);
@@ -58,21 +52,6 @@ export default function KelasPesertaUjianPage() {
     });
     return () => { aktif = false; };
   }, [ujianId, coba]);
-=======
-  const { showNotification } = useCrudNotification();
-  const info = INFO[id];
-
-  const [tab, setTab] = useState<Tab>("belum");
-  const [terdaftar, setTerdaftar] = useState<Terdaftar[]>(id === "1" ? TERDAFTAR_AWAL : []);
-  const [cari, setCari] = useState("");
-  const [area, setArea] = useState("");
-  const [dari, setDari] = useState("");
-  const [sampai, setSampai] = useState("");
-  const [pilih, setPilih] = useState<Set<number>>(new Set());
-  const [page, setPage] = useState(1);
-  const [cariSudah, setCariSudah] = useState("");
-  const [pageSudah, setPageSudah] = useState(1);
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
 
   const opsiKelas = useMemo(() => new Map(kelas.map((item) => [item.id, item])), [kelas]);
   const jadwal = ujian?.jadwal ?? [];
@@ -114,72 +93,6 @@ export default function KelasPesertaUjianPage() {
     );
   }
 
-<<<<<<< HEAD
-=======
-  const hal = Math.min(page, Math.max(1, Math.ceil(belum.length / PER_HALAMAN)));
-  const baris = belum.slice((hal - 1) * PER_HALAMAN, hal * PER_HALAMAN);
-  const halS = Math.min(pageSudah, Math.max(1, Math.ceil(sudah.length / PER_HALAMAN)));
-  const barisS = sudah.slice((halS - 1) * PER_HALAMAN, halS * PER_HALAMAN);
-
-  const semuaHalamanTerpilih = baris.length > 0 && baris.every((p) => pilih.has(p.id));
-  const adaFilter = !!(cari || area || dari || sampai);
-
-  const ubahFilter = (fn: () => void) => { fn(); setPage(1); setPilih(new Set()); };
-  const reset = () => ubahFilter(() => { setCari(""); setArea(""); setDari(""); setSampai(""); });
-
-  const togglePilih = (pid: number) => setPilih((s) => { const n = new Set(s); if (n.has(pid)) n.delete(pid); else n.add(pid); return n; });
-  const pilihHalaman = () => setPilih((s) => {
-    const n = new Set(s);
-    if (semuaHalamanTerpilih) baris.forEach((p) => n.delete(p.id)); else baris.forEach((p) => n.add(p.id));
-    return n;
-  });
-
-  const daftarkan = () => {
-    const baru = SEMUA.filter((p) => pilih.has(p.id)).map<Terdaftar>((p) => ({ p, benar: null, nilai: null, mulai: "-", selesai: "-", waktu: "-" }));
-    if (baru.length === 0) {
-      showNotification({ type: "error", title: "Peserta belum dipilih", message: "Pilih minimal satu peserta untuk didaftarkan." });
-      return;
-    }
-    // TODO: POST /api/ujian/{id}/peserta dengan body { peserta_ids: [...] }
-    setTerdaftar((t) => [...baru, ...t]);
-    setPilih(new Set());
-    showNotification({
-      type: "success",
-      title: "Peserta didaftarkan",
-      message: `${baru.length.toLocaleString("id-ID")} peserta masuk ke ujian ini.`,
-      action: { label: "Lihat peserta", onClick: () => setTab("sudah") },
-    });
-  };
-
-  const resetUjian = (t: Terdaftar) => {
-    if (!window.confirm(`Reset ujian ${t.p.nama}? Nilai dan jawaban akan dihapus, peserta bisa mengulang.`)) return;
-    // TODO: POST /api/ujian/{id}/peserta/{pesertaId}/reset
-    setTerdaftar((l) => l.map((x) => (x.p.id === t.p.id ? { ...x, benar: null, nilai: null, mulai: "-", selesai: "-", waktu: "-" } : x)));
-    showNotification({ type: "success", title: "Ujian peserta direset", message: `${t.p.nama} dapat mengulang ujian.` });
-  };
-
-  const hapusPeserta = (t: Terdaftar) => {
-    if (!window.confirm(`Hapus ${t.p.nama} dari ujian ini?`)) return;
-    // TODO: DELETE /api/ujian/{id}/peserta/{pesertaId}
-    setTerdaftar((l) => l.filter((x) => x.p.id !== t.p.id));
-    showNotification({ type: "success", title: "Peserta dikeluarkan", message: `${t.p.nama} berhasil dihapus dari ujian ini.` });
-  };
-
-  const excel = () => {
-    const q = (v: string | number | null) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const kepala = ["NIK", "Username", "Nama", "L/P", "Kategori", "Benar", "Nilai", "Mulai", "Selesai", "Waktu"];
-    const isi = sudah.map((t) => [`'${t.p.nik}`, t.p.username, t.p.nama, t.p.jk, t.p.kategori, t.benar, t.nilai, t.mulai, t.selesai, t.waktu].map(q).join(","));
-    const blob = new Blob(["﻿" + [kepala.map(q).join(","), ...isi].join("\n")], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `peserta-ujian-${id}.csv`; a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const tabCls = (aktif: boolean) => `inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition ${aktif ? "bg-orange-500 font-medium text-white shadow-sm" : "text-slate-500 hover:text-orange-700"}`;
-  const badge = (aktif: boolean) => `rounded-full px-2 text-xs tabular-nums ${aktif ? "bg-white/25" : "bg-orange-100 text-orange-700"}`;
-
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
   return (
     <main className="min-h-screen bg-orange-50/60 px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-6xl">
@@ -200,7 +113,6 @@ export default function KelasPesertaUjianPage() {
             <h2 id="penjelasan-peserta" className="font-medium">Peserta mengikuti ujian melalui jadwal kelas</h2>
             <p className="mt-1 text-sm text-sky-800">Setiap kelas yang dijadwalkan menjadi kelompok ujian dengan jendela waktu dan token sendiri. Jumlah peserta di bawah berasal dari keanggotaan kelas, bukan pendaftaran manual pada halaman ini.</p>
           </div>
-<<<<<<< HEAD
         </section>
 
         <div className="mb-5 grid gap-3 sm:grid-cols-3">
@@ -255,10 +167,6 @@ export default function KelasPesertaUjianPage() {
           )}
         </section>
       </div>
-=======
-        </div>
-      )}
->>>>>>> 8243e2e945cd328a787142c23a6d7858d8b15720
     </main>
   );
 }

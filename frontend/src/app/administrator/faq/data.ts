@@ -123,22 +123,20 @@ export async function simpanFaq(data: FormFaq, id?: number): Promise<Faq> {
 
     return hasil;
   } catch (err: any) {
-    console.error("Gagal simpan ke API, fallback ke localStorage:", err);
+      console.error("Gagal simpan ke API, fallback ke localStorage:", err);
 
-    // Fallback ke localStorage saja
-    const lama = bacaCache();
-    const itemBaru: Faq = {
-      id: id ?? Date.now(),
-      ...baru,
-      updated_at: new Date().toISOString(),
-    };
+      // Fallback ke localStorage saja
+      const lama = bacaCache();
+      const itemBaru: Faq = {
+        ...baru,
+      };
 
     const updated = id
       ? lama.map((x) => (x.id === id ? itemBaru : x))
       : [itemBaru, ...lama.filter((x) => x.id !== itemBaru.id)];
     tulisCache(updated);
 
-    return { success: true, data: itemBaru };
+    return itemBaru;
   }
 }
 

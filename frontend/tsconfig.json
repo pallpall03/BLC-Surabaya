@@ -19,8 +19,11 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
-    }
+              "@/*": ["./src/*"],
+              "@/home/components/public": ["./src/app/_home/components/public"],
+              "@/home/Navbar": ["./src/app/_home/Navbar.tsx"],
+              "@/home/Footer": ["./src/app/_home/Footer.tsx"]
+            }
   },
   "include": [
     "next-env.d.ts",

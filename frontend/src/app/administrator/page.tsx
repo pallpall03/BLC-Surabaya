@@ -89,7 +89,7 @@ export default function HalamanBeranda() {
 
         setRingkasan({
           artikel: daftarArtikel.filter((item) => item.status === "aktif").length,
-          lokasi: daftarLokasi.filter((item) => item.status === "aktif").length,
+          lokasi: daftarLokasi.filter((item) => item.aktif).length,
           pengguna: daftarPengguna.length,
           faq: daftarFaq.filter((item) => item.aktif).length,
         });
