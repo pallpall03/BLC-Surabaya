@@ -16,17 +16,14 @@ const JUDUL: [string, string][] = [
   ["/instruktur/pelatihan/daftar_hadir", "Daftar hadir"],
   ["/instruktur/pelatihan/laporan", "Laporan pelatihan"],
   ["/instruktur/pengunjung/foto_kegiatan", "Foto kegiatan"],
-  ["/instruktur/pengunjung/pengunjung", "Pengunjung"],
+  ["/instruktur/pengunjung/pengunjung", "Daftar pengunjung"],
   ["/instruktur/tambah_pengunjung", "Tambah pengunjung"],
   ["/instruktur/sosialisasi", "Sosialisasi"],
   ["/instruktur/master_ujian/ujianbaru", "Buat ujian baru"],
   ["/instruktur/master_ujian/*/ubah", "Ubah ujian"],
   ["/instruktur/master_ujian/*/peserta", "Isi peserta ujian"],
   ["/instruktur/master_ujian", "Master ujian"],
-  ["/instruktur/aktivitas/aktivitasbaru", "Tambah aktivitas"],
-  ["/instruktur/aktivitas/*/ubah", "Ubah aktivitas"],
-  ["/instruktur/aktivitas", "Aktivitas"],
-  ["/instruktur/laporan_instruktur", "Laporan instruktur"],
+  ["/instruktur/laporan_instruktur", "Aktivitas & laporan pengunjung"],
   ["/instruktur/tes", "Tes Metronic"],
 ];
 
@@ -46,12 +43,14 @@ export default function Header() {
   const inisial = nama.trim().charAt(0).toUpperCase() || "I";
 
   useEffect(() => {
-    try {
-      const user = JSON.parse(localStorage.getItem("auth_user") ?? "null");
-      if (typeof user?.name === "string" && user.name.trim()) setNama(user.name.trim());
-    } catch {
-      setNama("Instruktur");
-    }
+    void Promise.resolve().then(() => {
+      try {
+        const user = JSON.parse(localStorage.getItem("auth_user") ?? "null");
+        if (typeof user?.name === "string" && user.name.trim()) setNama(user.name.trim());
+      } catch {
+        setNama("Instruktur");
+      }
+    });
   }, []);
 
   useEffect(() => {
