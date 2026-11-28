@@ -1,5 +1,5 @@
-import Navbar from "@/components/public/Navbar";
-import Footer from "@/components/public/Footer";
+import Navbar from "@/home/Navbar";
+import Footer from "@/home/Footer";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
