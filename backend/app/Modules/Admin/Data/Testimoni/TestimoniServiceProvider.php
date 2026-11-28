@@ -23,7 +23,6 @@ final class TestimoniServiceProvider extends ServiceProvider
             Route::get('/{id}', [Http\TestimoniController::class, 'show']);
 
             Route::middleware(['auth:api', 'role:superadmin'])->group(function (): void {
-                Route::post('/', [Http\TestimoniController::class, 'store']);
                 Route::put('/{id}', [Http\TestimoniController::class, 'update']);
                 Route::patch('/{id}', [Http\TestimoniController::class, 'update']);
                 Route::delete('/{id}', [Http\TestimoniController::class, 'destroy']);

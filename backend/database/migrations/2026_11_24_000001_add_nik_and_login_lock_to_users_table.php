@@ -51,7 +51,7 @@ return new class extends Migration
 
         // NIK instruktur/koordinator sudah ada di tim_blc (tim_blc.user_id = users.id). Salin ke users.nik
         // hanya bila 16 digit angka dan unik, supaya akun yang sudah ada langsung bisa login.
-        if (DB::getDriverName() === 'pgsql' && Schema::hasTable('tim_blc')) {
+        if (DB::getDriverName() === 'pgsql' && Schema::hasTable('tim_blc') && Schema::hasColumn('tim_blc', 'nik')) {
             DB::statement("
                 UPDATE users u
                 SET nik = t.nik

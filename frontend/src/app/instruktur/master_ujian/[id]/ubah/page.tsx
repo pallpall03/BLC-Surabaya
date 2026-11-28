@@ -35,6 +35,7 @@ export default function UbahUjianPage() {
     setSaving(true); setError("");
     try {
       await saveUjian(Number(id), nilai);
+      showNotification({ type: "success", title: "Ujian diperbarui", message: nilai.judul });
       router.push("/instruktur/master_ujian");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal memperbarui ujian.");

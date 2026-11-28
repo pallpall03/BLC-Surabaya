@@ -106,6 +106,195 @@ final class EloquentLaporanRepository implements LaporanRepository
         return ['kelas' => $kelas];
     }
 
+    public function rekapPeserta(int $instrukturId, string $mulai, string $sampai): array
+    {
+        $kelasList = $this->kelasQuery($instrukturId)
+            ->with(['materi', 'sesi', 'lokasiBlc'])
+            ->whereHas('kelasPeserta', fn (Builder $query) => $query->where('is_delete', false))
+            ->orderBy('nama_kelas')
+            ->get();
+        $kelasIds = $kelasList->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+        if ($kelasIds === []) {
+            return [
+                'per_sesi' => [],
+                'per_kegiatan' => [],
+                'ringkasan' => $this->ringkasanKosong(),
+            ];
+        }
+
+        $pesertaPerKelas = [];
+        foreach ($kelasIds as $kelasId) {
+            $pesertaPerKelas[$kelasId] = [];
+        }
+
+        $pendaftaran = DB::table('kelas_peserta as kp')
+            ->join('peserta as p', 'p.id', '=', 'kp.peserta_id')
+            ->whereIn('kp.kelas_id', $kelasIds)
+            ->where('kp.is_delete', false)
+            ->where('p.is_delete', false)
+            ->orderBy('p.nama_lengkap')
+            ->get(['kp.kelas_id', 'kp.peserta_id', 'p.nama_lengkap']);
+
+        foreach ($pendaftaran as $item) {
+            $kelasId = (int) $item->kelas_id;
+            $pesertaId = (int) $item->peserta_id;
+            $pesertaPerKelas[$kelasId][$pesertaId] ??= [
+                'peserta_id' => $pesertaId,
+                'nama' => $item->nama_lengkap,
+                'hadir' => 0,
+                'tidak_hadir' => 0,
+            ];
+        }
+
+        $absensi = DB::table('daftar_hadir as dh')
+            ->join('kelas_peserta as kp', 'kp.id', '=', 'dh.kelas_peserta_id')
+            ->join('peserta as p', 'p.id', '=', 'kp.peserta_id')
+            ->whereIn('kp.kelas_id', $kelasIds)
+            ->where('kp.is_delete', false)
+            ->where('p.is_delete', false)
+            ->whereBetween('dh.tgl_hadir', [$mulai, $sampai])
+            ->orderBy('dh.tgl_hadir')
+            ->get(['kp.kelas_id', 'kp.peserta_id', 'p.nama_lengkap', 'dh.tgl_hadir', 'dh.hadir']);
+
+        $catatanUnik = [];
+        $tanggalPerKelas = [];
+        foreach ($absensi as $item) {
+            $kelasId = (int) $item->kelas_id;
+            $pesertaId = (int) $item->peserta_id;
+            $tanggal = $item->tgl_hadir;
+            $key = $kelasId.':'.$pesertaId.':'.$tanggal;
+            $hadir = filter_var($item->hadir, FILTER_VALIDATE_BOOLEAN);
+            $catatanUnik[$key] ??= ['kelas_id' => $kelasId, 'peserta_id' => $pesertaId, 'hadir' => false];
+            $catatanUnik[$key]['hadir'] = $catatanUnik[$key]['hadir'] || $hadir;
+            $tanggalPerKelas[$kelasId][$tanggal] = true;
+        }
+
+        foreach ($catatanUnik as $item) {
+            $pesertaPerKelas[$item['kelas_id']][$item['peserta_id']] ??= [
+                'peserta_id' => $item['peserta_id'],
+                'nama' => 'Peserta',
+                'hadir' => 0,
+                'tidak_hadir' => 0,
+            ];
+            $kolom = $item['hadir'] ? 'hadir' : 'tidak_hadir';
+            $pesertaPerKelas[$item['kelas_id']][$item['peserta_id']][$kolom]++;
+        }
+
+        $perKegiatan = [];
+        $perSesi = [];
+        $semuaPeserta = [];
+        $totalHadir = 0;
+        $totalTidakHadir = 0;
+        $totalPertemuan = 0;
+
+        foreach ($kelasList as $kelas) {
+            $kelasId = (int) $kelas->id;
+            $peserta = array_values($pesertaPerKelas[$kelasId]);
+            foreach ($peserta as &$item) {
+                $dicatat = $item['hadir'] + $item['tidak_hadir'];
+                $item['persentase'] = $dicatat === 0 ? 0 : round(($item['hadir'] / $dicatat) * 100, 1);
+                $semuaPeserta[$item['peserta_id']] = true;
+            }
+            unset($item);
+
+            $hadir = array_sum(array_column($peserta, 'hadir'));
+            $tidakHadir = array_sum(array_column($peserta, 'tidak_hadir'));
+            $pertemuan = count($tanggalPerKelas[$kelasId] ?? []);
+            $dicatat = $hadir + $tidakHadir;
+            $sesiId = $kelas->sesi_id === null ? null : (int) $kelas->sesi_id;
+            $kegiatan = [
+                'kelas_id' => $kelasId,
+                'nama_kelas' => $kelas->nama_kelas,
+                'materi' => $kelas->materi?->nama_materi,
+                'sesi_id' => $sesiId,
+                'sesi' => $kelas->sesi?->sesi === null ? null : (int) $kelas->sesi->sesi,
+                'waktu_sesi' => $kelas->sesi?->jam,
+                'lokasi' => $kelas->lokasiBlc?->nama_blc,
+                'hari' => preg_split('/\s+/', trim((string) $kelas->hari), -1, PREG_SPLIT_NO_EMPTY) ?: [],
+                'total_peserta' => count($peserta),
+                'total_pertemuan' => $pertemuan,
+                'hadir' => $hadir,
+                'tidak_hadir' => $tidakHadir,
+                'persentase' => $dicatat === 0 ? 0 : round(($hadir / $dicatat) * 100, 1),
+                'peserta' => $peserta,
+            ];
+            $perKegiatan[] = $kegiatan;
+            $totalHadir += $hadir;
+            $totalTidakHadir += $tidakHadir;
+            $totalPertemuan += $pertemuan;
+
+            $sesiKey = $sesiId === null ? 'tanpa-sesi' : (string) $sesiId;
+            $perSesi[$sesiKey] ??= [
+                'sesi_id' => $sesiId,
+                'sesi' => $kegiatan['sesi'],
+                'waktu_sesi' => $kegiatan['waktu_sesi'],
+                'jumlah_kegiatan' => 0,
+                'total_peserta' => 0,
+                'total_pertemuan' => 0,
+                'hadir' => 0,
+                'tidak_hadir' => 0,
+                'peserta' => [],
+                'kegiatan' => [],
+            ];
+            $perSesi[$sesiKey]['jumlah_kegiatan']++;
+            $perSesi[$sesiKey]['total_pertemuan'] += $pertemuan;
+            $perSesi[$sesiKey]['hadir'] += $hadir;
+            $perSesi[$sesiKey]['tidak_hadir'] += $tidakHadir;
+            $perSesi[$sesiKey]['kegiatan'][] = ['kelas_id' => $kelasId, 'nama_kelas' => $kelas->nama_kelas];
+            foreach ($peserta as $item) {
+                $pesertaSesi = $perSesi[$sesiKey]['peserta'][$item['peserta_id']] ?? [
+                    'peserta_id' => $item['peserta_id'],
+                    'nama' => $item['nama'],
+                    'hadir' => 0,
+                    'tidak_hadir' => 0,
+                ];
+                $pesertaSesi['hadir'] += $item['hadir'];
+                $pesertaSesi['tidak_hadir'] += $item['tidak_hadir'];
+                $dicatatPeserta = $pesertaSesi['hadir'] + $pesertaSesi['tidak_hadir'];
+                $pesertaSesi['persentase'] = $dicatatPeserta === 0 ? 0 : round(($pesertaSesi['hadir'] / $dicatatPeserta) * 100, 1);
+                $perSesi[$sesiKey]['peserta'][$item['peserta_id']] = $pesertaSesi;
+            }
+        }
+
+        $perSesi = array_values(array_map(function (array $item): array {
+            $item['peserta'] = array_values($item['peserta']);
+            $item['total_peserta'] = count($item['peserta']);
+            $dicatat = $item['hadir'] + $item['tidak_hadir'];
+            $item['persentase'] = $dicatat === 0 ? 0 : round(($item['hadir'] / $dicatat) * 100, 1);
+
+            return $item;
+        }, $perSesi));
+        usort($perSesi, fn (array $a, array $b) => (($a['sesi'] ?? PHP_INT_MAX) <=> ($b['sesi'] ?? PHP_INT_MAX)));
+
+        $totalDicatat = $totalHadir + $totalTidakHadir;
+
+        return [
+            'per_sesi' => $perSesi,
+            'per_kegiatan' => $perKegiatan,
+            'ringkasan' => [
+                'jumlah_kegiatan' => count($perKegiatan),
+                'jumlah_peserta' => count($semuaPeserta),
+                'total_pertemuan' => $totalPertemuan,
+                'hadir' => $totalHadir,
+                'tidak_hadir' => $totalTidakHadir,
+                'persentase' => $totalDicatat === 0 ? 0 : round(($totalHadir / $totalDicatat) * 100, 1),
+            ],
+        ];
+    }
+
+    private function ringkasanKosong(): array
+    {
+        return [
+            'jumlah_kegiatan' => 0,
+            'jumlah_peserta' => 0,
+            'total_pertemuan' => 0,
+            'hadir' => 0,
+            'tidak_hadir' => 0,
+            'persentase' => 0,
+        ];
+    }
+
     public function all(): array
     {
         return $this->query($this->currentInstrukturId())

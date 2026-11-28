@@ -58,6 +58,7 @@ export default function LayoutAdministrator({ children }: { children: ReactNode 
     <>
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/metronic/assets/plugins/global/plugins.bundle.css" precedence="default" />
+      {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/metronic/assets/css/style.bundle.css" precedence="default" />
       <DashboardGuard path="/administrator">
         <AdministratorShell>{children}</AdministratorShell>

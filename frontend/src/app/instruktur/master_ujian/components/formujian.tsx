@@ -13,7 +13,7 @@ import { bacaFileSoal, MAX_SOAL, validasiSoal, type HasilImporSoal } from "./imp
 
 export type NilaiUjian = UjianInput;
 
-const inputCls = "w-full rounded-xl border border-orange-100 bg-orange-50/40 px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60";
+const inputCls = "w-full rounded-xl border border-orange-100 bg-orange-50/40 px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-orange-300 focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60 disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-red-400 aria-[invalid=true]:bg-red-50/50";
 const labelCls = "mb-1.5 block text-sm font-medium text-slate-700";
 
 export const nilaiAwal = (): NilaiUjian => ({
@@ -168,7 +168,7 @@ export default function FormUjian({ awal, kembali, labelSimpan = "Simpan ujian",
               {([["pretest", "Pre Test"], ["posttest", "Post Test"]] as const).map(([v, label]) => (
                 <label key={v} className="cursor-pointer">
                   <input type="radio" name="tipe" className="peer sr-only" checked={f.tipe === v} onChange={() => set("tipe", v)} />
-                  <span className="flex items-center justify-center rounded-xl border border-orange-100 bg-orange-50/40 py-2.5 text-sm text-slate-600 peer-checked:border-orange-500 peer-checked:bg-orange-500 peer-checked:font-medium peer-checked:text-white">{label}</span>
+                  <span className="flex items-center justify-center rounded-xl border border-orange-100 bg-orange-50/40 py-2.5 text-sm text-slate-600 transition hover:border-orange-300 peer-checked:border-orange-500 peer-checked:bg-orange-500 peer-checked:font-medium peer-checked:text-white peer-focus-visible:ring-4 peer-focus-visible:ring-orange-200/60">{label}</span>
                 </label>
               ))}
             </div>

@@ -117,6 +117,7 @@ export default function PengunjungPage() {
     setPage(1);
     setGrup("semua");
     setSub("");
+    setCari("");
   };
 
   const bukaTambah = () => {

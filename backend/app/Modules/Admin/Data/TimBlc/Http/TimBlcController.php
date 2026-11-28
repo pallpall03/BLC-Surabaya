@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Data\TimBlc\Http;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Modules\Admin\Data\TimBlc\Contracts\TimBlcRepository;
 use App\Modules\Admin\Data\TimBlc\Domain\TimBlc;
 use Illuminate\Http\JsonResponse;
@@ -19,6 +20,7 @@ final class TimBlcController extends Controller
         if ($request->query('status') === 'aktif') {
             return $this->aktif();
         }
+
         return response()->json(['data' => $this->repository->all()]);
     }
 
@@ -49,10 +51,13 @@ final class TimBlcController extends Controller
         return response()->json(['data' => $tim], 201);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $tim = $this->repository->find($id);
         if (!$tim) {
+            return response()->json(['message' => 'Tim BLC not found'], 404);
+        }
+        if (! $this->admin($request) && $tim->isDelete) {
             return response()->json(['message' => 'Tim BLC not found'], 404);
         }
         return response()->json(['data' => $this->publik($tim)]);
@@ -81,6 +86,15 @@ final class TimBlcController extends Controller
         return response()->json(['message' => 'Deleted']);
     }
 
+    private function admin(Request $request): bool
+    {
+        try {
+            return $request->user('api')?->hasRole(Role::SUPERADMIN) ?? false;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     /** @return array<string, mixed> */
     private function publik(TimBlc $tim): array
     {
@@ -90,7 +104,7 @@ final class TimBlcController extends Controller
             'role' => $tim->role,
             'avatar' => $tim->avatar,
             'lokasiBlcId' => $tim->lokasiBlcId,
-            'isSurabaya' => $tim->isSurabaya,
+            'namaLokasi' => $tim->namaLokasi,
         ];
     }
 }

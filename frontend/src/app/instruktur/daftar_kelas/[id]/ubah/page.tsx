@@ -20,6 +20,7 @@ export default function UbahKelasPage() {
   const [nilai, setNilai] = useState<NilaiKelas>({ nama: "", sesi: 0, hari: [], materi: "", lokasiBlcId: 0 });
   const [opsi, setOpsi] = useState<OpsiKelas>({ sesi: [], materi: [], blc: [] });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 

@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
-  AlertCircle, ArrowLeft, Building2, CalendarDays, CheckCircle2, Fingerprint, GraduationCap,
-  Mail, Map, MapPin, Phone, Save, User, type LucideIcon,
+  AlertCircle, ArrowLeft, Building2, CalendarDays, Fingerprint, GraduationCap,
+  Mail, Map, MapPin, Mars, Phone, RotateCcw, Save, User, Venus,
 } from "lucide-react";
 import { getPeserta, getPesertaOpsi, updatePeserta, type PesertaDetail, type PesertaOpsi } from "@/lib/api";
 
@@ -14,21 +14,15 @@ type Nilai = {
   alamat: string; kecamatan: string; kelurahan: string; kecamatanLain: string; kelurahanLain: string;
   email: string; telepon: string; kategoriId: string; lokasiBlcId: string; isSurabaya: boolean;
 };
+type TeksKey = "nik" | "nama" | "tanggalLahir" | "alamat" | "kecamatan" | "kelurahan" | "kecamatanLain" | "kelurahanLain" | "email" | "telepon";
 
-const inp = "w-full rounded-xl border border-orange-100 bg-orange-50/40 py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-4 focus:ring-orange-200/60";
 const KEMBALI = "/instruktur/daftar_peserta";
-
-function Card({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
-  return <section className="rounded-2xl border border-orange-100 bg-white p-6 shadow-lg shadow-orange-200/40">
-    <h2 className="mb-5 flex items-center gap-2 font-semibold text-slate-900"><Icon size={20} className="text-orange-500" /> {title}</h2>{children}
-  </section>;
-}
-
-function Field({ label, icon: Icon, children }: { label: string; icon: LucideIcon; children: React.ReactNode }) {
-  return <div><label className="mb-1.5 block text-sm font-medium text-slate-700">{label}</label><div className="relative">
-    <Icon size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-orange-400" />{children}
-  </div></div>;
-}
+const NAMA_KOLOM: Record<keyof Nilai, string> = {
+  nik: "NIK", nama: "Nama", tanggalLahir: "Tanggal lahir", jenisKelamin: "Jenis kelamin", alamat: "Alamat",
+  kecamatan: "Kecamatan", kelurahan: "Kelurahan", kecamatanLain: "Kecamatan luar Surabaya",
+  kelurahanLain: "Kelurahan luar Surabaya", email: "Email", telepon: "No. telepon",
+  kategoriId: "Kategori peserta", lokasiBlcId: "BLC", isSurabaya: "Domisili Surabaya",
+};
 
 export default function UbahPesertaPage() {
   const { id } = useParams<{ id: string }>();
@@ -67,11 +61,14 @@ export default function UbahPesertaPage() {
 
   const simpan = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form) return;
-    if (!/^\d{16}$/.test(form.nik) || !form.nama.trim() || !form.jenisKelamin || !form.lokasiBlcId) {
-      setError("Lengkapi NIK, nama, jenis kelamin, dan BLC dengan benar."); return;
+    if (!form || !id) return;
+    if (berubah.length === 0) {
+      showNotification({ type: "error", title: "Belum ada perubahan", message: "Ubah data peserta sebelum menyimpan." });
+      return;
     }
-    setSaving(true); setError("");
+    if (!validasi()) return;
+    setSaving(true);
+    setErrors((e) => ({ ...e, general: undefined }));
     try {
       await updatePeserta(Number(id), {
         nik: form.nik, nama: form.nama, tanggal_lahir: form.tanggalLahir || null, jk: form.jenisKelamin,

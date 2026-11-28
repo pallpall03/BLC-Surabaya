@@ -20,6 +20,8 @@ export default function JadwalKelas({ kelas, dipilih, onKlikKosong, sesi: sesiAp
 }) {
   const aktif = kelas.filter((k) => k.status === "Aktif");
   const sesi = sesiApi?.length ? sesiApi.map((s) => ({ id: s.id, no: s.sesi, jam: s.jam })) : SESI.map((s) => ({ ...s, id: s.no }));
+  const sesiDipilih = dipilih?.sesi;
+
   return (
     <div>
       <div className="table-responsive">

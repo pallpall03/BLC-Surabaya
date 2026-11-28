@@ -3,15 +3,17 @@
 /* eslint-disable @next/next/no-img-element */
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
-  CalendarDays, ChevronLeft, ChevronRight, ImagePlus, Plus, Printer, Save, Trash2, X,
+  CalendarDays, ChevronLeft, ChevronRight, FileText, ImagePlus, Plus, Printer, Save, Trash2, X,
 } from "lucide-react";
 import {
-  deleteLaporan, getLaporan, getLaporanOpsi, saveLaporan,
+  deleteLaporan, getLaporan, getLaporanOpsi, saveLaporan, apiGet,
   type LaporanHarian, type LaporanKelasOpsi,
 } from "@/lib/api";
+import RekapPeserta, { type RekapPeserta as RekapPesertaData } from "./components/rekapeserta";
 import TabelRekap from "./components/tabelrekap";
 
 type FotoLaporan = { path: string | null; file: File | null; url: string; deskripsi: string };
+type TampilanLaporan = "rekap" | "kegiatan";
 
 const BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 const inputCls = "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition hover:border-slate-300 focus:border-orange-400 focus:ring-4 focus:ring-orange-100";
@@ -44,12 +46,16 @@ const rentangBulan = (ym: string) => {
 
 export default function LaporanKegiatanPelatihanPage() {
   const [bulan, setBulan] = useState(bulanLokal);
+  const [tampilan, setTampilan] = useState<TampilanLaporan>("rekap");
   const [namaInstruktur, setNamaInstruktur] = useState("Instruktur");
   const [laporan, setLaporan] = useState<LaporanHarian[]>([]);
-  const [opsiKelas, setOpsiKelas] = useState<LaporanKelasOpsi[]>([]);
+  const [rekap, setRekap] = useState<RekapPesertaData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [loadingOpsi, setLoadingOpsi] = useState(true);
+  const [loadingRekap, setLoadingRekap] = useState(true);
   const [error, setError] = useState("");
+  const [errorRekap, setErrorRekap] = useState("");
+  const [opsiKelas, setOpsiKelas] = useState<LaporanKelasOpsi[]>([]);
+  const [loadingOpsi, setLoadingOpsi] = useState(true);
   const [errorOpsi, setErrorOpsi] = useState("");
   const [pesan, setPesan] = useState("");
   const [menghapusId, setMenghapusId] = useState<number | null>(null);
@@ -64,6 +70,7 @@ export default function LaporanKegiatanPelatihanPage() {
   const [menyimpan, setMenyimpan] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const permintaanLaporan = useRef(0);
+  const permintaanRekap = useRef(0);
 
   const { mulai, sampai } = useMemo(() => rentangBulan(bulan), [bulan]);
 
@@ -84,6 +91,24 @@ export default function LaporanKegiatanPelatihanPage() {
     }
   }, [mulai, sampai]);
 
+  const muatRekap = useCallback(async () => {
+    const permintaan = ++permintaanRekap.current;
+    setLoadingRekap(true);
+    setErrorRekap("");
+    try {
+      const query = new URLSearchParams({ mulai, sampai });
+      const res = await apiGet<{ data: RekapPesertaData }>(`/instruktur/laporan/rekap?${query}`);
+      if (permintaan === permintaanRekap.current) setRekap(res.data);
+    } catch (e) {
+      if (permintaan === permintaanRekap.current) {
+        setErrorRekap(e instanceof Error ? e.message : "Gagal memuat laporan kehadiran peserta.");
+        setRekap(null);
+      }
+    } finally {
+      if (permintaan === permintaanRekap.current) setLoadingRekap(false);
+    }
+  }, [mulai, sampai]);
+
   const muatOpsi = useCallback(async () => {
     setLoadingOpsi(true);
     setErrorOpsi("");
@@ -95,7 +120,7 @@ export default function LaporanKegiatanPelatihanPage() {
     } finally {
       setLoadingOpsi(false);
     }
-  }, []);
+  }, [setErrorOpsi]);
 
   useEffect(() => {
     let aktif = true;
@@ -113,7 +138,8 @@ export default function LaporanKegiatanPelatihanPage() {
 
   useEffect(() => {
     void Promise.resolve().then(muatLaporan);
-  }, [muatLaporan]);
+    void Promise.resolve().then(muatRekap);
+  }, [muatLaporan, muatRekap]);
 
   useEffect(() => {
     void Promise.resolve().then(muatOpsi);
@@ -252,7 +278,7 @@ export default function LaporanKegiatanPelatihanPage() {
         </header>
 
         <div className="hidden text-center print:block">
-          <h2 className="text-xl font-bold">Laporan Kegiatan Pelatihan BLC Surabaya</h2>
+          <h2 className="text-xl font-bold">{tampilan === "rekap" ? "Laporan Kehadiran Peserta Pelatihan BLC Surabaya" : "Laporan Kegiatan Pelatihan BLC Surabaya"}</h2>
           <p className="mt-1 text-sm">Nama: {namaInstruktur} · Bulan: {namaBulan(bulan)}</p>
         </div>
 
@@ -267,20 +293,33 @@ export default function LaporanKegiatanPelatihanPage() {
             <span className="ml-2 hidden text-sm font-semibold text-slate-800 sm:inline">{namaBulan(bulan)}</span>
           </div>
           <div className="flex gap-2">
-            <button type="button" onClick={() => window.print()} disabled={loading || laporan.length === 0} className="inline-flex items-center gap-2 rounded-xl border border-orange-200 px-4 py-2 text-sm font-medium text-orange-700 hover:bg-orange-50 disabled:opacity-40"><Printer size={16} /> Cetak</button>
-            <button type="button" onClick={() => bukaForm()} className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-orange-300/50 hover:bg-orange-600"><Plus size={17} /> Tambah laporan</button>
+            <button type="button" onClick={() => window.print()} disabled={tampilan === "rekap" ? loadingRekap || !rekap || (rekap.per_sesi.length === 0 && rekap.per_kegiatan.length === 0) : loading || laporan.length === 0} className="inline-flex items-center gap-2 rounded-xl border border-orange-200 px-4 py-2 text-sm font-medium text-orange-700 hover:bg-orange-50 disabled:opacity-40"><Printer size={16} /> Cetak</button>
+            {tampilan === "kegiatan" && <button type="button" onClick={() => bukaForm()} className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-orange-300/50 hover:bg-orange-600"><Plus size={17} /> Tambah laporan</button>}
           </div>
         </div>
 
-        {errorOpsi && (
+        <div className="flex w-full rounded-xl border border-orange-100 bg-white p-1 shadow-md sm:w-fit print:hidden" role="tablist" aria-label="Jenis laporan pelatihan">
+          {([
+            ["rekap", "Rekap kehadiran"],
+            ["kegiatan", "Laporan kegiatan"],
+          ] as const).map(([key, label]) => (
+            <button key={key} type="button" role="tab" aria-selected={tampilan === key} onClick={() => setTampilan(key)} className={`flex-1 rounded-lg px-5 py-2.5 text-sm transition sm:flex-none ${tampilan === key ? "bg-orange-500 font-medium text-white shadow-sm" : "text-slate-500 hover:text-orange-700"}`}>{label}</button>
+          ))}
+        </div>
+
+        {tampilan === "kegiatan" && errorOpsi && (
           <div role="alert" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 print:hidden"><span>Pilihan kelas belum dapat dimuat: {errorOpsi}</span><button type="button" onClick={() => void muatOpsi()} className="font-semibold underline">Coba lagi</button></div>
         )}
 
-        <section aria-label="Rekap laporan kegiatan">
-          <TabelRekap data={laporan} loading={loading} error={error} onTambah={() => bukaForm()} onEdit={bukaForm} onHapus={(item) => void hapus(item)} onCobaLagi={() => void muatLaporan()} menghapusId={menghapusId} />
+        <section aria-label="Laporan pelatihan">
+          {tampilan === "rekap" ? (
+            <RekapPeserta data={rekap} loading={loadingRekap} error={errorRekap} onCobaLagi={() => void muatRekap()} />
+          ) : (
+            <TabelRekap data={laporan} loading={loading} error={error} onTambah={() => bukaForm()} onEdit={bukaForm} onHapus={(item) => void hapus(item)} onCobaLagi={() => void muatLaporan()} menghapusId={menghapusId} />
+          )}
         </section>
 
-        {laporan.length > 0 && !loading && (
+        {tampilan === "kegiatan" && laporan.length > 0 && !loading && (
           <div className="hidden justify-end pt-10 print:flex">
             <div className="w-64 text-center text-sm"><p>Surabaya, {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p><p className="mt-1">Instruktur,</p><div className="h-20" /><p className="font-semibold underline">{namaInstruktur}</p></div>
           </div>

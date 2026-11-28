@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, CalendarPlus, Clock, RotateCcw } from "lucide-react";
+import { useCrudNotification } from "@/components/CrudNotification";
+import { createKelas, getKelas, getKelasOpsi } from "@/lib/api";
 import HeaderHalaman from "../components/headerhalaman";
 import JadwalKelas from "../components/jadwalkelas";
 import FormKelas, { type NilaiKelas, type OpsiKelas } from "../components/formkelas";
@@ -81,6 +83,7 @@ export default function BuatKelasPage() {
       showNotification({ type: "success", title: "Kelas dibuat", message: "Kelas baru berhasil disimpan." });
       router.push("/instruktur/daftar_kelas");
     } catch (e) {
+      console.error(e);
       const pesan = e instanceof Error ? e.message : "Kelas belum berhasil disimpan. Coba lagi.";
       setError(pesan);
       showNotification({ type: "error", title: "Kelas gagal dibuat", message: pesan });

@@ -3,6 +3,7 @@
 namespace App\Modules\Admin\Data\Testimoni\Http;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Modules\Admin\Data\Testimoni\Contracts\TestimoniRepository;
 use App\Modules\Admin\Data\Testimoni\Domain\Testimoni;
 use App\Modules\Admin\Data\Testimoni\Infrastructure\TestimoniModel;
@@ -42,20 +43,24 @@ final class TestimoniController extends Controller
         $this->normalisasiStatus($request);
         $validated = $request->validate($this->rules(partial: false));
 
-        // Kiriman baru selalu menunggu moderasi kalau status tidak dikirim.
-        $validated['status'] = $validated['status'] ?? TestimoniModel::PENDING;
+        $validated['status'] = $this->admin($request)
+            ? ($validated['status'] ?? TestimoniModel::PENDING)
+            : TestimoniModel::PENDING;
 
         $testimoni = $this->repository->create($validated);
-        return response()->json(['data' => $testimoni], 201);
+        return response()->json(['data' => $this->responseData($request, $testimoni)], 201);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $testimoni = $this->repository->find($id);
         if (!$testimoni) {
             return response()->json(['message' => 'Testimoni not found'], 404);
         }
-        return response()->json(['data' => $this->publik($testimoni)]);
+        if (! $this->admin($request) && $testimoni->status !== TestimoniModel::TAMPIL) {
+            return response()->json(['message' => 'Testimoni not found'], 404);
+        }
+        return response()->json(['data' => $this->responseData($request, $testimoni)]);
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -92,6 +97,9 @@ final class TestimoniController extends Controller
         return [
             'id' => $testimoni->id,
             'nama' => $testimoni->nama,
+            'isiTestimoni' => $testimoni->isiTestimoni,
+            'rating' => $testimoni->rating,
+            'kategoriId' => $testimoni->kategoriId,
             'lokasiBlcId' => $testimoni->lokasiBlcId,
             'isSurabaya' => $testimoni->isSurabaya,
         ];

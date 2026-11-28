@@ -5,8 +5,6 @@ import { useParams } from "next/navigation";
 import { CheckCircle2, ClipboardList, Mars, Search, SearchX, UserCheck, UserMinus, UserPlus, Venus } from "lucide-react";
 import HeaderHalaman from "../../components/headerhalaman";
 import { jamSesi, type Kelas } from "../../data";
-import { getKelasDetail, getCalonPeserta, getKelasPeserta, addPesertaToKelas, removePesertaFromKelas, type Peserta } from "@/lib/api";
-import { useCrudNotification } from "@/components/CrudNotification";
 
 const JK = ({ jk }: { jk: "L" | "P" }) =>
   jk === "L" ? (
@@ -86,14 +84,14 @@ export default function PesertaKelasPage() {
       return;
     }
     try {
-      await addPesertaToKelas(kelasId, pindah.map(p => p.id));
+      await addPesertaToKelas(kelasId, pindah.map((p) => p.id));
       setTerdaftar((t) => [...t, ...pindah]);
       setTersedia((t) => t.filter((p) => !dipilih.includes(p.id)));
       setDipilih([]);
       toast(`${pindah.length} peserta didaftarkan.`);
     } catch (e) {
       console.error(e);
-      toast("Gagal mendaftarkan peserta", "error");
+      toast(e instanceof Error ? e.message : "Gagal mendaftarkan peserta", "error");
     }
   };
 
@@ -105,7 +103,7 @@ export default function PesertaKelasPage() {
       toast("Peserta dikeluarkan dari kelas.");
     } catch (e) {
       console.error(e);
-      toast("Gagal mengeluarkan peserta", "error");
+      toast(e instanceof Error ? e.message : "Gagal mengeluarkan peserta", "error");
     }
   };
 
@@ -180,7 +178,7 @@ export default function PesertaKelasPage() {
                       <td>{p.nik}</td>
                       <td className="fw-bold text-gray-900">{p.nama}</td>
                       <td><JK jk={p.jk} /></td>
-                      <td><span className="badge badge-light-primary fs-8 py-2 px-3">{p.kategori}</span></td>
+                      <td><span className="badge badge-light-primary fs-8 py-2 px-3">{p.kategori ?? "-"}</span></td>
                       <td>{p.blc}</td>
                     </tr>
                   ))}
@@ -217,7 +215,7 @@ export default function PesertaKelasPage() {
                       <td>{p.nik}</td>
                       <td className="fw-bold text-gray-900">{p.nama}</td>
                       <td><JK jk={p.jk} /></td>
-                      <td><span className="badge badge-light-primary fs-8 py-2 px-3">{p.kategori}</span></td>
+                      <td><span className="badge badge-light-primary fs-8 py-2 px-3">{p.kategori ?? "-"}</span></td>
                       <td className="text-end">
                         <button type="button" onClick={() => keluarkan(p)} className="btn btn-sm btn-light-danger d-inline-flex align-items-center gap-2">
                           <UserMinus size={15} /> Keluarkan

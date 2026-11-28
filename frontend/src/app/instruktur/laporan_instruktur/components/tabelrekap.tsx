@@ -61,35 +61,35 @@ export default function TabelRekap({ data, loading, error, onTambah, onEdit, onH
       <table className="w-full min-w-[880px] border-collapse text-left text-sm">
         <thead className="bg-orange-50 text-orange-900">
           <tr>
-            <th scope="col" className="w-32 px-4 py-3 font-medium">Tanggal</th>
-            <th scope="col" className="w-44 px-4 py-3 font-medium">Kelas</th>
-            <th scope="col" className="w-40 px-4 py-3 font-medium">Materi</th>
-            <th scope="col" className="w-40 px-4 py-3 font-medium">Kehadiran</th>
-            <th scope="col" className="px-4 py-3 font-medium">Aktivitas</th>
+            <th scope="col" className="w-40 px-4 py-3 font-medium">Tanggal</th>
+            <th scope="col" className="w-56 px-4 py-3 font-medium">Kelas</th>
+            <th scope="col" className="w-52 px-4 py-3 font-medium">Materi</th>
+            <th scope="col" className="w-48 px-4 py-3 font-medium">Kehadiran peserta</th>
+            <th scope="col" className="px-4 py-3 font-medium">Ringkasan aktivitas</th>
             <th scope="col" className="w-28 px-4 py-3 text-right font-medium print:hidden">Aksi</th>
           </tr>
         </thead>
         <tbody>
-          {data.map((laporan) => {
+          {data.map((laporan, index) => {
             const [y, m, d] = laporan.tanggal.split("-").map(Number);
             const hari = HARI[new Date(y, m - 1, d).getDay()];
             const persen = laporan.total > 0 ? Math.round((laporan.hadir / laporan.total) * 100) : 0;
             const w = warnaHadir(persen);
             const buka = terbuka.includes(laporan.id);
             return (
-              <tr key={laporan.id} className="border-t border-orange-100 align-top print:break-inside-avoid">
-                <td className="px-4 py-4">
-                  <span className="block text-xs font-medium text-orange-600">{hari}</span>
-                  <span className="font-semibold text-slate-900">{d} {BULAN[m - 1]} {y}</span>
+              <tr key={laporan.id} className={`border-t border-orange-100 align-top print:break-inside-avoid ${index % 2 ? "bg-orange-50/40" : "bg-white"}`}>
+                <td className="instruktur-report-date border-r border-orange-100 px-4 py-4 align-top">
+                  <span className="inline-flex rounded-lg bg-white px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-orange-700 shadow-sm">{hari}</span>
+                  <span className="mt-2 block whitespace-nowrap text-base font-bold text-slate-900">{d} {BULAN[m - 1]} {y}</span>
                 </td>
                 <td className="px-4 py-4 font-medium text-slate-900">{laporan.kelas ?? <span className="font-normal text-slate-400">Tanpa kelas</span>}</td>
                 <td className="px-4 py-4 text-slate-700">{laporan.materi ?? "—"}</td>
                 <td className="px-4 py-4">
                   {laporan.kelas_id !== null ? (
                     <>
-                      <span className={`font-semibold tabular-nums ${w.teks}`}>{laporan.hadir} / {laporan.total}</span>
+                      <span className={`font-semibold tabular-nums ${w.teks}`}>{laporan.hadir} dari {laporan.total}</span>
                       <span className="ml-1 text-xs text-slate-500">({persen}%)</span>
-                      <span className="mt-1.5 block h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
+                      <span className="mt-1.5 block h-1.5 w-28 overflow-hidden rounded-full bg-slate-200">
                         <span className={`block h-full rounded-full ${w.bar}`} style={{ width: `${Math.min(persen, 100)}%` }} />
                       </span>
                     </>

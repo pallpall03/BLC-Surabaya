@@ -133,23 +133,26 @@ export default function LaporanInstrukturPage() {
   return (
     <main className="min-h-screen bg-orange-50/60 px-4 py-6 sm:px-8 sm:py-8 print:bg-white print:p-0">
       <div className="mx-auto max-w-6xl space-y-6">
-        <header className="flex flex-wrap items-center justify-between gap-4 print:hidden">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Laporan pengunjung &amp; foto kegiatan</h1>
-            <p className="mt-1 text-sm text-slate-500">Catat laporan sekaligus dokumentasikan kegiatan pelayanan pengunjung.</p>
+        <header className="instruktur-page-header flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 p-6 text-white shadow-xl shadow-orange-300/50 print:hidden">
+          <div className="flex items-center gap-4">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/25"><ClipboardList size={28} /></span>
+            <div>
+              <h1 className="text-2xl font-semibold">Aktivitas &amp; Laporan Pengunjung</h1>
+              <p className="mt-1 text-sm text-orange-50">Catat aktivitas pelayanan, unggah foto, dan cetak laporan pengunjung per bulan.</p>
+            </div>
           </div>
           <span className="rounded-full border border-orange-200 bg-white px-4 py-2 text-sm text-slate-600 shadow-sm"><span className="text-slate-400">Instruktur: </span><span className="font-medium text-slate-800">{namaInstruktur}</span></span>
         </header>
 
         <div className="flex w-full rounded-xl border border-orange-100 bg-white p-1 shadow-md sm:w-fit print:hidden" role="tablist" aria-label="Laporan pengunjung">
-          {([["laporan", ClipboardList, "Laporan pengunjung"], ["foto", Camera, "Foto kegiatan"]] as const).map(([key, Icon, label], index) => (
+          {([["laporan", ClipboardList, "Laporan aktivitas"], ["foto", Camera, "Input foto & kegiatan"]] as const).map(([key, Icon, label], index) => (
             <button key={key} id={`pengunjung-tab-${key}`} type="button" role="tab" aria-selected={tab === key} aria-controls={`pengunjung-panel-${key}`} tabIndex={tab === key ? 0 : -1} onKeyDown={(event) => pindahTab(event, index)} onClick={() => setTab(key)} className={`inline-flex flex-1 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm transition sm:flex-none ${tab === key ? "bg-orange-500 font-medium text-white shadow-sm" : "text-slate-500 hover:text-orange-700"}`}><Icon size={17} /> {label}</button>
           ))}
         </div>
 
         <section id="pengunjung-panel-laporan" role="tabpanel" aria-labelledby="pengunjung-tab-laporan" hidden={tab !== "laporan"} className="space-y-6">
           <div className="hidden text-center print:block">
-            <h2 className="text-xl font-bold">Laporan Kegiatan Pengunjung BLC Surabaya</h2>
+            <h2 className="text-xl font-bold">Laporan Aktivitas Pengunjung BLC Surabaya</h2>
             <p className="mt-1 text-sm">Nama: {namaInstruktur} · Bulan: {namaBulan(bulan)}</p>
           </div>
 
@@ -181,7 +184,7 @@ export default function LaporanInstrukturPage() {
           ) : error ? (
             <div role="alert" className="flex flex-col items-center gap-3 rounded-2xl border border-red-200 bg-white px-4 py-14 text-center shadow-lg shadow-orange-200/40"><FileText size={32} className="text-red-500" /><p className="font-medium text-slate-800">Laporan pengunjung belum dapat dimuat</p><p className="max-w-md text-sm text-slate-500">{error}</p><button type="button" onClick={() => setCoba((n) => n + 1)} className="mt-1 rounded-xl border border-orange-200 px-4 py-2 text-sm font-medium text-orange-700 hover:bg-orange-50 print:hidden">Coba lagi</button></div>
           ) : foto.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-2xl border border-orange-200 bg-white px-4 py-16 text-center shadow-lg shadow-orange-200/40 print:shadow-none"><Camera size={36} className="text-orange-400" /><p className="font-medium text-slate-800">Belum ada laporan pengunjung pada periode ini</p><p className="max-w-md text-sm text-slate-500">Tambahkan laporan beserta foto melalui tab Foto kegiatan. Tab ini hanya menampilkan hasil entry tersebut.</p></div>
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-orange-200 bg-white px-4 py-16 text-center shadow-lg shadow-orange-200/40 print:shadow-none"><Camera size={36} className="text-orange-400" /><p className="font-medium text-slate-800">Belum ada aktivitas pengunjung pada periode ini</p><p className="max-w-md text-sm text-slate-500">Tambahkan aktivitas beserta foto melalui tab Input foto &amp; kegiatan. Tab ini hanya menampilkan hasil entry tersebut.</p></div>
           ) : (
             <div className="overflow-x-auto rounded-2xl border border-orange-200 bg-white shadow-lg shadow-orange-200/40 print:shadow-none">
               <table className="w-full min-w-[1100px] border-collapse text-left text-sm">

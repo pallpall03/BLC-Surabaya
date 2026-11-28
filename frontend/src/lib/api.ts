@@ -234,9 +234,7 @@ export type Materi = {
 
 export type AbsensiItem = {
   peserta_id: number;
-  nama: string;
-  status: 'hadir' | 'sakit' | 'izin' | 'alpa';
-  keterangan?: string;
+  status: 'hadir' | 'tidak';
 };
 
 export type AbsensiPayload = {
@@ -245,13 +243,37 @@ export type AbsensiPayload = {
   peserta: AbsensiItem[];
 };
 
+export type AbsensiPeserta = Peserta & { hadir: boolean | null };
+export type AbsensiKelasResponse = {
+  data: AbsensiPeserta[];
+  meta: { tanggal: string; sudah_dicatat: boolean };
+};
+
+export type KelasDiikuti = {
+  id: number;
+  nama_kelas: string;
+  materi: string;
+  sesi: number | null;
+  waktu_sesi: string | null;
+  lokasi: string;
+  lokasi_blc_id: number | null;
+  hari: string[];
+  total_pertemuan: number;
+  total_hadir: number;
+};
+
+export type PesertaRekap = Peserta & {
+  kelas: KelasDiikuti[];
+  total_pertemuan: number;
+  total_hadir: number;
+};
+
 export type AbsensiRekap = {
   peserta_id: number;
   nama: string;
   hadir: number;
-  sakit: number;
-  izin: number;
-  alpa: number;
+  tidak_hadir: number;
+  total_pertemuan: number;
 };
 
 // ===== Daftar Peserta (sudah sesuai backend: modul Instruktur/DaftarPeserta) =====
@@ -433,11 +455,18 @@ export async function getKelasPeserta(kelasId: number): Promise<{ data: Peserta[
   return apiGet(`/instruktur/daftar-hadir/kelas/${kelasId}/peserta`);
 }
 
-export async function getDaftarHadir(kelasId: number, tanggal: string): Promise<{ data: Peserta[] }> {
-  return apiGet(`/instruktur/daftar-hadir/${kelasId}?tanggal=${tanggal}`);
+export async function getPesertaRekap(params?: { q?: string }): Promise<{ data: PesertaRekap[] }> {
+  const query = params?.q ? `?${new URLSearchParams({ q: params.q })}` : '';
+  const res = await apiGet<{ data: PesertaRekap[] }>(`/instruktur/daftar-hadir${query}`);
+  return { data: (res.data ?? []).map(mapPeserta) };
 }
 
-export async function saveAbsensi(payload: AbsensiPayload): Promise<{ data: Peserta[] }> {
+export async function getDaftarHadir(kelasId: number, tanggal: string): Promise<AbsensiKelasResponse> {
+  const res = await apiGet<AbsensiKelasResponse>(`/instruktur/daftar-hadir/${kelasId}?tanggal=${encodeURIComponent(tanggal)}`);
+  return { ...res, data: (res.data ?? []).map((item) => mapPeserta({ ...item, hadir: item.hadir })) };
+}
+
+export async function saveAbsensi(payload: AbsensiPayload): Promise<AbsensiKelasResponse> {
   return apiPost('/instruktur/daftar-hadir', payload);
 }
 

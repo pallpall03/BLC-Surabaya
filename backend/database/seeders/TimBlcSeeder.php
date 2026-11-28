@@ -28,10 +28,10 @@ class TimBlcSeeder extends Seeder
         ];
 
         foreach ($tim as $i => [$nama, $gender, $email, $role, $avatar, $phone, $username, $akunEmail]) {
-            // tim_blc.user_id bertipe string = users.id; null bila akun belum ada
+            // tim_blc.user_id bertipe string = users.id; null bila akun belum ada.
             $userId = $akunEmail ? DB::table('users')->where('email', $akunEmail)->value('id') : null;
 
-            DB::table('tim_blc')->updateOrInsert(
+            $baris = TimBlcModel::firstOrCreate(
                 ['email' => $email],
                 [
                     'user_id' => $userId !== null ? (string) $userId : null,
@@ -43,8 +43,6 @@ class TimBlcSeeder extends Seeder
                     'lokasi_blc_id' => $lokasi[$i % max(count($lokasi), 1)] ?? null,
                     'username' => $username,
                     'is_delete' => false,
-                    'created_at' => now(),
-                    'updated_at' => now(),
                 ]
             );
         }

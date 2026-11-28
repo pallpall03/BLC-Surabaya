@@ -7,8 +7,6 @@ export default function TentangPage() {
   return (
     <>
       {/* ================= NAVBAR ================= */}
-      <Navbar />
-
       <main className="w-full bg-white">
 
         {/* ================= HERO SECTION ================= */}
@@ -139,9 +137,6 @@ export default function TentangPage() {
         </section>
 
       </main>
-
-      {/* ================= FOOTER ================= */}
-      <Footer />
     </>
   );
 }

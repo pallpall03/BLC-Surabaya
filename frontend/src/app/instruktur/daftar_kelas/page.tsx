@@ -41,16 +41,16 @@ export default function DaftarKelasPage() {
   }, [showNotification]);
 
   useEffect(() => {
-    void fetchKelas();
+    void Promise.resolve().then(fetchKelas);
   }, [fetchKelas, reloadKey]);
 
-    const tampil = useMemo(() => {
-      const q = cari.trim().toLowerCase();
-      return kelas.filter((k) =>
-        (filter === "Semua" || k.status === filter) &&
-        (!q || k.nama.toLowerCase().includes(q) || k.materi.toLowerCase().includes(q))
-      );
-    }, [kelas, filter, cari]);
+  const tampil = useMemo(() => {
+    const q = cari.trim().toLowerCase();
+    return kelas.filter((k) =>
+      (filter === "Semua" || k.status === filter) &&
+      (!q || k.nama.toLowerCase().includes(q) || k.materi.toLowerCase().includes(q))
+    );
+  }, [kelas, filter, cari]);
 
     const handleUpdate = async (id: number, data: Partial<Kelas>) => {
       try {
@@ -71,20 +71,20 @@ export default function DaftarKelasPage() {
       }
     };
 
-    const handleDelete = async (id: number) => {
-      if (!window.confirm("Hapus kelas ini?")) return;
-      try {
-        await deleteKelas(id);
-        setKelas((prev) => prev.filter((k) => k.id !== id));
-        showNotification({ type: "success", title: "Kelas dihapus", message: "Kelas berhasil dihapus." });
-      } catch (e) {
-        console.error(e);
-        showNotification({ type: "error", title: "Kelas gagal dihapus", message: e instanceof Error ? e.message : "Gagal menghapus kelas." });
-      }
-    };
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Hapus kelas ini?")) return;
+    try {
+      await deleteKelas(id);
+      setKelas((prev) => prev.filter((k) => k.id !== id));
+      showNotification({ type: "success", title: "Kelas dihapus", message: "Kelas berhasil dihapus." });
+    } catch (e) {
+      console.error(e);
+      showNotification({ type: "error", title: "Kelas gagal dihapus", message: e instanceof Error ? e.message : "Gagal menghapus kelas." });
+    }
+  };
 
   const ubahStatus = (id: number, status: Kelas["status"]) => {
-    handleUpdate(id, { status });
+    void handleUpdate(id, { status });
   };
 
   const hapus = (k: Kelas) => handleDelete(k.id);
@@ -108,7 +108,6 @@ export default function DaftarKelasPage() {
             <Clock size={20} className="text-primary" /> Jadwal kelas aktif
           </div>
           <div className="card-toolbar">
-            {/* TODO: ganti dengan ekspor PDF dari backend jika perlu */}
             <button type="button" onClick={() => window.print()} className="btn btn-sm btn-light-primary d-inline-flex align-items-center gap-2">
               <Printer size={16} /> Cetak jadwal
             </button>

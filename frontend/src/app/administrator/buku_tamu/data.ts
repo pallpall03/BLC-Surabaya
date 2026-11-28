@@ -39,7 +39,7 @@ export async function ambilOpsiBukuTamu(): Promise<PengunjungOpsi> {
 
 export async function ambilBukuTamu(): Promise<BukuTamu[]> {
   const res = await apiGet<{ data: BukuTamuBackend[] }>("/buku-tamu/aktif");
-  return (res.data ?? []).map(mapBukuTamu);
+  return (Array.isArray(res.data) ? res.data : []).map(mapBukuTamu);
 }
 
 export async function kirimBukuTamu(form: FormTamu): Promise<BukuTamu> {
@@ -65,5 +65,9 @@ export async function kirimBukuTamu(form: FormTamu): Promise<BukuTamu> {
     alamat: form.alamat || null,
     kategori: form.kategori || null,
   });
-  return mapBukuTamu(res.data);
+  const baru = mapBukuTamu(res.data);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("buku-tamu-berubah"));
+  }
+  return baru;
 }

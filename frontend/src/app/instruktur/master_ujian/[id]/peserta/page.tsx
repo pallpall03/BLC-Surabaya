@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
-  AlertCircle, ArrowLeft, BookOpen, CalendarClock, Check, Clock, Copy, FileQuestion,
+  AlertCircle, ArrowLeft, BookOpen, CalendarClock, Clock, FileQuestion,
   Info, LoaderCircle, Pencil, RefreshCw, Shuffle, Users,
 } from "lucide-react";
 import { getUjianDetail, getUjianOpsi, type KelasUjianOpsi, type Ujian } from "@/lib/api";
@@ -26,7 +26,6 @@ export default function KelasPesertaUjianPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [coba, setCoba] = useState(0);
-  const [disalin, setDisalin] = useState<number | null>(null);
 
   useEffect(() => {
     let aktif = true;
@@ -57,16 +56,6 @@ export default function KelasPesertaUjianPage() {
   const jadwal = ujian?.jadwal ?? [];
   const totalPeserta = jadwal.reduce((total, item) => total + (opsiKelas.get(item.kelas_id)?.jumlah_peserta ?? 0), 0);
   const adaDataKelasHilang = jadwal.some((item) => !opsiKelas.has(item.kelas_id));
-
-  const salinToken = async (jadwalId: number, token: string) => {
-    try {
-      await navigator.clipboard.writeText(token);
-      setDisalin(jadwalId);
-      setTimeout(() => setDisalin(null), 1500);
-    } catch {
-      setDisalin(null);
-    }
-  };
 
   if (loading) {
     return (
@@ -155,10 +144,7 @@ export default function KelasPesertaUjianPage() {
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <span className="text-xs text-slate-500">Token kelas</span>
-                      <span className="rounded-md border border-orange-200 bg-white px-2.5 py-1 font-mono text-sm font-semibold tracking-wider text-orange-800">{item.token}</span>
-                      <button type="button" onClick={() => void salinToken(item.id, item.token)} className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs text-slate-500 transition hover:bg-orange-100 hover:text-orange-700">
-                        {disalin === item.id ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}{disalin === item.id ? "Tersalin" : "Salin token"}
-                      </button>
+                      <TokenUjian token={item.token} />
                     </div>
                   </article>
                 );

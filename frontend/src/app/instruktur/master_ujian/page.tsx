@@ -29,6 +29,7 @@ const inputCls = "w-full rounded-xl border border-orange-100 bg-orange-50/40 py-
 
 function MasterUjianContent() {
   const searchParams = useSearchParams();
+  const { showNotification } = useCrudNotification();
   const tautanAwal = useRef({
     ujian: Number(searchParams.get("ujian")),
     jadwal: searchParams.get("jadwal"),
@@ -147,10 +148,12 @@ function MasterUjianContent() {
     setPesan(null);
     try {
       await deleteUjian(item.id);
-      setPesan({ jenis: "sukses", teks: `Ujian "${item.judul}" berhasil dihapus.` });
+      showNotification({ type: "success", title: "Ujian dihapus", message: `Ujian "${item.judul}" berhasil dihapus.` });
       await muatUjian();
     } catch (e) {
-      setPesan({ jenis: "error", teks: e instanceof Error ? e.message : "Ujian gagal dihapus." });
+      const teks = e instanceof Error ? e.message : "Ujian gagal dihapus.";
+      setPesan({ jenis: "error", teks });
+      showNotification({ type: "error", title: "Ujian gagal dihapus", message: teks });
     } finally {
       setMenghapusId(null);
     }

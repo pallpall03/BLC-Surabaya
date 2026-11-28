@@ -25,14 +25,20 @@ export default function BukuTamu() {
 
   useEffect(() => {
     void Promise.allSettled([ambilBukuTamu(), ambilOpsiBukuTamu()]).then(([pesan, pilihan]) => {
-      if (pesan.status === "fulfilled") setDaftar(pesan.value);
+      if (!aktif) return;
+      if (pesan.status === "fulfilled") {
+        setDaftar(Array.isArray(pesan.value) ? pesan.value : []);
+      }
       if (pilihan.status === "fulfilled") {
         const data = pilihan.value;
-        setOpsi(data);
+        const blc = Array.isArray(data?.blc) ? data.blc : [];
+        const sesi = Array.isArray(data?.sesi) ? data.sesi : [];
+        const kategori = Array.isArray(data?.kategori) ? data.kategori : [];
+        setOpsi({ blc, sesi, kategori });
         setForm((f) => ({
           ...f,
-          lokasi_blc_id: f.lokasi_blc_id ?? data.blc[0]?.id,
-          sesi_id: f.sesi_id ?? data.sesi[0]?.id,
+          lokasi_blc_id: f.lokasi_blc_id ?? blc[0]?.id,
+          sesi_id: f.sesi_id ?? sesi[0]?.id,
         }));
       }
     });

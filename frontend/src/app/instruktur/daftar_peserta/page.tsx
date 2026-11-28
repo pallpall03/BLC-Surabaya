@@ -168,7 +168,7 @@ export default function DaftarPesertaPage() {
     setPage(1);
   };
 
-  const handleToggleValidasi = async (id: number, currentStatus: boolean) => {
+  const handleToggleValidasi = async (p: Peserta) => {
     try {
       await validasiPeserta(id, !currentStatus);
       await fetchData();
@@ -447,10 +447,10 @@ export default function DaftarPesertaPage() {
             <span>baris, {totalData === 0 ? 0 : mulai + 1}–{Math.min(mulai + perPage, totalData)} dari {totalData}</span>
           </div>
           <div className="d-flex align-items-center gap-2 fs-7 text-gray-600">
-            <button type="button" onClick={() => setPage(halaman - 1)} disabled={halaman <= 1} aria-label="Halaman sebelumnya"
+            <button type="button" onClick={() => setPage(halaman - 1)} disabled={loading || halaman <= 1} aria-label="Halaman sebelumnya"
               className="btn btn-icon btn-sm btn-light"><ChevronLeft size={18} /></button>
             <span>{halaman} / {totalHalaman}</span>
-            <button type="button" onClick={() => setPage(halaman + 1)} disabled={halaman >= totalHalaman} aria-label="Halaman berikutnya"
+            <button type="button" onClick={() => setPage(halaman + 1)} disabled={loading || halaman >= totalHalaman} aria-label="Halaman berikutnya"
               className="btn btn-icon btn-sm btn-light"><ChevronRight size={18} /></button>
           </div>
         </div>

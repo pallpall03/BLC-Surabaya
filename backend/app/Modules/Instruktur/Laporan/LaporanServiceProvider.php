@@ -20,6 +20,7 @@ final class LaporanServiceProvider extends ServiceProvider
             ->prefix('instruktur/laporan')
             ->group(function (): void {
                 Route::get('/', [Http\LaporanController::class, 'index']);
+                Route::get('/rekap', [Http\LaporanController::class, 'rekap']);
                 Route::get('/opsi', [Http\LaporanController::class, 'opsi']);
                 Route::post('/', [Http\LaporanController::class, 'store']);
                 Route::get('/{id}', [Http\LaporanController::class, 'show'])->whereNumber('id');
